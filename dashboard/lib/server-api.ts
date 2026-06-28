@@ -3,17 +3,15 @@ import { NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/auth";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+  process.env.NEXT_PUBLIC_API_URL ??
+  "https://naturesnationalindia.onrender.com";
 
 export async function getAuthToken() {
   const cookieStore = await cookies();
   return cookieStore.get(AUTH_COOKIE_NAME)?.value ?? null;
 }
 
-export async function backendFetch(
-  path: string,
-  init: RequestInit = {},
-) {
+export async function backendFetch(path: string, init: RequestInit = {}) {
   const token = await getAuthToken();
 
   if (!token) {

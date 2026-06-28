@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000",
+  baseURL:
+    process.env.NEXT_PUBLIC_API_URL ??
+    "https://naturesnationalindia.onrender.com",
   headers: {
     Accept: "application/json",
   },
@@ -11,9 +13,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const message =
-      error.response?.data?.message ??
-      error.message ??
-      "Something went wrong";
+      error.response?.data?.message ?? error.message ?? "Something went wrong";
     return Promise.reject(new Error(message));
   },
 );

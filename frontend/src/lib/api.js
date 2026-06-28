@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ?? "https://naturesnationalindia.onrender.com";
 
 async function handleResponse(response) {
   const data = await response.json().catch(() => ({}));
@@ -28,7 +29,9 @@ export const publicApi = {
   },
 
   getProductBySlug(slug) {
-    return fetch(`${API_BASE_URL}/api/public/products/${slug}`).then(handleResponse);
+    return fetch(`${API_BASE_URL}/api/public/products/${slug}`).then(
+      handleResponse,
+    );
   },
 
   getRelatedProducts(slug, limit = 8) {
