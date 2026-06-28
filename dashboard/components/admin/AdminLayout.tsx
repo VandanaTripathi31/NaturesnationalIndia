@@ -55,11 +55,7 @@ export default function AdminLayout({
         >
             {/* ── Desktop Sidebar (sticky, never scrolls) ── */}
             <div className="hidden lg:flex shrink-0 h-full">
-                <Sidebar
-                    collapsed={sidebarCollapsed}
-                    onToggleCollapse={toggleCollapsed}
-                    logoSrc={logoSrc}
-                />
+                <Sidebar />
             </div>
 
             {/* ── Mobile drawer backdrop ── */}
@@ -91,8 +87,10 @@ export default function AdminLayout({
                         className="fixed left-0 top-0 bottom-0 z-50 lg:hidden"
                         style={{ width: 240 }}
                     >
-                        <Sidebar collapsed={false} onClose={closeDrawer} logoSrc={logoSrc} />
-                    </motion.div>
+                        <Sidebar
+                            onClose={closeDrawer}
+                            mobileOpen={true}
+                        />                    </motion.div>
                 )}
             </AnimatePresence>
 
