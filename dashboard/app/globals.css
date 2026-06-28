@@ -1,0 +1,355 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════
+   NATURES NATURAL — Design Tokens
+   Palette from logo:
+     Leaf green    #2F8D6E
+     Olive         #5a7a3a
+     Golden oil    #c8922a
+     Earthy brown  #7c5235
+     Cream         #f7f4ee
+     Dark green    #1a5c45
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Brand */
+  --brand-leaf: #2f8d6e;
+  --brand-olive: #5a7a3a;
+  --brand-sage: #a8cc82;
+  --brand-gold: #c8922a;
+  --brand-brown: #7c5235;
+  --brand-cream: #f7f4ee;
+  --brand-warm-gray: #d6d0c8;
+  --brand-dark: #1a5c45;
+
+  /* Semantic — light */
+  --background: #f8f6f2;
+  --foreground: #1a5c45;
+  --surface: #ffffff;
+  --surface-muted: #f3f0ea;
+  --border: rgba(90, 140, 60, 0.1);
+  --border-strong: rgba(90, 140, 60, 0.2);
+
+  --text-primary: #1a5c45;
+  --text-secondary: #3d5a2a;
+  --text-muted: rgba(60, 80, 45, 0.52);
+
+  --input-bg: #ffffff;
+  --input-border: rgba(90, 140, 60, 0.16);
+  --input-placeholder: #8a9c7a;
+
+  --shadow-xs: 0 1px 4px rgba(29, 43, 24, 0.06);
+  --shadow-sm: 0 3px 14px rgba(29, 43, 24, 0.07);
+  --shadow-md: 0 8px 28px rgba(29, 43, 24, 0.1);
+  --shadow-lg: 0 20px 60px rgba(29, 43, 24, 0.13);
+
+  /* Sidebar gradient — matches login form icon mark */
+  --sidebar-bg-from: #2f8d6e;
+  --sidebar-bg-to: #1a5c45;
+  --sidebar-gradient: linear-gradient(160deg, #2f8d6e 0%, #1a5c45 100%);
+  --sidebar-active-text: #1a5c45;
+  --sidebar-active-icon: #2f8d6e;
+
+  --gradient-primary: linear-gradient(
+    135deg,
+    #2f8d6e 0%,
+    #267a5e 50%,
+    #1a5c45 100%
+  );
+
+  /* Navbar accent pill — unified with sidebar */
+  --navbar-pill-bg: #2f8d6e;
+  --navbar-pill-shadow: rgba(59, 110, 40, 0.32);
+  --navbar-pill-hover: #267a5e;
+}
+
+[data-theme="dark"] {
+  --background: #0a2d22;
+  --foreground: #eef4e8;
+  --surface: rgba(24, 35, 20, 0.85);
+  --surface-muted: rgba(30, 44, 24, 0.9);
+  --border: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  --text-primary: #eef4e8;
+  --text-secondary: #b8d49a;
+  --text-muted: rgba(200, 230, 170, 0.45);
+
+  --input-bg: rgba(30, 44, 24, 0.9);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-placeholder: #7a9a62;
+
+  --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Tailwind ─────────────────────────────────────────────────── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-outfit);
+  --font-display: var(--font-playfair);
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Smooth theme transitions */
+*,
+*::before,
+*::after {
+  transition:
+    background-color 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-outfit, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-playfair, Georgia, serif);
+}
+
+/* ── Admin card ────────────────────────────────────────────────── */
+.admin-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Inputs ────────────────────────────────────────────────────── */
+.admin-input {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  padding: 11px 16px;
+  font-size: 13.5px;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.admin-input::placeholder {
+  color: var(--input-placeholder);
+}
+.admin-input:focus {
+  border-color: rgba(59, 110, 40, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 110, 40, 0.1);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────── */
+.admin-btn-primary {
+  background: var(--gradient-primary);
+  color: #fff;
+  border-radius: 14px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 13.5px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(59, 110, 40, 0.28);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+.admin-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(59, 110, 40, 0.34);
+}
+.admin-btn-primary:active {
+  transform: translateY(0);
+}
+.admin-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.admin-btn-secondary {
+  border-radius: 14px;
+  border: 1px solid var(--border-strong);
+  padding: 10px 20px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--surface);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.admin-btn-secondary:hover:not(:disabled) {
+  background: var(--surface-muted);
+}
+.admin-btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Table ─────────────────────────────────────────────────────── */
+.admin-table-wrap {
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.admin-table-wrap thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-muted);
+}
+.admin-table-wrap thead th {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.admin-table-wrap tbody td {
+  padding: 14px 16px;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+}
+.admin-table-wrap tbody tr:last-child td {
+  border-bottom: none;
+}
+.admin-table-wrap tbody tr {
+  transition: background 0.12s;
+}
+.admin-table-wrap tbody tr:hover {
+  background: rgba(59, 110, 40, 0.03);
+}
+
+/* ── Badges ────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-green {
+  background: rgba(59, 110, 40, 0.1);
+  color: #2f8d6e;
+  border: 1px solid rgba(59, 110, 40, 0.18);
+}
+.badge-amber {
+  background: rgba(200, 146, 42, 0.1);
+  color: #a07020;
+  border: 1px solid rgba(200, 146, 42, 0.18);
+}
+.badge-red {
+  background: rgba(181, 77, 42, 0.1);
+  color: #b54d2a;
+  border: 1px solid rgba(181, 77, 42, 0.18);
+}
+[data-theme="dark"] .badge-green {
+  background: rgba(168, 204, 130, 0.12);
+  color: #a8cc82;
+  border-color: rgba(168, 204, 130, 0.18);
+}
+[data-theme="dark"] .badge-amber {
+  background: rgba(232, 176, 74, 0.12);
+  color: #e8b04a;
+  border-color: rgba(232, 176, 74, 0.18);
+}
+[data-theme="dark"] .badge-red {
+  background: rgba(240, 128, 96, 0.12);
+  color: #f08060;
+  border-color: rgba(240, 128, 96, 0.18);
+}
+
+/* ── Skeleton ──────────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(59, 110, 40, 0.07) 25%,
+    rgba(59, 110, 40, 0.14) 50%,
+    rgba(59, 110, 40, 0.07) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 10px;
+}
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 110, 40, 0.2);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 110, 40, 0.35);
+}
+
+/* ── Focus ─────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgba(59, 110, 40, 0.55);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Mobile drawer backdrop ────────────────────────────────────── */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 24, 10, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 40;
+}
