@@ -1,19 +1,29 @@
+"use client";
+
 import { Suspense } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 /*
-  Place this file at: src/Pages/ThankYou.jsx
+  Place this file at: src/components/ThankYouContent.jsx
 
-  It's the page InquiryWidget.jsx should redirect to after a successful
-  "Send Inquiry" submission, e.g. navigate(`/thank-you?name=${encodeURIComponent(name)}`)
-  using useNavigate() from react-router-dom (not Next's router.push).
+  Used by app/thank-you/page.js (Next.js App Router).
 
-  Registered in App.jsx as:
-    <Route path="/thank-you" element={<ThankYou />} />
+  IMPORTANT: This is a Next.js project, not React Router.
+  - Use `next/link` instead of `react-router-dom`'s Link
+  - Use `useSearchParams` from `next/navigation`, not `react-router-dom`
+  - Any component that calls useSearchParams() must be rendered inside
+    a <Suspense> boundary during static export/prerendering, otherwise
+    Next.js throws a prerender error on `next build`.
+
+  Your InquiryWidget.jsx should redirect with Next's router:
+    import { useRouter } from "next/navigation";
+    const router = useRouter();
+    router.push(`/thank-you?name=${encodeURIComponent(name)}`);
 */
 
-function ThankYouContent() {
-  const [searchParams] = useSearchParams();
+function ThankYouInner() {
+  const searchParams = useSearchParams();
   const name = searchParams.get("name");
 
   return (
@@ -65,7 +75,7 @@ function ThankYouContent() {
           }}
         >
           <Link
-            to="/"
+            href="/"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -108,10 +118,10 @@ function ThankYouContent() {
   );
 }
 
-export default function ThankYou() {
+export default function ThankYouContent() {
   return (
     <Suspense fallback={null}>
-      <ThankYouContent />
+      <ThankYouInner />
     </Suspense>
   );
 }
