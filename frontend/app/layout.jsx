@@ -1,6 +1,6 @@
+import { getCategories } from "../src/services/categoryService";
 import "./globals.css";
-import { getCategories } from "@/services/categoryService";
-import SiteShell from "@/components/SiteShell";
+import SiteShell from "../src/components/SiteShell";
 
 export const metadata = {
   title: {

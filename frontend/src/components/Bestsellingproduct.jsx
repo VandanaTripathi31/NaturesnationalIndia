@@ -1,15 +1,14 @@
+const arganoil = "/images/Pure-Argan-Oil-Ps.jpg";
+const coldpressedarganoil = "/images/castor oil.jpeg";
+const goldenjojoba = "/images/Golden-Jojoba-Oil-Ps.jpg";
+const lavender = "/images/Lavender-Essential-Oil-Ps.jpg";
+const oliveoil = "/images/carrier-olive oil.jpeg";
+const peppermint = "/images/Peppermint-Essential-Oil-Ps.jpg";
+const brahmi = "/images/Brahmi-Ayurvedic-Hair-Oil-Ps.jpg";
+const customblend = "/images/synergy.jpeg";
 // BestSellingProducts.jsx
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
-import arganoil from "../../public/images/Pure-Argan-Oil-Ps.jpg";
-import coldpressedarganoil from "../../public/images/castor oil.jpeg";
-import goldenjojoba from "../../public/images/Golden-Jojoba-Oil-Ps.jpg";
-import lavender from "../../public/images/Lavender-Essential-Oil-Ps.jpg";
-import oliveoil from "../../public/images/carrier-olive oil.jpeg";
-import peppermint from "../../public/images/Peppermint-Essential-Oil-Ps.jpg";
-import brahmi from "../../public/images/Brahmi-Ayurvedic-Hair-Oil-Ps.jpg";
-import customblend from "../../public/images/synergy.jpeg";
-
 const products = [
   {
     name: "Pure Argan Oil",

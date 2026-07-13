@@ -1,8 +1,12 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
-import logo from "../../public/images/logo1.png";
+import Link from "next/link";
+
+const logo = "/images/logo1.png";
 
 /* ─── TOP BAR ──────────────────────────────────────────────────────────── */
-const TopBar = ({ scrolled }) => (
+const TopBar = ({ scrolled, onOpenInquiry }) => (
   <div
     style={{
       background: "var(--color-brown-deep)",
@@ -73,6 +77,10 @@ const TopBar = ({ scrolled }) => (
           <a
             key={t}
             href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onOpenInquiry?.();
+            }}
             style={{
               color: "var(--color-brown-light)",
               fontSize: 11.5,
@@ -83,6 +91,7 @@ const TopBar = ({ scrolled }) => (
               paddingBottom: 2,
               borderBottom: "1px solid transparent",
               transition: "color 0.15s, border-color 0.15s",
+              cursor: "pointer",
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.color = "var(--color-cream-white)";
@@ -108,6 +117,10 @@ const TopBar = ({ scrolled }) => (
         />
         <a
           href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            onOpenInquiry?.();
+          }}
           style={{
             color: "var(--color-cream-white)",
             fontSize: 11.5,
@@ -120,6 +133,7 @@ const TopBar = ({ scrolled }) => (
             borderRadius: 3,
             border: "1px solid rgba(196,168,130,0.3)",
             transition: "background 0.18s",
+            cursor: "pointer",
           }}
           onMouseEnter={(e) =>
             (e.currentTarget.style.background = "rgba(196,168,130,0.32)")
@@ -266,88 +280,142 @@ const DropdownMenu = ({ items }) => (
       minWidth: 210,
     }}
   >
-    {items.map((item, i) => (
-      <a
-        key={i}
-        href={typeof item === "object" ? item.href : "#"}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          fontSize: 13,
-          color: "var(--color-text-muted)",
-          padding: "10px 18px",
-          borderBottom:
-            i < items.length - 1 ? "1px solid rgba(196,168,130,0.15)" : "none",
-          textDecoration: "none",
-          fontWeight: 400,
-          transition: "background 0.15s, color 0.15s, padding-left 0.18s",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = "#faf8f5";
-          e.currentTarget.style.color = "var(--color-dark-brown)";
-          e.currentTarget.style.paddingLeft = "24px";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.color = "var(--color-text-muted)";
-          e.currentTarget.style.paddingLeft = "18px";
-        }}
-      >
-        {typeof item === "object" ? item.label : item}
-      </a>
-    ))}
+    {items.map((item, i) => {
+      const href = typeof item === "object" ? item.href : "#";
+      const label = typeof item === "object" ? item.label : item;
+      const style = {
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        fontSize: 13,
+        color: "var(--color-text-muted)",
+        padding: "10px 18px",
+        borderBottom:
+          i < items.length - 1 ? "1px solid rgba(196,168,130,0.15)" : "none",
+        textDecoration: "none",
+        fontWeight: 400,
+        transition: "background 0.15s, color 0.15s, padding-left 0.18s",
+      };
+
+      if (href && href.startsWith("/")) {
+        return (
+          <Link
+            key={i}
+            href={href}
+            style={style}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#faf8f5";
+              e.currentTarget.style.color = "var(--color-dark-brown)";
+              e.currentTarget.style.paddingLeft = "24px";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "var(--color-text-muted)";
+              e.currentTarget.style.paddingLeft = "18px";
+            }}
+          >
+            {label}
+          </Link>
+        );
+      }
+
+      return (
+        <a
+          key={i}
+          href={href || "#"}
+          style={style}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#faf8f5";
+            e.currentTarget.style.color = "var(--color-dark-brown)";
+            e.currentTarget.style.paddingLeft = "24px";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "var(--color-text-muted)";
+            e.currentTarget.style.paddingLeft = "18px";
+          }}
+        >
+          {label}
+        </a>
+      );
+    })}
   </div>
 );
 /* ─── NAV ITEM ─────────────────────────────────────────────────────────── */
-const NavItem = ({ label, items, megaSections, megaTags, href, scrolled }) => {
+const NavItem = ({ label, items, href, scrolled }) => {
   const height = scrolled ? "60px" : "76px";
+  const linkStyle = {
+    fontSize: 13.5,
+    fontWeight: 600,
+    letterSpacing: "0.04em",
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    whiteSpace: "nowrap",
+    height,
+    padding: "0 13px",
+    color: "var(--color-text-primary)",
+    textDecoration: "none",
+    borderBottom: "2px solid transparent",
+    transition: "color 0.2s, border-color 0.2s, height 0.35s",
+    fontFamily: "'DM Sans', system-ui, sans-serif",
+  };
+
+  const labelContent = (
+    <>
+      {label}
+      {items?.length > 0 && (
+        <svg
+          width="9"
+          height="6"
+          viewBox="0 0 10 6"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          style={{ marginTop: 1, opacity: 0.55 }}
+        >
+          <path d="M1 1l4 4 4-4" />
+        </svg>
+      )}
+    </>
+  );
+
   return (
     <div className="relative group">
-      <a
-        href={href || "#"}
-        style={{
-          fontSize: 13.5,
-          fontWeight: 600,
-          letterSpacing: "0.04em",
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          whiteSpace: "nowrap",
-          height,
-          padding: "0 13px",
-          color: "var(--color-text-primary)",
-          textDecoration: "none",
-          borderBottom: "2px solid transparent",
-          transition: "color 0.2s, border-color 0.2s, height 0.35s",
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = "var(--color-dark-brown)";
-          e.currentTarget.style.borderBottomColor = "var(--color-brown-light)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = "var(--color-text-primary)";
-          e.currentTarget.style.borderBottomColor = "transparent";
-        }}
-      >
-        {label}
-        {(items || megaSections) && (
-          <svg
-            width="9"
-            height="6"
-            viewBox="0 0 10 6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            style={{ marginTop: 1, opacity: 0.55 }}
-          >
-            <path d="M1 1l4 4 4-4" />
-          </svg>
-        )}
-      </a>
-      {megaSections && <MegaMenu sections={megaSections} tags={megaTags} />}
-      {items && !megaSections && <DropdownMenu items={items} />}
+      {href && href.startsWith("/") ? (
+        <Link
+          href={href}
+          style={linkStyle}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "var(--color-dark-brown)";
+            e.currentTarget.style.borderBottomColor =
+              "var(--color-brown-light)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "var(--color-text-primary)";
+            e.currentTarget.style.borderBottomColor = "transparent";
+          }}
+        >
+          {labelContent}
+        </Link>
+      ) : (
+        <a
+          href={href || "#"}
+          style={linkStyle}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "var(--color-dark-brown)";
+            e.currentTarget.style.borderBottomColor =
+              "var(--color-brown-light)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "var(--color-text-primary)";
+            e.currentTarget.style.borderBottomColor = "transparent";
+          }}
+        >
+          {labelContent}
+        </a>
+      )}
+      {(items || []).length > 0 && items && <DropdownMenu items={items} />}
     </div>
   );
 };
@@ -397,12 +465,7 @@ const OilsMegaSections = [
   },
 ];
 
-const navItems = [
-  {
-    label: "Oils",
-    megaSections: OilsMegaSections,
-    megaTags: ["New Arrivals", "Best Sellers", "Sample Kit", "Bulk Orders"],
-  },
+const staticNavItems = [
   {
     label: "About Us",
     href: "/about-us",
@@ -484,22 +547,22 @@ const MobileSection = ({ title, items, allSections }) => {
           background: "#faf8f5",
         }}
       >
-        {allItems.map((item, i) => (
-          <a
-            key={i}
-            href={typeof item === "object" ? item.href : "#"}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "9px 28px",
-              fontSize: 12.5,
-              color: "var(--color-text-muted)",
-              borderBottom: "0.5px solid rgba(196,168,130,0.12)",
-              textDecoration: "none",
-              transition: "color 0.15s, padding-left 0.18s",
-            }}
-          >
+        {allItems.map((item, i) => {
+          const href = typeof item === "object" ? item.href : "#";
+          const label = typeof item === "object" ? item.label : item;
+          const style = {
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "9px 28px",
+            fontSize: 12.5,
+            color: "var(--color-text-muted)",
+            borderBottom: "0.5px solid rgba(196,168,130,0.12)",
+            textDecoration: "none",
+            transition: "color 0.15s, padding-left 0.18s",
+          };
+
+          const dot = (
             <span
               style={{
                 width: 4,
@@ -509,9 +572,24 @@ const MobileSection = ({ title, items, allSections }) => {
                 flexShrink: 0,
               }}
             />
-            {item}
-          </a>
-        ))}
+          );
+
+          if (href && href.startsWith("/")) {
+            return (
+              <Link key={i} href={href} style={style}>
+                {dot}
+                {label}
+              </Link>
+            );
+          }
+
+          return (
+            <a key={i} href={href || "#"} style={style}>
+              {dot}
+              {label}
+            </a>
+          );
+        })}
       </div>
     </div>
   );
@@ -558,12 +636,40 @@ const TrustBadges = ({ scrolled }) => (
 );
 
 /* ─── MAIN NAVBAR ──────────────────────────────────────────────────────── */
-const Navbar = ({ onOpenInquiry }) => {
+const Navbar = ({ onOpenInquiry, categories = [] }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  const oilsItems = categories.map((category) => ({
+    label: category.name,
+    href: `/category/${category.slug}`,
+  }));
+
+  const navItems = [
+    {
+      label: "Oils",
+      items:
+        oilsItems.length > 0
+          ? oilsItems
+          : [{ label: "Browse categories", href: "/" }],
+    },
+    ...staticNavItems,
+  ];
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    // Hysteresis prevents the header/logo from rapidly flipping size when
+    // scrollY hovers right around a single threshold (the "dancing" logo
+    // issue). It only switches to "scrolled" mode once past 80px, and only
+    // switches back once back under 40px, so small jitters near one value
+    // can't cause repeated toggling.
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled((prev) => {
+        if (!prev && y > 80) return true;
+        if (prev && y < 40) return false;
+        return prev;
+      });
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -631,299 +737,297 @@ const Navbar = ({ onOpenInquiry }) => {
         }
       `}</style>
 
-      <TopBar scrolled={scrolled} />
-      <TrustBadges scrolled={scrolled} />
+      {/*
+        FIX: TopBar + TrustBadges + header are now wrapped together in a single
+        sticky, position:relative container. Previously the mobile drawer used
+        position:fixed with a hardcoded "top: scrolled ? 60 : 80", which ignored
+        the extra height added by TopBar (40px) + TrustBadges (36px) above the
+        header when the page hadn't scrolled yet. That caused the drawer to
+        render at the wrong vertical offset and visually collide with the
+        header/badges (the UI issue in the screenshot).
 
-      <header
-        style={{
-          background: scrolled
-            ? "rgba(255,255,255,0.98)"
-            : "var(--color-cream-white, #faf8f5)",
-          borderBottom: "1px solid rgba(196,168,130,0.22)",
-          boxShadow: scrolled
-            ? "0 4px 28px rgba(62,43,30,0.11)"
-            : "0 2px 14px rgba(62,43,30,0.06)",
-          position: "sticky",
-          top: 0,
-          zIndex: 1000,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 28px 0 24px",
-          height: headerHeight,
-          transition:
-            "height 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s, background 0.35s",
-          backdropFilter: scrolled ? "blur(8px)" : "none",
-        }}
-      >
-        {/* ── LOGO ── */}
-        <a
-          href="#"
-          style={{
-            lineHeight: 0,
-            display: "flex",
-            alignItems: "center",
-            flexShrink: 0,
-          }}
-        >
-          <img
-            src={logo}
-            alt="Natures Natural India"
-            className="nb-logo-img"
+        By making this wrapper the positioning context (position: relative)
+        and placing the drawer at position: absolute; top: 100%, the drawer
+        now always sits flush against the actual bottom of the header,
+        regardless of scroll state or badge visibility — no manual pixel
+        math needed.
+      */}
+      <div style={{ position: "sticky", top: 0, zIndex: 1000 }}>
+        <div style={{ position: "relative" }}>
+          <TopBar scrolled={scrolled} onOpenInquiry={onOpenInquiry} />
+          <TrustBadges scrolled={scrolled} />
+
+          <header
             style={{
-              width: scrolled ? "140px" : "250px",
-              height: "auto",
-              objectFit: "contain",
-              filter: "contrast(1.15) brightness(1.04) saturate(1.1)",
-              transition: "width 0.35s cubic-bezier(0.4,0,0.2,1), filter 0.3s",
-              marginTop: scrolled ? 0 : "14px",
-            }}
-          />
-        </a>
-
-        {/* ── DESKTOP NAV (centered) ── */}
-        <nav
-          className="hidden lg:flex items-center h-full"
-          style={{ flex: 1, justifyContent: "center" }}
-        >
-          {navItems.map((item) => (
-            <NavItem key={item.label} {...item} scrolled={scrolled} />
-          ))}
-        </nav>
-
-        {/* ── RIGHT: CTA + hamburger ── */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            flexShrink: 0,
-          }}
-        >
-          {/* CTA */}
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              onOpenInquiry?.();
-            }}
-            className="hidden sm:inline-flex nb-cta-btn"
-          >
-            Get Free Quote
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 12 12"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.2"
-            >
-              <path d="M2 6h8M6 2l4 4-4 4" />
-            </svg>
-          </a>
-
-          {/* Hamburger */}
-          <button
-            onClick={() => setMenuOpen((p) => !p)}
-            className="flex flex-col lg:hidden"
-            aria-label="Toggle menu"
-            style={{
-              gap: 5,
-              padding: "8px 6px",
-              background: "none",
-              border: "1px solid rgba(196,168,130,0.3)",
-              borderRadius: 5,
-              cursor: "pointer",
-              transition: "background 0.18s",
-            }}
-          >
-            {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                style={{
-                  display: "block",
-                  width: 20,
-                  height: 2,
-                  background: "var(--color-text-primary)",
-                  borderRadius: 2,
-                  transition: "all 0.28s cubic-bezier(0.4,0,0.2,1)",
-                  transform:
-                    menuOpen && i === 0
-                      ? "rotate(45deg) translateY(7px)"
-                      : menuOpen && i === 2
-                        ? "rotate(-45deg) translateY(-7px)"
-                        : "none",
-                  opacity: menuOpen && i === 1 ? 0 : 1,
-                }}
-              />
-            ))}
-          </button>
-        </div>
-      </header>
-
-      {/* ── MOBILE DRAWER ── */}
-      {menuOpen && (
-        <div
-          className="lg:hidden nb-mobile-drawer"
-          style={{
-            position: "fixed",
-            left: 0,
-            right: 0,
-            top: scrolled ? 60 : 80,
-            zIndex: 2000,
-            background: "#fff",
-            borderTop: "2px solid var(--color-brown-light)",
-            boxShadow: "0 16px 48px rgba(62,43,30,0.16)",
-            maxHeight: "calc(100vh - 80px)",
-            overflowY: "auto",
-          }}
-        >
-          {/* Mobile brand strip */}
-          <div
-            style={{
-              background: "var(--color-brown-deep)",
-              padding: "14px 26px",
+              background: scrolled
+                ? "rgba(255,255,255,0.98)"
+                : "var(--color-cream-white, #faf8f5)",
+              borderBottom: "1px solid rgba(196,168,130,0.22)",
+              boxShadow: scrolled
+                ? "0 4px 28px rgba(62,43,30,0.11)"
+                : "0 2px 14px rgba(62,43,30,0.06)",
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              justifyContent: "space-between",
+              padding: "0 28px 0 24px",
+              height: headerHeight,
+              transition:
+                "height 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s, background 0.35s",
+              backdropFilter: scrolled ? "blur(8px)" : "none",
             }}
           >
-            <img
-              src={logo}
-              alt="Natures Natural India"
+            {/* ── LOGO ── */}
+            <Link
+              href="/"
               style={{
-                width: 250,
-                height: "auto",
-                filter: "brightness(1.4)",
-              }}
-            />
-          </div>
-
-          {/* Mobile trust strip */}
-          <div
-            style={{
-              background: "#faf8f5",
-              padding: "8px 26px",
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--color-brown-muted, #8B6650)",
-              letterSpacing: "0.07em",
-              borderBottom: "1px solid rgba(196,168,130,0.2)",
-            }}
-          >
-            🌿 Pure &amp; Natural &nbsp;·&nbsp; 🔬 Lab Tested &nbsp;·&nbsp; 🚢
-            Global Export
-          </div>
-
-          {/* Mobile Accordion Sections */}
-          <MobileSection title="Oils" allSections={OilsMegaSections} />
-          <MobileSection
-            title="About Us"
-            items={["Our Offices", "Policies", "Certificate", "Contact Us"]}
-          />
-          <MobileSection
-            title="Distillation"
-            items={[
-              "Steam Distillation",
-              "Cold Pressing",
-              "Solvent Extraction",
-            ]}
-          />
-          <MobileSection
-            title="Private Label"
-            items={[
-              "Bulk Orders",
-              "Private Labelling",
-              "Custom Blends",
-              "Wholesale",
-              "Secure Shipping",
-            ]}
-          />
-          <MobileSection
-            title="Packaging"
-            items={["Barrel Packaging", "Private Packaging"]}
-          />
-
-          {["Shipping", "Quality Assurance"].map((label) => (
-            <a
-              key={label}
-              href="#"
-              style={{
-                display: "block",
-                padding: "13px 26px",
-                fontSize: 14.5,
-                fontWeight: 500,
-                color: "var(--color-text-muted)",
-                borderBottom: "1px solid rgba(196,168,130,0.18)",
-                textDecoration: "none",
-                transition: "color 0.15s, background 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "var(--color-dark-brown)";
-                e.currentTarget.style.background = "#faf8f5";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "var(--color-text-muted)";
-                e.currentTarget.style.background = "transparent";
+                lineHeight: 0,
+                display: "flex",
+                alignItems: "center",
+                flexShrink: 0,
               }}
             >
-              {label}
-            </a>
-          ))}
+              <img
+                src={logo}
+                alt="Natures Natural India"
+                className="nb-logo-img"
+                style={{
+                  width: scrolled ? "140px" : "250px",
+                  height: "auto",
+                  objectFit: "contain",
+                  filter: "contrast(1.15) brightness(1.04) saturate(1.1)",
+                  transition:
+                    "width 0.35s cubic-bezier(0.4,0,0.2,1), filter 0.3s",
+                }}
+              />
+            </Link>
 
-          <div style={{ padding: "16px 26px" }}>
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                onOpenInquiry?.();
-                setMenuOpen(false);
-              }}
-              className="nb-cta-btn"
+            {/* ── DESKTOP NAV (centered) ── */}
+            <nav
+              className="hidden lg:flex items-center h-full"
+              style={{ flex: 1, justifyContent: "center" }}
+            >
+              {navItems.map((item) => (
+                <NavItem key={item.label} {...item} scrolled={scrolled} />
+              ))}
+            </nav>
+
+            {/* ── RIGHT: CTA + hamburger ── */}
+            <div
               style={{
                 display: "flex",
-                justifyContent: "center",
-                width: "100%",
+                alignItems: "center",
+                gap: 14,
+                flexShrink: 0,
               }}
             >
-              Get Free Quote →
-            </a>
-          </div>
+              {/* CTA */}
+              <a
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onOpenInquiry?.();
+                }}
+                className="hidden sm:inline-flex nb-cta-btn"
+              >
+                Get Free Quote
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                >
+                  <path d="M2 6h8M6 2l4 4-4 4" />
+                </svg>
+              </a>
 
-          {/* Mobile contact */}
-          <div
-            style={{
-              padding: "12px 26px 20px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-            }}
-          >
-            <a
-              href="tel:+919711003901"
+              {/* Hamburger */}
+              <button
+                onClick={() => setMenuOpen((p) => !p)}
+                className="flex flex-col lg:hidden"
+                aria-label="Toggle menu"
+                style={{
+                  gap: 5,
+                  padding: "8px 6px",
+                  background: "none",
+                  border: "1px solid rgba(196,168,130,0.3)",
+                  borderRadius: 5,
+                  cursor: "pointer",
+                  transition: "background 0.18s",
+                }}
+              >
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    style={{
+                      display: "block",
+                      width: 20,
+                      height: 2,
+                      background: "var(--color-text-primary)",
+                      borderRadius: 2,
+                      transition: "all 0.28s cubic-bezier(0.4,0,0.2,1)",
+                      transform:
+                        menuOpen && i === 0
+                          ? "rotate(45deg) translateY(7px)"
+                          : menuOpen && i === 2
+                            ? "rotate(-45deg) translateY(-7px)"
+                            : "none",
+                      opacity: menuOpen && i === 1 ? 0 : 1,
+                    }}
+                  />
+                ))}
+              </button>
+            </div>
+          </header>
+
+          {/* ── MOBILE DRAWER ── */}
+          {menuOpen && (
+            <div
+              className="lg:hidden nb-mobile-drawer"
               style={{
-                fontSize: 12.5,
-                color: "var(--color-brown-muted, #8B6650)",
-                textDecoration: "none",
-                fontWeight: 500,
+                position: "absolute",
+                left: 0,
+                right: 0,
+                top: "100%",
+                zIndex: 2000,
+                background: "#fff",
+                borderTop: "2px solid var(--color-brown-light)",
+                boxShadow: "0 16px 48px rgba(62,43,30,0.16)",
+                maxHeight: "calc(100vh - 80px)",
+                overflowY: "auto",
               }}
             >
-              📞 +91 9711003901
-            </a>
-            <a
-              href="mailto:info@naturesnaturalindia.com"
-              style={{
-                fontSize: 12.5,
-                color: "var(--color-brown-muted, #8B6650)",
-                textDecoration: "none",
-                fontWeight: 500,
-              }}
-            >
-              ✉ info@naturesnaturalindia.com
-            </a>
-          </div>
+              {/* Mobile trust strip */}
+              <div
+                style={{
+                  background: "#faf8f5",
+                  padding: "8px 26px",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "var(--color-brown-muted, #8B6650)",
+                  letterSpacing: "0.07em",
+                  borderBottom: "1px solid rgba(196,168,130,0.2)",
+                }}
+              >
+                🌿 Pure &amp; Natural &nbsp;·&nbsp; 🔬 Lab Tested &nbsp;·&nbsp;
+                🚢 Global Export
+              </div>
+
+              {/* Mobile Accordion Sections */}
+              <MobileSection title="Oils" items={oilsItems} />
+              <MobileSection
+                title="About Us"
+                items={["Our Offices", "Policies", "Certificate", "Contact Us"]}
+              />
+              <MobileSection
+                title="Distillation"
+                items={[
+                  "Steam Distillation",
+                  "Cold Pressing",
+                  "Solvent Extraction",
+                ]}
+              />
+              <MobileSection
+                title="Private Label"
+                items={[
+                  "Bulk Orders",
+                  "Private Labelling",
+                  "Custom Blends",
+                  "Wholesale",
+                  "Secure Shipping",
+                ]}
+              />
+              <MobileSection
+                title="Packaging"
+                items={["Barrel Packaging", "Private Packaging"]}
+              />
+
+              {[
+                { label: "Shipping", href: "/delivery-info" },
+                { label: "Quality Assurance", href: "/quality-assurance" },
+              ].map(({ label, href }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  style={{
+                    display: "block",
+                    padding: "13px 26px",
+                    fontSize: 14.5,
+                    fontWeight: 500,
+                    color: "var(--color-text-muted)",
+                    borderBottom: "1px solid rgba(196,168,130,0.18)",
+                    textDecoration: "none",
+                    transition: "color 0.15s, background 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "var(--color-dark-brown)";
+                    e.currentTarget.style.background = "#faf8f5";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "var(--color-text-muted)";
+                    e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  {label}
+                </Link>
+              ))}
+
+              <div style={{ padding: "16px 26px" }}>
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onOpenInquiry?.();
+                    setMenuOpen(false);
+                  }}
+                  className="nb-cta-btn"
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    width: "100%",
+                  }}
+                >
+                  Get Free Quote →
+                </a>
+              </div>
+
+              {/* Mobile contact */}
+              <div
+                style={{
+                  padding: "12px 26px 20px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 6,
+                }}
+              >
+                <a
+                  href="tel:+919711003901"
+                  style={{
+                    fontSize: 12.5,
+                    color: "var(--color-brown-muted, #8B6650)",
+                    textDecoration: "none",
+                    fontWeight: 500,
+                  }}
+                >
+                  📞 +91 9711003901
+                </a>
+                <a
+                  href="mailto:info@naturesnaturalindia.com"
+                  style={{
+                    fontSize: 12.5,
+                    color: "var(--color-brown-muted, #8B6650)",
+                    textDecoration: "none",
+                    fontWeight: 500,
+                  }}
+                >
+                  ✉ info@naturesnaturalindia.com
+                </a>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </>
   );
 };

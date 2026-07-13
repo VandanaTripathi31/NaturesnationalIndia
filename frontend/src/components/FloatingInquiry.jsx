@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 
 const countries = [
@@ -179,6 +181,12 @@ export default function InquiryWidget() {
     setSubmitted(false);
   };
 
+  useEffect(() => {
+    const handler = () => openModal();
+    window.addEventListener("open-inquiry", handler);
+    return () => window.removeEventListener("open-inquiry", handler);
+  }, []);
+
   const closeModal = () => {
     setClosing(true);
     setTimeout(() => {
@@ -206,8 +214,17 @@ export default function InquiryWidget() {
       {/* ── Floating Button ── */}
       <button
         onClick={openModal}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
+        onMouseEnter={(e) => {
+          setShowTooltip(true);
+          e.currentTarget.style.transform = "scale(1.1)";
+          e.currentTarget.style.boxShadow =
+            "0 12px 40px rgba(92, 64, 51, 0.45)";
+        }}
+        onMouseLeave={(e) => {
+          setShowTooltip(false);
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.boxShadow = "0 8px 28px rgba(92, 64, 51, 0.35)";
+        }}
         title="Get Free Quote"
         style={{
           position: "fixed",
@@ -226,15 +243,6 @@ export default function InquiryWidget() {
           border: "none",
           transition: "transform 0.3s, box-shadow 0.3s",
           animation: "inquiryPulse 2.5s ease-in-out infinite",
-        }}
-        onMouseEnterCapture={(e) => {
-          e.currentTarget.style.transform = "scale(1.1)";
-          e.currentTarget.style.boxShadow =
-            "0 12px 40px rgba(92, 64, 51, 0.45)";
-        }}
-        onMouseLeaveCapture={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.boxShadow = "0 8px 28px rgba(92, 64, 51, 0.35)";
         }}
       >
         <svg

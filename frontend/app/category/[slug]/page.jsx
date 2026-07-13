@@ -1,8 +1,12 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import CategoryPageView from "@/components/catalog/CategoryPageView";
-import { CategoryPageSkeleton } from "@/components/ui/CatalogSkeletons";
-import { getCategories, getCategoryBySlug } from "@/services/categoryService";
+// import { CategoryPageSkeleton } from "@/src/components/ui/CatalogSkeletons";
+import {
+  getCategories,
+  getCategoryBySlug,
+} from "../../../src/services/categoryService";
+import CategoryPageView from "../../../src/components/catalog/CategoryPageView";
+import { CategoryPageSkeleton } from "../../../src/components/ui/CatalogSkeletons";
 
 export async function generateMetadata({ params, searchParams }) {
   const { slug } = await params;
@@ -39,7 +43,9 @@ export default async function CategoryPage({ params, searchParams }) {
     notFound();
   }
 
-  const featuredProducts = (data.products ?? []).filter((product) => product.featured).slice(0, 4);
+  const featuredProducts = (data.products ?? [])
+    .filter((product) => product.featured)
+    .slice(0, 4);
 
   return (
     <Suspense fallback={<CategoryPageSkeleton />}>

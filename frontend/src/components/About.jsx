@@ -1,16 +1,15 @@
+const aboutImage = "/images/Aboutusimg.jpeg";
+const usdaImg = "/images/USDA.png";
+const kosherImg = "/images/Kosher.png";
+const halalImg = "/images/Halal.png";
+const whoGmpImg = "/images/WHO-GMP.png";
+const gmpImg = "/images/GMP.png";
+const isoImg = "/images/ISO.png";
+const haccpImg = "/images/HACCP.png";
+const spicesImg = "/images/Spices Board.png";
 // AboutSection.jsx
 import React from "react";
-import aboutImage from "../../public/images/Aboutusimg.jpeg";
 import { CheckCircle, Building2 } from "lucide-react";
-
-import usdaImg from "../../public/images/USDA.png";
-import kosherImg from "../../public/images/Kosher.png";
-import halalImg from "../../public/images/Halal.png";
-import whoGmpImg from "../../public/images/WHO-GMP.png";
-import gmpImg from "../../public/images/GMP.png";
-import isoImg from "../../public/images/ISO.png";
-import haccpImg from "../../public/images/HACCP.png";
-import spicesImg from "../../public/images/Spices Board.png";
 
 const certs = [
   { label: "USDA Organic", img: usdaImg },

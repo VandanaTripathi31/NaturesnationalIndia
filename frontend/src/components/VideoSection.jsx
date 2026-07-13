@@ -1,6 +1,5 @@
+const logo = "/images/logo.jpeg";
 import { useEffect, useState } from "react";
-import logo from "../../public/images/logo.jpeg";
-
 const points = [
   "State-of-the-art steam distillation facility",
   "Cold pressing for delicate carrier oils",

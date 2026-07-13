@@ -19,9 +19,9 @@ import {
   CheckCircle2,
   Zap,
 } from "lucide-react";
-import Breadcrumb from "@/components/Breadcrumb";
-import CategorySidebar from "@/components/CategorySidebar";
-import RelatedProducts from "@/components/RelatedProducts";
+import Breadcrumb from "@/src/components/Breadcrumb";
+import CategorySidebar from "@/src/components/CategorySidebar";
+import RelatedProducts from "@/src/components/RelatedProducts";
 
 /* ─── Variants ─────────────────────────────────────────────── */
 const fadeUp = {

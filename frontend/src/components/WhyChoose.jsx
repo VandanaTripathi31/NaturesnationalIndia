@@ -1,3 +1,8 @@
+const whoGmpImg = "/images/certificate1.png";
+const kosherImg = "/images/certificate5.png";
+const usdaImg = "/images/certificate2.png";
+const halalImg = "/images/certificate3.png";
+const isoImg = "/images/certifiacte4.png";
 // WhyChooseUs.jsx
 import { useState } from "react";
 import {
@@ -17,12 +22,6 @@ import {
   Download,
   ExternalLink,
 } from "lucide-react";
-import whoGmpImg from "../../public/images/certificate1.png";
-import kosherImg from "../../public/images/certificate5.png";
-import usdaImg from "../../public/images/certificate2.png";
-import halalImg from "../../public/images/certificate3.png";
-import isoImg from "../../public/images/certifiacte4.png";
-
 const CERT_PDF = "../../public/images/2025 NNIOPL Certificates (1).pdf"; // ← update this path
 
 const certs = [

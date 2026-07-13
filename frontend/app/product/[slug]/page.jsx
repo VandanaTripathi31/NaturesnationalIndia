@@ -1,7 +1,13 @@
 import { notFound } from "next/navigation";
-import ProductPageView from "@/components/catalog/ProductPageView";
-import { getCategories, getCategoryBySlug } from "@/services/categoryService";
-import { getProductBySlug, getRelatedProducts } from "@/services/productService";
+import ProductPageView from "@/src/components/catalog/ProductPageView";
+import {
+  getCategories,
+  getCategoryBySlug,
+} from "@/src/services/categoryService";
+import {
+  getProductBySlug,
+  getRelatedProducts,
+} from "@/src/services/productService";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;

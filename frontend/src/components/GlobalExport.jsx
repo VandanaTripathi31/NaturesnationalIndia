@@ -1,6 +1,5 @@
+const map = "/images/map.jpeg";
 import { Globe, Users, Package, Clock } from "lucide-react";
-import map from "../../public/images/map.jpeg";
-
 const countries = [
   { name: "USA", code: "us" },
   { name: "UK", code: "gb" },

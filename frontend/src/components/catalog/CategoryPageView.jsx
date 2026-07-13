@@ -15,8 +15,8 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
-import CategorySidebar from "@/components/CategorySidebar";
-import Breadcrumb from "@/components/Breadcrumb";
+import CategorySidebar from "../../../src/components/CategorySidebar";
+import Breadcrumb from "../../../src/components/Breadcrumb";
 
 /* ─── Animation Variants ───────────────────────────────────── */
 const fadeUp = {

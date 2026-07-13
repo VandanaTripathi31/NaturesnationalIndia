@@ -1,4 +1,4 @@
-import apiClient from "@/lib/api-client";
+import apiClient from "../lib/api-client";
 
 export async function getProductBySlug(slug) {
   const { data } = await apiClient.get(`/api/public/products/${slug}`);
@@ -13,7 +13,7 @@ export async function getRelatedProducts(slug, limit = 8) {
 }
 
 export async function getProductsByCategorySlug(slug, options = {}) {
-  const result = await import("@/services/categoryService").then((mod) =>
+  const result = await import("@/src/services/categoryService").then((mod) =>
     mod.getCategoryBySlug(slug, options),
   );
   return result;

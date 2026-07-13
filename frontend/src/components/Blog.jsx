@@ -1,7 +1,6 @@
-import ayurvedicOilImg from "../../public/images/Brahmi-Ayurvedic-Hair-Oil-Ps.jpg";
-import essentialOilImg from "../../public/images/essential-oil.jpg";
-import carrierOilImg from "../../public/images/castor oil.jpeg";
-
+const ayurvedicOilImg = "/images/Brahmi-Ayurvedic-Hair-Oil-Ps.jpg";
+const essentialOilImg = "/images/essential-oil.jpg";
+const carrierOilImg = "/images/castor oil.jpeg";
 const posts = [
   {
     title: "Top 10 Essential Oils for B2B Cosmetic Formulations in 2026",

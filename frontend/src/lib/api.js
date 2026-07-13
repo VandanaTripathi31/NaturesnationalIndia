@@ -1,42 +1,19 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? "https://naturesnationalindia.onrender.com";
+import { getCategories, getCategoryBySlug } from "../services/categoryService";
+import { getProductBySlug, getRelatedProducts } from "../services/productService";
 
-async function handleResponse(response) {
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.message ?? "Request failed");
-  }
-
-  return data;
-}
 
 export const publicApi = {
-  getCategories() {
-    return fetch(`${API_BASE_URL}/api/public/categories`).then(handleResponse);
-  },
+  getCategories,
+  getCategoryBySlug,
+  getProductBySlug: async (slug) => ({ product: await getProductBySlug(slug) }),
+  getRelatedProducts: async (slug, limit = 8) => ({
+    products: await getRelatedProducts(slug, limit),
+  }),
+};
 
-  getCategoryBySlug(slug, params = {}) {
-    const searchParams = new URLSearchParams();
-    if (params.page) searchParams.set("page", String(params.page));
-    if (params.limit) searchParams.set("limit", String(params.limit));
-    if (params.search) searchParams.set("search", params.search);
-    const query = searchParams.toString();
-    const path = query
-      ? `/api/public/categories/${slug}?${query}`
-      : `/api/public/categories/${slug}`;
-    return fetch(`${API_BASE_URL}${path}`).then(handleResponse);
-  },
-
-  getProductBySlug(slug) {
-    return fetch(`${API_BASE_URL}/api/public/products/${slug}`).then(
-      handleResponse,
-    );
-  },
-
-  getRelatedProducts(slug, limit = 8) {
-    return fetch(
-      `${API_BASE_URL}/api/public/products/${slug}/related?limit=${limit}`,
-    ).then(handleResponse);
-  },
+export {
+  getCategories,
+  getCategoryBySlug,
+  getProductBySlug,
+  getRelatedProducts,
 };

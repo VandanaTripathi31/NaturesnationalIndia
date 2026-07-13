@@ -64,6 +64,10 @@ function OutlineButton({ children, onClick, light = false }) {
 /* ── Component ─────────────────────────────────────────────── */
 export default function CTASection({ onInquiryOpen }) {
   const [callHovered, setCallHovered] = useState(false);
+  const openInquiry = () =>
+    onInquiryOpen
+      ? onInquiryOpen()
+      : window.dispatchEvent(new CustomEvent("open-inquiry"));
 
   return (
     <section
@@ -242,7 +246,7 @@ export default function CTASection({ onInquiryOpen }) {
           📞 Call Us Now
         </a>
 
-        <OutlineButton onClick={onInquiryOpen} light>
+        <OutlineButton onClick={openInquiry} light>
           ✉ Send Inquiry
         </OutlineButton>
       </div>

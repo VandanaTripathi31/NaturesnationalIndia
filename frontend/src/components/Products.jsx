@@ -1,20 +1,21 @@
-// ProductCategories.jsx
+"use client";
+
 import { useState } from "react";
 import { ChevronDown, ArrowUpRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 
-import essentialOilImg from "../../public/images/essential-oil.jpg";
-import carrierOilImg from "../../public/images/carrier argan-oil.jpeg";
-import fragranceOilImg from "../../public/images/Fragrances Oils-1.jpg";
-import ayurvedicOilImg from "../../public/images/ayurvedic-oil-glass-bottle-herbal.jpg";
-import organicOilImg from "../../public/images/organic-essential-oils (1).jpg";
-import absoluteOilImg from "../../public/images/Fragrances Oils-2.jpg";
-import cosmeticButterImg from "../../public/images/Cosmetic Butters.jpeg";
-import synergyBlendImg from "../../public/images/synergy.jpeg";
-import aromaticChemicalsImg from "../../public/images/aromatic-essential-oil.png";
-import diffuserOilImg from "../../public/images/diffuseroil.jpeg";
-import certifiedOrganicOilImg from "../../public/images/Certified Organic Oils.jpeg";
-import organicCarrierOilImg from "../../public/images/Organic Carrier Oils.jpeg";
+const essentialOilImg = "/images/essential-oil.jpg";
+const carrierOilImg = "/images/carrier argan-oil.jpeg";
+const fragranceOilImg = "/images/Fragrances Oils-1.jpg";
+const ayurvedicOilImg = "/images/ayurvedic-oil-glass-bottle-herbal.jpg";
+const organicOilImg = "/images/organic-essential-oils (1).jpg";
+const absoluteOilImg = "/images/Fragrances Oils-2.jpg";
+const cosmeticButterImg = "/images/Cosmetic Butters.jpeg";
+const synergyBlendImg = "/images/synergy.jpeg";
+const aromaticChemicalsImg = "/images/aromatic-essential-oil.png";
+const diffuserOilImg = "/images/diffuseroil.jpeg";
+const certifiedOrganicOilImg = "/images/Certified Organic Oils.jpeg";
+const organicCarrierOilImg = "/images/Organic Carrier Oils.jpeg";
 
 const categories = [
   { name: "Essential Oils", img: essentialOilImg },
@@ -47,7 +48,7 @@ function CategoryCard({ name, img, index }) {
 
   return (
     <Link
-      to={getCategoryLink()}
+      href={getCategoryLink()}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className="category-card"

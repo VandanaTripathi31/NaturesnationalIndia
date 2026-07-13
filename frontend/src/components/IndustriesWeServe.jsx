@@ -1,17 +1,16 @@
+const cosmetic = "/images/cosmetic.jpeg";
+const aroth = "/images/aroth.jpeg";
+const fragrance = "/images/Fragrances Oils-1.jpg";
+const ph = "/images/ph.jpg";
+const spa = "/images/aromotherapy.jpeg";
+const candles = "/images/candles.jpeg";
+const soap = "/images/soap.jpeg";
+const hair = "/images/hair.png";
+const bath = "/images/bath.png";
+const foood = "/images/foood.png";
+const nutra = "/images/nutraceteulas.jpg";
+const ayur = "/images/ayurvedic-oil-glass-bottle-herbal.jpg";
 import { useState } from "react";
-import cosmetic from "../../public/images/cosmetic.jpeg";
-import aroth from "../../public/images/aroth.jpeg";
-import fragrance from "../../public/images/Fragrances Oils-1.jpg";
-import ph from "../../public/images/ph.jpg";
-import spa from "../../public/images/aromotherapy.jpeg";
-import candles from "../../public/images/candles.jpeg";
-import soap from "../../public/images/soap.jpeg";
-import hair from "../../public/images/hair.png";
-import bath from "../../public/images/bath.png";
-import foood from "../../public/images/foood.png";
-import nutra from "../../public/images/nutraceteulas.jpg";
-import ayur from "../../public/images/ayurvedic-oil-glass-bottle-herbal.jpg";
-
 const industries = [
   {
     name: "Cosmetics & Skincare",

@@ -29,6 +29,9 @@ import OurCertifications from "./Pages/OurCertification.jsx";
 import QualityAssurance from "./Pages/QualityAssurance.jsx";
 import CategoryPage from "./Pages/CategoryPage.jsx";
 import ProductPage from "./Pages/ProductPage.jsx";
+import ThankYou from "./Pages/ThankYou.jsx";
+import BackToTop from "./components/BackToTop.jsx";
+import BrochureModal from "./components/BrochureModal.jsx";
 
 // Import your detail page
 
@@ -47,11 +50,11 @@ const HomePage = ({ openInquiry }) => {
       <Docs />
       <Process />
       <OurInfrastructure />
-      <PrivateLabel />
+      <PrivateLabel onInquiryOpen={openInquiry} />
       <GlobalExport />
       <Testimonials />
       <Blog />
-      <CTA />
+      <CTA onInquiryOpen={openInquiry} />
       <Newsletter />
     </>
   );
@@ -60,7 +63,15 @@ const HomePage = ({ openInquiry }) => {
 const App = () => {
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
 
-  const openInquiry = () => setIsInquiryOpen(true);
+  // InquiryWidget.jsx is a self-contained modal that listens for a global
+  // "open-inquiry" window event (see its useEffect) rather than an `open`
+  // prop. Every "Send Inquiry" / "Get Free Quote" / "Request OEM Quote"
+  // button around the site calls this same function, so they all now
+  // trigger the one real modal instead of silently doing nothing.
+  const openInquiry = () => {
+    setIsInquiryOpen(true);
+    window.dispatchEvent(new Event("open-inquiry"));
+  };
   const closeInquiry = () => setIsInquiryOpen(false);
 
   return (
@@ -82,11 +93,13 @@ const App = () => {
             <Route path="/our-certification" element={<OurCertifications />} />
             <Route path="/category/:slug" element={<CategoryPage />} />
             <Route path="/product/:slug" element={<ProductPage />} />
+            <Route path="/thank-you" element={<ThankYou />} />
           </Routes>
         </main>
-
-        <Footer />
+        <BackToTop />
+        <Footer onInquiryOpen={openInquiry} />
         <InquiryWidget />
+        <BrochureModal />
       </div>
     </Router>
   );

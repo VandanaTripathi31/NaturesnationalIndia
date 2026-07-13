@@ -1,5 +1,6 @@
-import aboutImage from "../../public/images/Lab.jpg.jpeg";
+"use client";
 
+const aboutImage = "/images/Lab.jpg.jpeg";
 const features = [
   "Custom formulation by expert chemists",
   "Private label with your brand, logo and design",
@@ -11,6 +12,12 @@ const features = [
 ];
 
 export default function PrivateLabel({ onInquiryOpen }) {
+  const openBrochure = () => window.dispatchEvent(new Event("open-brochure"));
+  const openInquiry = () =>
+    onInquiryOpen
+      ? onInquiryOpen()
+      : window.dispatchEvent(new CustomEvent("open-inquiry"));
+
   return (
     <section
       className="overflow-hidden"
@@ -143,7 +150,7 @@ export default function PrivateLabel({ onInquiryOpen }) {
 
           <div className="flex flex-wrap gap-3">
             <button
-              onClick={onInquiryOpen}
+              onClick={openInquiry}
               className="text-white text-[11px] font-bold tracking-[0.15em] uppercase px-6 py-2.5 transition-all hover:-translate-y-px"
               style={{
                 backgroundColor: "var(--color-dark-brown)",
@@ -162,6 +169,7 @@ export default function PrivateLabel({ onInquiryOpen }) {
               Request OEM Quote
             </button>
             <button
+              onClick={openBrochure}
               className="text-[11px] font-bold tracking-[0.15em] uppercase px-6 py-2.5 transition-all hover:-translate-y-px"
               style={{
                 backgroundColor: "transparent",

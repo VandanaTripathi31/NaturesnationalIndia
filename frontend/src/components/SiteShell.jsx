@@ -1,8 +1,10 @@
 "use client";
 
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import FloatingInquiry from "@/components/FloatingInquiry";
+import BackToTop from "./BackToTop";
+import InquiryWidget from "./FloatingInquiry";
+import BrochureModal from "./BrochureModal";
+import Footer from "./Footer";
+import Navbar from "./Navbar";
 
 function openInquiryModal() {
   window.dispatchEvent(new CustomEvent("open-inquiry"));
@@ -14,7 +16,9 @@ export default function SiteShell({ children, categories = [] }) {
       <Navbar categories={categories} onOpenInquiry={openInquiryModal} />
       <main>{children}</main>
       <Footer />
-      <FloatingInquiry />
+      <BackToTop />
+      <InquiryWidget />
+      <BrochureModal />
     </div>
   );
 }
