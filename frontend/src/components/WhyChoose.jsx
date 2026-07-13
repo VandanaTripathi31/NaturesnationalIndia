@@ -5,23 +5,7 @@ const halalImg = "/images/certificate3.png";
 const isoImg = "/images/certifiacte4.png";
 // WhyChooseUs.jsx
 import { useState } from "react";
-import {
-  Clock,
-  FlaskConical,
-  Package,
-  Tag,
-  ShoppingBag,
-  FileText,
-  ClipboardCheck,
-  Zap,
-  Award,
-  Globe,
-  Users,
-  ShieldCheck,
-  X,
-  Download,
-  ExternalLink,
-} from "lucide-react";
+import { Award, X, Download, ExternalLink } from "lucide-react";
 const CERT_PDF = "../../public/images/2025 NNIOPL Certificates (1).pdf"; // ← update this path
 
 const certs = [

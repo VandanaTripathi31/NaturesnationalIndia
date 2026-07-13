@@ -18,7 +18,7 @@ import {
 import CategorySidebar from "../../../src/components/CategorySidebar";
 import Breadcrumb from "../../../src/components/Breadcrumb";
 
-/* ─── Animation Variants ───────────────────────────────────── */
+/*  Animation Variants  */
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
   visible: (i = 0) => ({

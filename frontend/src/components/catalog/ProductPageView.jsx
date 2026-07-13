@@ -19,11 +19,11 @@ import {
   CheckCircle2,
   Zap,
 } from "lucide-react";
-import Breadcrumb from "@/src/components/Breadcrumb";
-import CategorySidebar from "@/src/components/CategorySidebar";
-import RelatedProducts from "@/src/components/RelatedProducts";
+import Breadcrumb from "../../../src/components/Breadcrumb";
+import CategorySidebar from "../../../src/components/CategorySidebar";
+import RelatedProducts from "../../../src/components/RelatedProducts";
 
-/* ─── Variants ─────────────────────────────────────────────── */
+/*  Variants  */
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: (i = 0) => ({
