@@ -478,21 +478,28 @@ const staticNavItems = [
   },
   {
     label: "Distillation",
-    items: ["Steam Distillation", "Cold Pressing", "Solvent Extraction"],
+    items: [
+      { label: "Steam Distillation", href: "/steam-distillation" },
+      { label: "Cold Pressing", href: "/cold-pressing" },
+      { label: "Solvent Extraction", href: "/solvent-extraction" },
+    ],
   },
   {
     label: "Private Label",
     items: [
-      "Bulk Orders",
-      "Private Labelling",
-      "Custom Blends",
-      "Wholesale",
-      "Secure Shipping",
+      { label: "Bulk Orders", href: "/bulk-orders" },
+      { label: "Private Labelling", href: "/private-labelling" },
+      { label: "Custom Blends", href: "/custom-blends" },
+      { label: "Wholesale", href: "/wholesale" },
+      { label: "Secure Shopping", href: "/secure-shopping" },
     ],
   },
   {
     label: "Packaging",
-    items: ["Barrel Packaging", "Private Packaging"],
+    items: [
+      { label: "Barrel Packaging", href: "/barrel-packaging" },
+      { label: "Private Packaging", href: "/private-packaging" },
+    ],
   },
   { label: "Shipping", href: "/delivery-info" },
   { label: "Quality Assurance", href: "/quality-assurance" },
@@ -776,7 +783,23 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               backdropFilter: scrolled ? "blur(8px)" : "none",
             }}
           >
-            {/* ── LOGO ── */}
+            {/* ── LOGO ──
+              FIX: the logo used to shrink by animating the <img>'s `width`
+              (250px -> 140px) on scroll. Animating width is a layout
+              property, so the browser had to reflow the header on every
+              frame of the transition, which is what produced the visible
+              "shift/jump" of the logo (and any jitter in the nav/CTA next
+              to it) whenever the page was scrolled even slightly.
+
+              Fix: the outer wrapper below keeps a CONSTANT layout box
+              (always 250px wide - the logo's largest size), so the header
+              never needs to reflow. The shrink effect on scroll is done
+              purely with a CSS `transform: scale()` on that wrapper, which
+              is a compositor-only animation (GPU accelerated, no layout
+              recalculation), anchored at the left edge so it shrinks in
+              place instead of drifting. The inner <img> keeps its own
+              independent hover-scale effect from .nb-logo-img.
+            */}
             <Link
               href="/"
               style={{
@@ -786,19 +809,29 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                 flexShrink: 0,
               }}
             >
-              <img
-                src={logo}
-                alt="Natures Natural India"
-                className="nb-logo-img"
+              <span
                 style={{
-                  width: scrolled ? "140px" : "250px",
-                  height: "auto",
-                  objectFit: "contain",
-                  filter: "contrast(1.15) brightness(1.04) saturate(1.1)",
-                  transition:
-                    "width 0.35s cubic-bezier(0.4,0,0.2,1), filter 0.3s",
+                  display: "inline-block",
+                  width: "250px",
+                  lineHeight: 0,
+                  transform: scrolled ? "scale(0.56)" : "scale(1)",
+                  transformOrigin: "left center",
+                  transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1)",
                 }}
-              />
+              >
+                <img
+                  src={logo}
+                  alt="Natures Natural India"
+                  className="nb-logo-img"
+                  style={{
+                    width: "250px",
+                    height: "auto",
+                    objectFit: "contain",
+                    filter: "contrast(1.15) brightness(1.04) saturate(1.1)",
+                    transition: "filter 0.3s",
+                  }}
+                />
+              </span>
             </Link>
 
             {/* ── DESKTOP NAV (centered) ── */}
@@ -918,29 +951,37 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               <MobileSection title="Oils" items={oilsItems} />
               <MobileSection
                 title="About Us"
-                items={["Our Offices", "Policies", "Certificate", "Contact Us"]}
+                items={[
+                  { label: "Our Offices", href: "/our-offices" },
+                  { label: "Policies", href: "/policies" },
+                  { label: "Certificate", href: "/our-certification" },
+                  { label: "Contact Us", href: "/contact-us" },
+                ]}
               />
               <MobileSection
                 title="Distillation"
                 items={[
-                  "Steam Distillation",
-                  "Cold Pressing",
-                  "Solvent Extraction",
+                  { label: "Steam Distillation", href: "/steam-distillation" },
+                  { label: "Cold Pressing", href: "/cold-pressing" },
+                  { label: "Solvent Extraction", href: "/solvent-extraction" },
                 ]}
               />
               <MobileSection
                 title="Private Label"
                 items={[
-                  "Bulk Orders",
-                  "Private Labelling",
-                  "Custom Blends",
-                  "Wholesale",
-                  "Secure Shipping",
+                  { label: "Bulk Orders", href: "/bulk-orders" },
+                  { label: "Private Labelling", href: "/private-labelling" },
+                  { label: "Custom Blends", href: "/custom-blends" },
+                  { label: "Wholesale", href: "/wholesale" },
+                  { label: "Secure Shopping", href: "/secure-shopping" },
                 ]}
               />
               <MobileSection
                 title="Packaging"
-                items={["Barrel Packaging", "Private Packaging"]}
+                items={[
+                  { label: "Barrel Packaging", href: "/barrel-packaging" },
+                  { label: "Private Packaging", href: "/private-packaging" },
+                ]}
               />
 
               {[

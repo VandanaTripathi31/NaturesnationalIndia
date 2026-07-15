@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const faqs = [
   {
@@ -203,6 +204,7 @@ function FAQItem({ item, open, onToggle }) {
 }
 
 export default function Contact() {
+  const router = useRouter();
   const [openFaq, setOpenFaq] = useState(null);
   const [form, setForm] = useState({
     name: "",
@@ -223,6 +225,18 @@ export default function Contact() {
   const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitted(true);
+
+    const params = new URLSearchParams();
+    if (form.name) params.set("name", form.name);
+    if (form.email) params.set("email", form.email);
+    if (form.phone) params.set("phone", form.phone);
+    if (form.subject) params.set("category", form.subject);
+
+    // Brief pause so the in-form "Inquiry Received" confirmation is visible
+    // before navigating through to the full Thank You page.
+    setTimeout(() => {
+      router.push(`/thank-you?${params.toString()}`);
+    }, 900);
   };
 
   return (

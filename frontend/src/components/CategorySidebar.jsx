@@ -187,7 +187,7 @@ export default function CategorySidebar({
           </a>
         </div>
         <Link
-          href="/contact"
+          href="/contact-us"
           className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-white/15 px-4 py-2.5 text-xs font-semibold text-[var(--color-cream-white)] transition hover:bg-white/25"
         >
           Send Enquiry <ChevronRight size={12} />

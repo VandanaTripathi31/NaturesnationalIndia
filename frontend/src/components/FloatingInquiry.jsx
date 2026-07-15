@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const countries = [
   "United States",
@@ -155,6 +156,7 @@ function StyledTextarea({ ...props }) {
 }
 
 export default function InquiryWidget() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -198,6 +200,19 @@ export default function InquiryWidget() {
   const handleSubmit = () => {
     if (!form.name || !form.email || !form.country) return;
     setSubmitted(true);
+
+    const params = new URLSearchParams();
+    params.set("name", form.name);
+    if (form.email) params.set("email", form.email);
+    if (form.phone) params.set("phone", form.phone);
+    if (form.category) params.set("category", form.category);
+    if (form.quantity) params.set("quantity", form.quantity);
+
+    // Brief pause so the in-modal "Inquiry Sent!" confirmation is visible
+    // before navigating through to the full Thank You page.
+    setTimeout(() => {
+      router.push(`/thank-you?${params.toString()}`);
+    }, 900);
   };
 
   // Close on Escape

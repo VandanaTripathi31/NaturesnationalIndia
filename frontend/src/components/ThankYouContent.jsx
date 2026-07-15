@@ -3,11 +3,18 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { CheckCircle2, Phone, Mail, ArrowRight } from "lucide-react";
+import FadeIn from "./FadeIn";
 
 /*
   Place this file at: src/components/ThankYouContent.jsx
+  Used by app/thank-you/page.jsx (Next.js App Router).
 
-  Used by app/thank-you/page.js (Next.js App Router).
+  This page is reached after a successful "Send Enquiry" submission from
+  either the site-wide floating InquiryWidget (src/components/FloatingInquiry.jsx)
+  or the Contact Us form (src/views/ContactUs.jsx), both of which redirect
+  here via next/navigation's router.push() with the submitted details passed
+  as query params so we can show a real confirmation summary below.
 
   IMPORTANT: This is a Next.js project, not React Router.
   - Use `next/link` instead of `react-router-dom`'s Link
@@ -15,112 +22,135 @@ import { useSearchParams } from "next/navigation";
   - Any component that calls useSearchParams() must be rendered inside
     a <Suspense> boundary during static export/prerendering, otherwise
     Next.js throws a prerender error on `next build`.
-
-  Your InquiryWidget.jsx should redirect with Next's router:
-    import { useRouter } from "next/navigation";
-    const router = useRouter();
-    router.push(`/thank-you?name=${encodeURIComponent(name)}`);
 */
+
+function DetailRow({ label, value }) {
+  if (!value) return null;
+  return (
+    <div className="flex items-center justify-between gap-4 py-3 border-b border-[#ede8e3] last:border-b-0">
+      <span className="text-[11px] font-bold tracking-widest uppercase text-[#7a5544]">
+        {label}
+      </span>
+      <span className="text-sm text-[#3e2b1e] font-medium text-right break-all">
+        {value}
+      </span>
+    </div>
+  );
+}
 
 function ThankYouInner() {
   const searchParams = useSearchParams();
   const name = searchParams.get("name");
+  const email = searchParams.get("email");
+  const phone = searchParams.get("phone");
+  const category = searchParams.get("category");
+  const quantity = searchParams.get("quantity");
+
+  const hasDetails = Boolean(name || email || phone || category || quantity);
 
   return (
     <div
-      style={{
-        minHeight: "70vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "60px 24px",
-        background: "var(--color-cream-white, #FFF9F2)",
-        fontFamily: "'DM Sans', 'Outfit', sans-serif",
-      }}
+      className="min-h-[75vh] flex items-center justify-center px-4 sm:px-6 py-20"
+      style={{ background: "var(--color-cream-white, #f8f5f2)" }}
     >
-      <div style={{ textAlign: "center", maxWidth: 480 }}>
-        <div style={{ fontSize: 56, marginBottom: 20 }}>✅</div>
+      <div className="max-w-xl w-full">
+        <FadeIn>
+          <div className="text-center mb-8">
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
+              style={{ background: "var(--color-sage-light, #ebf0e8)" }}
+            >
+              <CheckCircle2
+                size={30}
+                strokeWidth={2}
+                style={{ color: "var(--color-sage-dark, #4a6b46)" }}
+              />
+            </div>
 
-        <h1
-          style={{
-            fontFamily: "'Playfair Display', 'Cormorant Garamond', serif",
-            fontSize: 30,
-            color: "var(--color-text-primary, #3E2C23)",
-            fontWeight: 500,
-            marginBottom: 14,
-          }}
-        >
-          Thank You{name ? `, ${name}` : ""}!
-        </h1>
+            <h1
+              style={{ fontFamily: "'Playfair Display', serif" }}
+              className="text-3xl sm:text-4xl font-semibold text-[#3e2b1e] mb-3"
+            >
+              Thank You{name ? `, ${name}` : ""}!
+            </h1>
 
-        <p
-          style={{
-            fontSize: 15,
-            lineHeight: 1.7,
-            color: "var(--color-text-muted, #6B5A4E)",
-            marginBottom: 32,
-          }}
-        >
-          Your inquiry has been received. Our export team will review your
-          requirements and get back to you within 24 hours with pricing and
-          samples.
-        </p>
+            <p className="text-[#6b5a4e] text-base leading-relaxed max-w-md mx-auto">
+              Your enquiry has been received. Our export team will review
+              your requirements and get back to you within 24 hours with
+              pricing and samples.
+            </p>
+          </div>
+        </FadeIn>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            justifyContent: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <Link
-            href="/"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: "linear-gradient(135deg, #5C3D2E 0%, #8B6344 100%)",
-              color: "#fff",
-              textDecoration: "none",
-              borderRadius: 100,
-              padding: "12px 28px",
-              fontSize: 13,
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-            }}
-          >
-            Back to Home
-          </Link>
-          <a
-            href="tel:+919711003901"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              border: "1px solid var(--color-brown-light, #D4B896)",
-              color: "var(--color-text-primary, #3E2C23)",
-              textDecoration: "none",
-              borderRadius: 100,
-              padding: "12px 28px",
-              fontSize: 13,
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-            }}
-          >
-            📞 Call Us
-          </a>
-        </div>
+        {hasDetails && (
+          <FadeIn delay={100}>
+            <div className="bg-white border border-[#ede8e3] rounded-3xl p-6 sm:p-7 mb-8">
+              <div className="text-[11px] font-bold tracking-widest uppercase text-[#a8896c] mb-1">
+                Enquiry Confirmation
+              </div>
+              <div className="mt-2">
+                <DetailRow label="Name" value={name} />
+                <DetailRow label="Email" value={email} />
+                <DetailRow label="Phone" value={phone} />
+                <DetailRow label="Product Interest" value={category} />
+                <DetailRow label="Quantity" value={quantity} />
+              </div>
+            </div>
+          </FadeIn>
+        )}
+
+        <FadeIn delay={150}>
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
+            <Link href="/" className="btn-primary">
+              Back to Home
+              <ArrowRight size={15} />
+            </Link>
+            <a href="tel:+919711003901" className="btn-secondary">
+              <Phone size={14} />
+              Call Us
+            </a>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-[#a8896c]">
+            <a
+              href="tel:+919711003901"
+              className="inline-flex items-center gap-1.5 hover:text-[#7a5544] transition-colors"
+            >
+              <Phone size={13} /> +91 9711003901
+            </a>
+            <a
+              href="mailto:info@naturesnaturalindia.com"
+              className="inline-flex items-center gap-1.5 hover:text-[#7a5544] transition-colors"
+            >
+              <Mail size={13} /> info@naturesnaturalindia.com
+            </a>
+          </div>
+        </FadeIn>
       </div>
+    </div>
+  );
+}
+
+function ThankYouFallback() {
+  return (
+    <div
+      className="min-h-[75vh] flex items-center justify-center px-4 sm:px-6 py-20"
+      style={{ background: "var(--color-cream-white, #f8f5f2)" }}
+    >
+      <div
+        className="w-8 h-8 rounded-full border-2 animate-spin"
+        style={{
+          borderColor: "rgba(196,168,130,0.3)",
+          borderTopColor: "var(--color-dark-brown, #5c4033)",
+        }}
+      />
     </div>
   );
 }
 
 export default function ThankYouContent() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<ThankYouFallback />}>
       <ThankYouInner />
     </Suspense>
   );

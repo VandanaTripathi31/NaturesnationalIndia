@@ -115,13 +115,13 @@ const services = [
 ];
 
 const company = [
-  { label: "About Us", href: "#" },
-  { label: "Certifications", href: "#" },
-  { label: "Quality Assurance", href: "#" },
+  { label: "About Us", href: "/about-us" },
+  { label: "Certifications", href: "/our-certification" },
+  { label: "Quality Assurance", href: "/quality-assurance" },
   { label: "Our Process", href: "#" },
   { label: "Blog", href: "#blog-sec" },
   { label: "Careers", href: "#" },
-  { label: "Contact", href: "#" },
+  { label: "Contact", href: "/contact-us" },
 ];
 
 const socials = [
@@ -489,7 +489,11 @@ export default function Footer({ onInquiryOpen }) {
             © 2026 Natures Natural India Oils Pvt. Ltd. All rights reserved.
           </span>
           <span style={{ fontSize: "11.5px", color: "#786a5e" }}>
-            {["Privacy Policy", "Terms", "Sitemap"].map((link, i) => (
+            {[
+              { label: "Privacy Policy", href: "/policies" },
+              { label: "Terms", href: "/policies" },
+              { label: "Sitemap", href: "#" },
+            ].map(({ label: link, href }, i) => (
               <span key={link}>
                 {i > 0 && (
                   <span
@@ -502,7 +506,7 @@ export default function Footer({ onInquiryOpen }) {
                   </span>
                 )}
                 <a
-                  href="#"
+                  href={href}
                   style={{
                     color: "#786a5e",
                     textDecoration: "none",
