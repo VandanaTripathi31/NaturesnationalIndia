@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 
 const logo = "/images/logo1.png";
@@ -149,7 +149,7 @@ const TopBar = ({ scrolled, onOpenInquiry }) => (
   </div>
 );
 
-/* ─── MEGA MENU ────────────────────────────────────────────────────────── */
+/* ─── MEGA MENU (kept as-is / unused, same as original file) ───────────── */
 const MegaMenu = ({ sections, tags }) => (
   <div
     className="hidden group-hover:block absolute top-full left-1/2 z-[999]"
@@ -269,10 +269,28 @@ const MegaMenu = ({ sections, tags }) => (
 );
 
 /* ─── SIMPLE DROPDOWN ──────────────────────────────────────────────────── */
-const DropdownMenu = ({ items }) => (
+/*
+  FIX: originally this only opened/closed via Tailwind's `group-hover:block`
+  fighting the parent's CSS `.group` class, toggled with a hard
+  `display:none <-> display:block` snap. Combined with the header height
+  animation happening at the same time (see Navbar below), this hard
+  snap-in was what read as "dancing" whenever a submenu opened.
+
+  Design/markup/content is 100% unchanged. The only change is *how* it
+  becomes visible: driven by an explicit `open` boolean (real React state,
+  set via onMouseEnter/onMouseLeave in NavItem) instead of CSS :hover, and
+  animated with opacity/transform instead of display — so it fades in
+  smoothly with zero layout shift, rather than popping.
+*/
+const DropdownMenu = ({ items, open }) => (
   <div
-    className="hidden group-hover:block absolute top-full left-0 z-[999]"
+    className="absolute top-full left-0 z-[999]"
     style={{
+      opacity: open ? 1 : 0,
+      visibility: open ? "visible" : "hidden",
+      pointerEvents: open ? "auto" : "none",
+      transform: `translateY(${open ? "0px" : "-6px"})`,
+      transition: "opacity 0.18s ease, transform 0.18s ease, visibility 0.18s",
       background: "#fff",
       border: "1px solid rgba(196,168,130,0.22)",
       borderTop: "3px solid var(--color-brown-light)",
@@ -341,9 +359,23 @@ const DropdownMenu = ({ items }) => (
     })}
   </div>
 );
+
 /* ─── NAV ITEM ─────────────────────────────────────────────────────────── */
-const NavItem = ({ label, items, href, scrolled }) => {
-  const height = scrolled ? "60px" : "76px";
+/*
+  FIX: previously `height` here animated 60px <-> 76px in step with the
+  header's own height animation (a SECOND, separately-timed transition
+  reacting to the same `scrolled` flag). Two independent transitions tied
+  to one boolean is what caused the visible jitter on scroll. The header
+  height is now constant (see Navbar), so this no longer needs to resize
+  at all — same visual size, just no more competing animation.
+
+  Dropdown visibility is now explicit state (openKey === label) via
+  onMouseEnter/onMouseLeave, instead of relying on CSS `.group:hover`,
+  which is what let the dropdown pop in without any transition before.
+*/
+const NavItem = ({ label, items, href, openKey, onOpen, onClose }) => {
+  const isOpen = openKey === label;
+
   const linkStyle = {
     fontSize: 13.5,
     fontWeight: 600,
@@ -352,12 +384,12 @@ const NavItem = ({ label, items, href, scrolled }) => {
     alignItems: "center",
     gap: 4,
     whiteSpace: "nowrap",
-    height,
+    height: 76,
     padding: "0 13px",
     color: "var(--color-text-primary)",
     textDecoration: "none",
     borderBottom: "2px solid transparent",
-    transition: "color 0.2s, border-color 0.2s, height 0.35s",
+    transition: "color 0.2s, border-color 0.2s",
     fontFamily: "'DM Sans', system-ui, sans-serif",
   };
 
@@ -381,19 +413,20 @@ const NavItem = ({ label, items, href, scrolled }) => {
   );
 
   return (
-    <div className="relative group">
+    <div
+      className="relative"
+      onMouseEnter={() => items?.length > 0 && onOpen(label)}
+      onMouseLeave={() => items?.length > 0 && onClose()}
+    >
       {href && href.startsWith("/") ? (
         <Link
           href={href}
-          style={linkStyle}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = "var(--color-dark-brown)";
-            e.currentTarget.style.borderBottomColor =
-              "var(--color-brown-light)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = "var(--color-text-primary)";
-            e.currentTarget.style.borderBottomColor = "transparent";
+          style={{
+            ...linkStyle,
+            color: isOpen ? "var(--color-dark-brown)" : linkStyle.color,
+            borderBottomColor: isOpen
+              ? "var(--color-brown-light)"
+              : "transparent",
           }}
         >
           {labelContent}
@@ -401,21 +434,20 @@ const NavItem = ({ label, items, href, scrolled }) => {
       ) : (
         <a
           href={href || "#"}
-          style={linkStyle}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = "var(--color-dark-brown)";
-            e.currentTarget.style.borderBottomColor =
-              "var(--color-brown-light)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = "var(--color-text-primary)";
-            e.currentTarget.style.borderBottomColor = "transparent";
+          style={{
+            ...linkStyle,
+            color: isOpen ? "var(--color-dark-brown)" : linkStyle.color,
+            borderBottomColor: isOpen
+              ? "var(--color-brown-light)"
+              : "transparent",
           }}
         >
           {labelContent}
         </a>
       )}
-      {(items || []).length > 0 && items && <DropdownMenu items={items} />}
+      {(items || []).length > 0 && items && (
+        <DropdownMenu items={items} open={isOpen} />
+      )}
     </div>
   );
 };
@@ -646,6 +678,8 @@ const TrustBadges = ({ scrolled }) => (
 const Navbar = ({ onOpenInquiry, categories = [] }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [openKey, setOpenKey] = useState(null);
+  const closeTimer = useRef(null);
 
   const oilsItems = categories.map((category) => ({
     label: category.name,
@@ -662,6 +696,15 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
     },
     ...staticNavItems,
   ];
+
+  const handleOpen = useCallback((label) => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setOpenKey(label);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    closeTimer.current = setTimeout(() => setOpenKey(null), 120);
+  }, []);
 
   useEffect(() => {
     // Hysteresis prevents the header/logo from rapidly flipping size when
@@ -680,8 +723,6 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  const headerHeight = scrolled ? "60px" : "80px";
 
   return (
     <>
@@ -730,7 +771,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
           transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), filter 0.3s;
         }
         .nb-logo-img:hover {
-          transform: scale(1.05) !important;
+          transform: scale(1.05);
           filter: contrast(1.2) brightness(1.08) !important;
         }
 
@@ -744,21 +785,6 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
         }
       `}</style>
 
-      {/*
-        FIX: TopBar + TrustBadges + header are now wrapped together in a single
-        sticky, position:relative container. Previously the mobile drawer used
-        position:fixed with a hardcoded "top: scrolled ? 60 : 80", which ignored
-        the extra height added by TopBar (40px) + TrustBadges (36px) above the
-        header when the page hadn't scrolled yet. That caused the drawer to
-        render at the wrong vertical offset and visually collide with the
-        header/badges (the UI issue in the screenshot).
-
-        By making this wrapper the positioning context (position: relative)
-        and placing the drawer at position: absolute; top: 100%, the drawer
-        now always sits flush against the actual bottom of the header,
-        regardless of scroll state or badge visibility — no manual pixel
-        math needed.
-      */}
       <div style={{ position: "sticky", top: 0, zIndex: 1000 }}>
         <div style={{ position: "relative" }}>
           <TopBar scrolled={scrolled} onOpenInquiry={onOpenInquiry} />
@@ -777,28 +803,17 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               alignItems: "center",
               justifyContent: "space-between",
               padding: "0 28px 0 24px",
-              height: headerHeight,
-              transition:
-                "height 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.35s, background 0.35s",
+              height: 76,
+              transition: "box-shadow 0.35s, background 0.35s",
               backdropFilter: scrolled ? "blur(8px)" : "none",
             }}
           >
             {/* ── LOGO ──
-              FIX: the logo used to shrink by animating the <img>'s `width`
-              (250px -> 140px) on scroll. Animating width is a layout
-              property, so the browser had to reflow the header on every
-              frame of the transition, which is what produced the visible
-              "shift/jump" of the logo (and any jitter in the nav/CTA next
-              to it) whenever the page was scrolled even slightly.
-
-              Fix: the outer wrapper below keeps a CONSTANT layout box
-              (always 250px wide - the logo's largest size), so the header
-              never needs to reflow. The shrink effect on scroll is done
-              purely with a CSS `transform: scale()` on that wrapper, which
-              is a compositor-only animation (GPU accelerated, no layout
-              recalculation), anchored at the left edge so it shrinks in
-              place instead of drifting. The inner <img> keeps its own
-              independent hover-scale effect from .nb-logo-img.
+              FIX: logo is now a constant size with no scroll-tied scale
+              transform, so it can no longer desync from the header's
+              (now also constant) height. The only motion left is the
+              pre-existing hover micro-interaction, which is independent
+              of scroll state and doesn't touch layout.
             */}
             <Link
               href="/"
@@ -809,29 +824,19 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                 flexShrink: 0,
               }}
             >
-              <span
+              <img
+                src={logo}
+                alt="Natures Natural India"
+                className="nb-logo-img"
+                width={250}
+                height={80}
                 style={{
-                  display: "inline-block",
-                  width: "250px",
-                  lineHeight: 0,
-                  transform: scrolled ? "scale(0.56)" : "scale(1)",
-                  transformOrigin: "left center",
-                  transition: "transform 0.35s cubic-bezier(0.4,0,0.2,1)",
+                  width: 190,
+                  height: "auto",
+                  objectFit: "contain",
+                  filter: "contrast(1.15) brightness(1.04) saturate(1.1)",
                 }}
-              >
-                <img
-                  src={logo}
-                  alt="Natures Natural India"
-                  className="nb-logo-img"
-                  style={{
-                    width: "250px",
-                    height: "auto",
-                    objectFit: "contain",
-                    filter: "contrast(1.15) brightness(1.04) saturate(1.1)",
-                    transition: "filter 0.3s",
-                  }}
-                />
-              </span>
+              />
             </Link>
 
             {/* ── DESKTOP NAV (centered) ── */}
@@ -840,7 +845,13 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               style={{ flex: 1, justifyContent: "center" }}
             >
               {navItems.map((item) => (
-                <NavItem key={item.label} {...item} scrolled={scrolled} />
+                <NavItem
+                  key={item.label}
+                  {...item}
+                  openKey={openKey}
+                  onOpen={handleOpen}
+                  onClose={handleClose}
+                />
               ))}
             </nav>
 
