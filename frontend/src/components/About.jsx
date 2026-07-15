@@ -38,6 +38,7 @@ const features = [
 export default function AboutSection() {
   return (
     <section
+      className="about-sec"
       style={{
         background: "var(--color-off-white)",
         padding: "72px 36px",
@@ -45,9 +46,10 @@ export default function AboutSection() {
       id="about-sec"
     >
       <div
+        className="about-grid"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
           gap: "56px",
           maxWidth: "1200px",
           margin: "0 auto",
@@ -227,6 +229,13 @@ export default function AboutSection() {
           <CertificationsStrip />
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .about-sec { padding: 48px 18px !important; }
+          .about-grid { gap: 36px !important; }
+        }
+      `}</style>
     </section>
   );
 }
@@ -250,8 +259,9 @@ function CertificationsStrip() {
         Certifications &amp; Accreditations
       </p>
 
-      {/* Cert logos — 4 columns grid */}
+      {/* Cert logos — 4 columns grid, collapses on smaller screens */}
       <div
+        className="about-certs-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
@@ -265,6 +275,15 @@ function CertificationsStrip() {
           <CertBadge key={c.label} label={c.label} img={c.img} />
         ))}
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .about-certs-grid { grid-template-columns: repeat(3, 1fr) !important; }
+        }
+        @media (max-width: 420px) {
+          .about-certs-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+      `}</style>
     </div>
   );
 }

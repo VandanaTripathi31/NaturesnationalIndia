@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin,
@@ -12,13 +11,25 @@ import {
   ArrowRight,
   Download,
   Phone,
+  PhoneCall,
   ChevronLeft,
   ChevronRight,
   Sparkles,
   FlaskConical,
   CheckCircle2,
   Zap,
+  ClipboardList,
 } from "lucide-react";
+
+// Both CTAs on this page use the site's existing global inquiry / brochure
+// modals (see FloatingInquiry.jsx and BrochureModal.jsx) rather than the
+// previously dead /contact and /catalogue routes.
+function openInquiry() {
+  window.dispatchEvent(new CustomEvent("open-inquiry"));
+}
+function openBrochure() {
+  window.dispatchEvent(new CustomEvent("open-brochure"));
+}
 import Breadcrumb from "../../../src/components/Breadcrumb";
 import CategorySidebar from "../../../src/components/CategorySidebar";
 import RelatedProducts from "../../../src/components/RelatedProducts";
@@ -338,18 +349,27 @@ export default function ProductPageView({
                     custom={5}
                     className="mt-8 flex flex-wrap gap-3"
                   >
-                    <Link
-                      href="/contact"
+                    <button
+                      type="button"
+                      onClick={openInquiry}
                       className="btn-primary flex items-center gap-2"
                     >
-                      <Phone size={15} /> Request Quote
-                    </Link>
-                    <Link
-                      href="/catalogue"
+                      <Phone size={15} /> Get a Quote
+                    </button>
+                    <button
+                      type="button"
+                      onClick={openInquiry}
+                      className="btn-secondary flex items-center gap-2"
+                    >
+                      <PhoneCall size={15} /> Request Call Back
+                    </button>
+                    <button
+                      type="button"
+                      onClick={openBrochure}
                       className="btn-secondary flex items-center gap-2"
                     >
                       <Download size={15} /> Download Catalogue
-                    </Link>
+                    </button>
                   </motion.div>
 
                   {/* Trust strip */}
@@ -377,6 +397,72 @@ export default function ProductPageView({
                   </motion.div>
                 </div>
               </motion.div>
+
+              {/* ── Specifications ────────────────────────── */}
+              <motion.section
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-60px" }}
+                variants={stagger}
+                className="mt-10"
+              >
+                <motion.div
+                  variants={fadeUp}
+                  className="mb-5 flex items-center gap-3"
+                >
+                  <div
+                    className="flex h-8 w-8 items-center justify-center rounded-xl"
+                    style={{ background: "var(--color-sage-light)" }}
+                  >
+                    <ClipboardList
+                      size={15}
+                      style={{ color: "var(--color-sage-dark)" }}
+                    />
+                  </div>
+                  <h2 className="font-playfair text-xl font-semibold text-[var(--color-text-primary)]">
+                    Specifications
+                  </h2>
+                </motion.div>
+                <motion.div
+                  variants={fadeUp}
+                  className="overflow-hidden rounded-2xl border border-[var(--color-warm-gray)] bg-white"
+                >
+                  {[
+                    { label: "Product Name", value: product.name },
+                    { label: "Botanical Name", value: product.botanicalName },
+                    { label: "Category", value: product.category?.name },
+                    { label: "Origin", value: product.origin },
+                    {
+                      label: "Extraction Method",
+                      value: product.extractionMethod,
+                    },
+                    {
+                      label: "Availability",
+                      value: product.featured
+                        ? "Featured / In Demand"
+                        : "In Stock",
+                    },
+                  ]
+                    .filter((row) => row.value)
+                    .map((row, i, arr) => (
+                      <div
+                        key={row.label}
+                        className={`flex flex-col gap-1 px-5 py-3.5 sm:flex-row sm:items-center sm:gap-4 ${
+                          i < arr.length - 1
+                            ? "border-b border-[var(--color-warm-gray)]"
+                            : ""
+                        } ${i % 2 === 1 ? "bg-[var(--color-off-white)]" : ""}`}
+                      >
+                        <span className="w-full text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] sm:w-48 sm:shrink-0">
+                          {row.label}
+                        </span>
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">
+                          {row.value}
+                        </span>
+                      </div>
+                    ))}
+                </motion.div>
+              </motion.section>
 
               {/* ── Benefits ───────────────────────────────── */}
               {product.benefits?.length > 0 && (
@@ -447,7 +533,10 @@ export default function ProductPageView({
               )}
 
               {/* ── Related Products ──────────────────────── */}
-              <RelatedProducts products={relatedProducts} />
+              <RelatedProducts
+                products={relatedProducts}
+                categorySlug={product.category?.slug}
+              />
             </section>
           </div>
         </div>

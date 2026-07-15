@@ -1,36 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ArrowUpRight } from "lucide-react";
+import { ChevronDown, ArrowUpRight, Leaf } from "lucide-react";
 import Link from "next/link";
 
-const essentialOilImg = "/images/essential-oil.jpg";
-const carrierOilImg = "/images/carrier argan-oil.jpeg";
-const fragranceOilImg = "/images/Fragrances Oils-1.jpg";
-const ayurvedicOilImg = "/images/ayurvedic-oil-glass-bottle-herbal.jpg";
-const organicOilImg = "/images/organic-essential-oils (1).jpg";
-const absoluteOilImg = "/images/Fragrances Oils-2.jpg";
-const cosmeticButterImg = "/images/Cosmetic Butters.jpeg";
-const synergyBlendImg = "/images/synergy.jpeg";
-const aromaticChemicalsImg = "/images/aromatic-essential-oil.png";
-const diffuserOilImg = "/images/diffuseroil.jpeg";
-const certifiedOrganicOilImg = "/images/Certified Organic Oils.jpeg";
-const organicCarrierOilImg = "/images/Organic Carrier Oils.jpeg";
+// Fallback image used only when a category has no image set in the
+// admin-managed data yet — keeps the grid from breaking, never hardcodes
+// product/category content.
+const FALLBACK_IMG = "/images/essential-oil.jpg";
 
-const categories = [
-  { name: "Essential Oils", img: essentialOilImg },
-  { name: "Carrier / Base Oils", img: carrierOilImg },
-  { name: "Fragrance Oils", img: fragranceOilImg },
-  { name: "Ayurvedic Herbal Oils", img: ayurvedicOilImg },
-  { name: "Organic Essential Oils", img: organicOilImg },
-  { name: "Absolute / Floral Oils", img: absoluteOilImg },
-  { name: "Cosmetic Butters", img: cosmeticButterImg },
-  { name: "Synergy Blends", img: synergyBlendImg },
-  { name: "Aromatic Chemicals", img: aromaticChemicalsImg, extra: true },
-  { name: "Diffuser Oils", img: diffuserOilImg, extra: true },
-  { name: "Certified Organic Oils", img: certifiedOrganicOilImg, extra: true },
-  { name: "Organic Carrier Oils", img: organicCarrierOilImg, extra: true },
-];
+// How many categories show before "View More Categories" is used. Purely a
+// display/pagination concern — the underlying list is always the live
+// category set from the API (same data source as the Navbar).
+const INITIAL_VISIBLE_COUNT = 8;
 
 // ── Circle size tokens — change here to resize everywhere ──
 const CIRCLE = 180; // main image diameter (px)
@@ -38,17 +20,17 @@ const RING_GAP = 3; // gap between image edge and solid ring
 const DASHED_GAP = 8; // gap between image edge and dashed ring
 const BADGE = 34; // arrow badge diameter (px)
 
-function CategoryCard({ name, img, index }) {
+function CategoryCard({ name, img, slug, index }) {
   const [hovered, setHovered] = useState(false);
 
-  const getCategoryLink = () => {
-    if (name === "Essential Oils") return "/products/essential-oils";
-    return "#";
-  };
+  // Same route the Navbar uses for this exact category — guarantees both
+  // entry points open the identical dynamic category page, never a
+  // duplicate.
+  const categoryLink = slug ? `/category/${slug}` : "/";
 
   return (
     <Link
-      href={getCategoryLink()}
+      href={categoryLink}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className="category-card"
@@ -113,17 +95,23 @@ function CategoryCard({ name, img, index }) {
             borderRadius: "50%",
             overflow: "hidden",
             position: "relative",
+            background: "var(--color-off-white, #faf8f5)",
           }}
         >
           <img
-            src={img}
+            src={img || FALLBACK_IMG}
             alt={name}
             style={{
               width: "100%",
               height: "100%",
-              objectFit: "cover",
+              // "contain" keeps the ENTIRE uploaded photo visible inside
+              // the circle (nothing cropped off), unlike "cover" which
+              // fills the circle by cutting off the edges of the source
+              // image.
+              objectFit: "contain",
+              objectPosition: "center",
               transition: "transform 0.55s cubic-bezier(0.22,1,0.36,1)",
-              transform: hovered ? "scale(1.12)" : "scale(1)",
+              transform: hovered ? "scale(1.06)" : "scale(1)",
             }}
           />
           {/* Warm overlay on hover */}
@@ -202,11 +190,23 @@ function CategoryCard({ name, img, index }) {
   );
 }
 
-export default function ProductCategories() {
+export default function ProductCategories({ categories = [] }) {
   const [showMore, setShowMore] = useState(false);
   const [btnHov, setBtnHov] = useState(false);
 
-  const visibleCategories = categories.filter((cat) => !cat.extra || showMore);
+  // Map the existing category API response (name, slug, image.url) straight
+  // into the card shape this section already renders — no product/category
+  // data is invented here, only read from what the API returned.
+  const cards = categories.map((category) => ({
+    name: category.name,
+    slug: category.slug,
+    img: category.image?.url || "",
+  }));
+
+  const visibleCategories = showMore
+    ? cards
+    : cards.slice(0, INITIAL_VISIBLE_COUNT);
+  const hasMore = cards.length > INITIAL_VISIBLE_COUNT;
 
   return (
     <section
@@ -346,11 +346,30 @@ export default function ProductCategories() {
         }}
       >
         {visibleCategories.map((cat, i) => (
-          <CategoryCard key={cat.name} {...cat} index={i} />
+          <CategoryCard key={cat.slug || cat.name} {...cat} index={i} />
         ))}
       </div>
 
+      {cards.length === 0 && (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "40px 16px",
+            color: "var(--color-text-muted)",
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontSize: 14,
+          }}
+        >
+          <Leaf
+            size={28}
+            style={{ margin: "0 auto 12px", color: "var(--color-brown-muted)" }}
+          />
+          Categories are being updated. Please check back shortly.
+        </div>
+      )}
+
       {/* ── Show more button ── */}
+      {hasMore && (
       <div style={{ textAlign: "center", marginTop: 44 }}>
         <button
           onClick={() => setShowMore((p) => !p)}
@@ -387,6 +406,7 @@ export default function ProductCategories() {
           />
         </button>
       </div>
+      )}
 
       <style>{`
         @keyframes spinSlow {

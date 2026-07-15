@@ -117,6 +117,7 @@ export const Hero = ({ openInquiry }) => {
 
   return (
     <section
+      className="hero-section"
       style={{
         position: "relative",
         overflow: "hidden",
@@ -126,6 +127,20 @@ export const Hero = ({ openInquiry }) => {
         flexDirection: "column",
       }}
     >
+      <style>{`
+        /* iOS Safari's address bar makes 100vh taller than what's actually
+           visible, cutting the hero off / leaving a gap. dvh reflects the
+           real visible viewport and is supported on iOS 15.4+. */
+        @supports (height: 100dvh) {
+          .hero-section { height: calc(100dvh - 139px) !important; }
+        }
+        @media (max-width: 768px) {
+          .hero-section { height: calc(100vh - 60px) !important; min-height: 560px !important; }
+          @supports (height: 100dvh) {
+            .hero-section { height: calc(100dvh - 60px) !important; }
+          }
+        }
+      `}</style>
       <style>{`
         /* ── Google Fonts ── */
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Jost:wght@300;400;500;600;700&display=swap');

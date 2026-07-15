@@ -24,13 +24,16 @@ function openInquiryModal() {
   window.dispatchEvent(new CustomEvent("open-inquiry"));
 }
 
-export default function HomePage() {
+export default function HomePage({ categories = [] }) {
   return (
     <>
       <Hero onOpenInquiry={openInquiryModal} />
       <Marquee />
       <AboutSection />
-      <ProductCategories onOpenInquiry={openInquiryModal} />
+      <ProductCategories
+        categories={categories}
+        onOpenInquiry={openInquiryModal}
+      />
       <BestSellingProducts />
       <WhyChooseUs />
       <IndustriesWeServe />

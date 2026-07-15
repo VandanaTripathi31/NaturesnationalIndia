@@ -319,6 +319,9 @@ export default function InquiryWidget() {
         .inq-panel-scroll::-webkit-scrollbar-track { background: var(--color-off-white); }
         .inq-panel-scroll::-webkit-scrollbar-thumb { background: var(--color-brown-light); border-radius: 3px; }
         .inq-panel-scroll::-webkit-scrollbar-thumb:hover { background: var(--color-brown-mid); }
+        @media (max-width: 420px) {
+          .inq-2col { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
       {/* ── Modal ── */}
@@ -471,6 +474,7 @@ export default function InquiryWidget() {
                 <>
                   {/* Row 1 */}
                   <div
+                    className="inq-2col"
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr",
@@ -498,6 +502,7 @@ export default function InquiryWidget() {
 
                   {/* Row 2 */}
                   <div
+                    className="inq-2col"
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr",
@@ -524,6 +529,7 @@ export default function InquiryWidget() {
 
                   {/* Row 3 */}
                   <div
+                    className="inq-2col"
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr",
@@ -565,6 +571,7 @@ export default function InquiryWidget() {
 
                   {/* Row 4 */}
                   <div
+                    className="inq-2col"
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr 1fr",

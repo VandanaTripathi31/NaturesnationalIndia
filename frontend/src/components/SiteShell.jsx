@@ -15,7 +15,7 @@ export default function SiteShell({ children, categories = [] }) {
     <div className="min-h-screen bg-[#faf6ee] text-[#3a2c1a] font-outfit">
       <Navbar categories={categories} onOpenInquiry={openInquiryModal} />
       <main>{children}</main>
-      <Footer />
+      <Footer categories={categories} onInquiryOpen={openInquiryModal} />
       <BackToTop />
       <InquiryWidget />
       <BrochureModal />

@@ -507,7 +507,7 @@ export default function BestSellingProducts() {
       {/* ── View All ── */}
       <div style={{ textAlign: "center", marginTop: 24 }}>
         <a
-          href="#"
+          href="#cat-sec"
           onMouseEnter={() => setViewAllHov(true)}
           onMouseLeave={() => setViewAllHov(false)}
           style={{

@@ -185,6 +185,10 @@ export default function VideoSection() {
             {/* CTA */}
             <a
               href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                window.dispatchEvent(new CustomEvent("open-brochure"));
+              }}
               style={{
                 display: "inline-block",
                 padding: "11px 28px",

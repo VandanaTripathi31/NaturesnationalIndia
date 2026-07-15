@@ -67,8 +67,11 @@ function RelatedCard({ product, index }) {
 export default function RelatedProducts({
   products = [],
   title = "Related Products",
+  categorySlug = "",
 }) {
   if (!products.length) return null;
+
+  const viewAllHref = categorySlug ? `/category/${categorySlug}` : "/";
 
   return (
     <motion.section
@@ -92,7 +95,7 @@ export default function RelatedProducts({
           </h2>
         </div>
         <Link
-          href="/categories"
+          href={viewAllHref}
           className="flex items-center gap-1.5 text-xs font-medium text-[var(--color-dark-brown)] transition hover:gap-2.5"
         >
           View All <ArrowRight size={13} />

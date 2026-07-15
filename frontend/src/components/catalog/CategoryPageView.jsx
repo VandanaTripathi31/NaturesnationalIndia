@@ -14,7 +14,16 @@ import {
   MapPin,
   Phone,
   Mail,
+  FlaskConical,
+  PhoneCall,
 } from "lucide-react";
+
+// Both CTAs use the site's existing global inquiry modal (see
+// FloatingInquiry.jsx) — no new backend endpoint, just the current
+// admin-managed inquiry flow triggered from a product card.
+function openInquiry() {
+  window.dispatchEvent(new CustomEvent("open-inquiry"));
+}
 import CategorySidebar from "../../../src/components/CategorySidebar";
 import Breadcrumb from "../../../src/components/Breadcrumb";
 
@@ -97,19 +106,55 @@ function ProductCard({ product, index }) {
             {product.botanicalName}
           </p>
         )}
+
+        {(product.origin || product.extractionMethod) && (
+          <div className="mt-2.5 flex flex-col gap-1">
+            {product.origin && (
+              <p className="flex items-center gap-1.5 text-[11.5px] text-[var(--color-text-muted)]">
+                <MapPin size={11} className="shrink-0 text-[var(--color-brown-muted)]" />
+                {product.origin}
+              </p>
+            )}
+            {product.extractionMethod && (
+              <p className="flex items-center gap-1.5 text-[11.5px] text-[var(--color-text-muted)]">
+                <FlaskConical size={11} className="shrink-0 text-[var(--color-brown-muted)]" />
+                {product.extractionMethod}
+              </p>
+            )}
+          </div>
+        )}
+
         {description && (
           <p className="mt-2.5 text-[13px] leading-6 text-[var(--color-text-muted)] flex-1">
             {description}
           </p>
         )}
 
-        <div className="mt-4 border-t border-[var(--color-warm-gray)] pt-4">
+        <div className="mt-4 flex flex-col gap-2.5 border-t border-[var(--color-warm-gray)] pt-4">
           <Link
             href={`/product/${product.slug}`}
             className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-dark-brown)] transition hover:gap-3"
           >
             Explore Product <ArrowRight size={14} />
           </Link>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={openInquiry}
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-[11.5px] font-semibold uppercase tracking-wide text-[var(--color-cream-white)] transition"
+              style={{ background: "var(--gradient-btn)" }}
+            >
+              Get a Quote
+            </button>
+            <button
+              type="button"
+              onClick={openInquiry}
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[var(--color-warm-gray)] px-3 py-2 text-[11.5px] font-semibold uppercase tracking-wide text-[var(--color-dark-brown)] transition hover:border-[var(--color-dark-brown)]"
+            >
+              <PhoneCall size={12} /> Call Back
+            </button>
+          </div>
         </div>
       </div>
     </motion.article>
@@ -242,8 +287,11 @@ export default function CategoryPageView({
                 >
                   Explore Products <ArrowRight size={13} />
                 </a>
-                <Link
-                  href="/contact"
+                <button
+                  type="button"
+                  onClick={() =>
+                    window.dispatchEvent(new CustomEvent("open-brochure"))
+                  }
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -255,11 +303,11 @@ export default function CategoryPageView({
                     color: "var(--color-cream-white)",
                     fontWeight: 600,
                     background: "transparent",
-                    textDecoration: "none",
+                    cursor: "pointer",
                   }}
                 >
                   Request Catalogue
-                </Link>
+                </button>
               </motion.div>
             </motion.div>
           </div>

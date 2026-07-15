@@ -66,11 +66,12 @@ function PrimaryButton({ children, onClick, style = {} }) {
 }
 
 /* ── Shared: FooterLink ────────────────────────────────────── */
-function FooterLink({ href, children }) {
+function FooterLink({ href, onClick, children }) {
   const [hovered, setHovered] = useState(false);
   return (
     <a
       href={href || "#"}
+      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
@@ -93,34 +94,24 @@ function FooterLink({ href, children }) {
 }
 
 /* ── Data ──────────────────────────────────────────────────── */
-const products = [
-  "Essential Oils",
-  "Carrier Oils",
-  "Fragrance Oils",
-  "Ayurvedic Oils",
-  "Organic Oils",
-  "Absolute Oils",
-  "Cosmetic Butters",
-  "Synergy Blends",
-];
-
+// Every entry below routes to a real, existing page — no "#" placeholders.
 const services = [
-  "Private Label / OEM",
-  "Bulk Supply",
-  "Custom Blends",
-  "Wholesale",
-  "Free Samples",
-  "Packaging",
-  "Contract Mfg.",
+  { label: "Private Label / OEM", href: "/private-labelling" },
+  { label: "Bulk Supply", href: "/bulk-orders" },
+  { label: "Custom Blends", href: "/custom-blends" },
+  { label: "Wholesale", href: "/wholesale" },
+  { label: "Free Samples", action: "inquiry" },
+  { label: "Packaging", href: "/private-packaging" },
+  { label: "Contract Mfg.", href: "/private-labelling" },
 ];
 
 const company = [
   { label: "About Us", href: "/about-us" },
   { label: "Certifications", href: "/our-certification" },
   { label: "Quality Assurance", href: "/quality-assurance" },
-  { label: "Our Process", href: "#" },
-  { label: "Blog", href: "#blog-sec" },
-  { label: "Careers", href: "#" },
+  { label: "Our Process", href: "/#proc-sec" },
+  { label: "Blog", href: "/#blog-sec" },
+  { label: "Careers", href: "/contact-us" },
   { label: "Contact", href: "/contact-us" },
 ];
 
@@ -177,11 +168,18 @@ const iconWrap = {
 };
 
 /* ── Component ─────────────────────────────────────────────── */
-export default function Footer({ onInquiryOpen }) {
+export default function Footer({ onInquiryOpen, categories = [] }) {
   const openInquiry = () =>
     onInquiryOpen
       ? onInquiryOpen()
       : window.dispatchEvent(new CustomEvent("open-inquiry"));
+
+  // Same live category list the Navbar renders — every link below opens the
+  // identical dynamic /category/[slug] route, never a duplicate page.
+  const productLinks = categories.slice(0, 8).map((category) => ({
+    label: category.name,
+    href: `/category/${category.slug}`,
+  }));
 
   return (
     <footer
@@ -322,9 +320,17 @@ export default function Footer({ onInquiryOpen }) {
                 marginBottom: "16px",
               }}
             />
-            {products.map((p) => (
-              <FooterLink key={p}>{p}</FooterLink>
-            ))}
+            {productLinks.length > 0 ? (
+              productLinks.map((p) => (
+                <FooterLink key={p.href} href={p.href}>
+                  {p.label}
+                </FooterLink>
+              ))
+            ) : (
+              <p style={{ fontSize: "12.5px", color: "#8a7a6a" }}>
+                Categories coming soon.
+              </p>
+            )}
           </div>
 
           {/* ── Services ── */}
@@ -338,9 +344,23 @@ export default function Footer({ onInquiryOpen }) {
                 marginBottom: "16px",
               }}
             />
-            {services.map((s) => (
-              <FooterLink key={s}>{s}</FooterLink>
-            ))}
+            {services.map((s) =>
+              s.action === "inquiry" ? (
+                <FooterLink
+                  key={s.label}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openInquiry();
+                  }}
+                >
+                  {s.label}
+                </FooterLink>
+              ) : (
+                <FooterLink key={s.label} href={s.href}>
+                  {s.label}
+                </FooterLink>
+              ),
+            )}
           </div>
 
           {/* ── Company ── */}
@@ -492,7 +512,7 @@ export default function Footer({ onInquiryOpen }) {
             {[
               { label: "Privacy Policy", href: "/policies" },
               { label: "Terms", href: "/policies" },
-              { label: "Sitemap", href: "#" },
+              { label: "Sitemap", href: "/" },
             ].map(({ label: link, href }, i) => (
               <span key={link}>
                 {i > 0 && (

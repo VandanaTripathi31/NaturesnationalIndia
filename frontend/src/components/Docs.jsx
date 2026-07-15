@@ -163,6 +163,10 @@ export default function DocsSection() {
 
           <a
             href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              window.dispatchEvent(new CustomEvent("open-inquiry"));
+            }}
             style={{
               display: "inline-block",
               padding: "11px 28px",
