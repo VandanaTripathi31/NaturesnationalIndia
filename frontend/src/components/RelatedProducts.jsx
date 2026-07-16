@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Leaf } from "lucide-react";
+import { categoryHref, productHref } from "../lib/seo-routes";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -17,11 +18,11 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.07 } },
 };
 
-function RelatedCard({ product, index }) {
+function RelatedCard({ product, index, categorySlug }) {
   return (
     <motion.div variants={fadeUp} custom={index}>
       <Link
-        href={`/product/${product.slug}`}
+        href={productHref(product.category?.slug || categorySlug, product.slug)}
         className="group block overflow-hidden rounded-2xl border border-[var(--color-warm-gray)] bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
       >
         {/* Image */}
@@ -71,7 +72,7 @@ export default function RelatedProducts({
 }) {
   if (!products.length) return null;
 
-  const viewAllHref = categorySlug ? `/category/${categorySlug}` : "/";
+  const viewAllHref = categoryHref(categorySlug);
 
   return (
     <motion.section
@@ -105,7 +106,12 @@ export default function RelatedProducts({
       {/* Grid */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {products.map((product, i) => (
-          <RelatedCard key={product.id} product={product} index={i} />
+          <RelatedCard
+            key={product.id}
+            product={product}
+            index={i}
+            categorySlug={categorySlug}
+          />
         ))}
       </div>
     </motion.section>

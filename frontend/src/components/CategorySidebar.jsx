@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Search, Leaf, Star, Phone, Mail, ChevronRight } from "lucide-react";
 import Skeleton from "../../src/components/ui/Skeleton";
+import { categoryHref, productHref } from "../lib/seo-routes";
 
 export default function CategorySidebar({
   categories = [],
@@ -20,7 +21,7 @@ export default function CategorySidebar({
   );
 
   const currentSlug =
-    activeSlug || pathname.match(/\/category\/([^/]+)/)?.[1] || "";
+    activeSlug || pathname.match(/^\/([^/]+)\.html$/)?.[1] || "";
 
   function handleSearchSubmit(event) {
     event.preventDefault();
@@ -33,7 +34,7 @@ export default function CategorySidebar({
       params.delete("search");
     }
     params.set("page", "1");
-    router.push(`/category/${currentSlug}?${params.toString()}`);
+    router.push(`${categoryHref(currentSlug)}?${params.toString()}`);
   }
 
   return (
@@ -60,7 +61,7 @@ export default function CategorySidebar({
               return (
                 <li key={category.id}>
                   <Link
-                    href={`/category/${category.slug}`}
+                    href={categoryHref(category.slug)}
                     className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm transition-all duration-200 ${
                       isActive
                         ? "font-semibold text-[var(--color-cream-white)]"
@@ -128,7 +129,10 @@ export default function CategorySidebar({
             {featuredProducts.map((product) => (
               <li key={product.id}>
                 <Link
-                  href={`/product/${product.slug}`}
+                  href={productHref(
+                    product.category?.slug || currentSlug,
+                    product.slug,
+                  )}
                   className="group flex items-start justify-between gap-2 py-3 transition hover:text-[var(--color-dark-brown)]"
                 >
                   <div>

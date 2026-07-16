@@ -1,64 +1,20 @@
-import { notFound } from "next/navigation";
-import ProductPageView from "../../../src/components/catalog/ProductPageView.jsx";
-import {
-  getCategories,
-  getCategoryBySlug,
-} from "../../../src/services/categoryService.js";
-import {
-  getProductBySlug,
-  getRelatedProducts,
-} from "../../../src/services/productService";
+import { redirect, notFound } from "next/navigation";
+import { getProductBySlug } from "../../../src/services/productService";
+import { productHref } from "../../../src/lib/seo-routes";
 
-export async function generateMetadata({ params }) {
+// Legacy path kept working (nothing removed) but permanently redirected to
+// the canonical SEO URL used across the rest of the site:
+// /{category-slug}/{product-slug}.html — matching the live reference site.
+export default async function LegacyProductRedirect({ params }) {
   const { slug } = await params;
+  let target = null;
 
   try {
     const product = await getProductBySlug(slug);
-
-    return {
-      title: product.metaTitle || product.name,
-      description: product.metaDescription || product.description,
-      keywords: product.metaKeywords?.split(",").map((item) => item.trim()),
-    };
-  } catch {
-    return { title: "Product" };
-  }
-}
-
-export default async function ProductPage({ params }) {
-  const { slug } = await params;
-
-  let product;
-  let relatedProducts = [];
-  let categories = [];
-  let featuredProducts = [];
-
-  try {
-    [product, relatedProducts, categories] = await Promise.all([
-      getProductBySlug(slug),
-      getRelatedProducts(slug),
-      getCategories(),
-    ]);
-
-    if (product.category?.slug) {
-      const categoryData = await getCategoryBySlug(product.category.slug, {
-        page: 1,
-        limit: 20,
-      });
-      featuredProducts = (categoryData.products ?? [])
-        .filter((item) => item.featured && item.id !== product.id)
-        .slice(0, 4);
-    }
+    target = productHref(product.category?.slug, product.slug);
   } catch {
     notFound();
   }
 
-  return (
-    <ProductPageView
-      product={product}
-      relatedProducts={relatedProducts}
-      categories={categories}
-      featuredProducts={featuredProducts}
-    />
-  );
+  redirect(target);
 }

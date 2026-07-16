@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { categoryHref, productHref } from "../../lib/seo-routes";
 import {
   ArrowRight,
   Leaf,
@@ -43,7 +44,7 @@ const stagger = {
 };
 
 /* ─── Product Card ─────────────────────────────────────────── */
-function ProductCard({ product, index }) {
+function ProductCard({ product, index, categorySlug }) {
   const imageUrl = product.images?.[0]?.url;
   const description =
     product.description?.length > 110
@@ -88,7 +89,7 @@ function ProductCard({ product, index }) {
         {/* Hover CTA */}
         <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 translate-y-3 transition-all duration-400 group-hover:opacity-100 group-hover:translate-y-0">
           <Link
-            href={`/product/${product.slug}`}
+            href={productHref(product.category?.slug || categorySlug, product.slug)}
             className="flex items-center gap-2 rounded-full bg-[var(--color-cream-white)] px-5 py-2 text-xs font-semibold text-[var(--color-dark-brown)] shadow-lg hover:bg-white transition"
           >
             View Details <ArrowRight size={12} />
@@ -132,7 +133,7 @@ function ProductCard({ product, index }) {
 
         <div className="mt-4 flex flex-col gap-2.5 border-t border-[var(--color-warm-gray)] pt-4">
           <Link
-            href={`/product/${product.slug}`}
+            href={productHref(product.category?.slug || categorySlug, product.slug)}
             className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-dark-brown)] transition hover:gap-3"
           >
             Explore Product <ArrowRight size={14} />
@@ -176,8 +177,8 @@ export default function CategoryPageView({
     if (page > 1) params.set("page", String(page));
     const query = params.toString();
     return query
-      ? `/category/${category.slug}?${query}`
-      : `/category/${category.slug}`;
+      ? `${categoryHref(category.slug)}?${query}`
+      : categoryHref(category.slug);
   };
 
   return (
@@ -219,7 +220,7 @@ export default function CategoryPageView({
               items={[
                 {
                   label: "Categories",
-                  href: categories[0] ? `/category/${categories[0].slug}` : "/",
+                  href: categories[0] ? categoryHref(categories[0].slug) : "/",
                 },
                 { label: category.name },
               ]}
@@ -409,7 +410,12 @@ export default function CategoryPageView({
                   className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3"
                 >
                   {products.map((product, i) => (
-                    <ProductCard key={product.id} product={product} index={i} />
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      index={i}
+                      categorySlug={category.slug}
+                    />
                   ))}
                 </motion.div>
               )}

@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { categoryHref } from "../lib/seo-routes";
 
 const logo = "/images/logo1.png";
 
 /* ─── TOP BAR ──────────────────────────────────────────────────────────── */
 const TopBar = ({ scrolled, onOpenInquiry }) => (
   <div
+    className={scrolled ? "nb-topbar" : "nb-topbar nb-topbar-expanded"}
     style={{
       background: "var(--color-brown-deep)",
       borderBottom: "1px solid rgba(196,168,130,0.15)",
@@ -540,9 +542,29 @@ const staticNavItems = [
 /* ─── MOBILE SECTION ───────────────────────────────────────────────────── */
 const MobileSection = ({ title, items, allSections }) => {
   const [open, setOpen] = useState(false);
+  const contentRef = useRef(null);
+  const [measuredHeight, setMeasuredHeight] = useState(0);
   const allItems = allSections
     ? allSections.flatMap((s) => s.items)
     : items || [];
+
+  // Measures the accordion's actual rendered height instead of assuming a
+  // fixed px-per-item, which broke (clipped the bottom items) whenever a
+  // category name was long enough to wrap to two lines on a narrow phone —
+  // increasingly likely as more categories get added from the Admin
+  // Dashboard. Re-measures whenever it's open and whenever the item list
+  // itself changes (e.g. new categories loaded) or the window is resized.
+  useEffect(() => {
+    if (!open) return;
+    const measure = () => {
+      if (contentRef.current) {
+        setMeasuredHeight(contentRef.current.scrollHeight);
+      }
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [open, allItems.length]);
 
   return (
     <div style={{ borderBottom: "0.5px solid rgba(196,168,130,0.18)" }}>
@@ -579,8 +601,9 @@ const MobileSection = ({ title, items, allSections }) => {
       </button>
 
       <div
+        ref={contentRef}
         style={{
-          maxHeight: open ? `${allItems.length * 40}px` : "0px",
+          maxHeight: open ? `${measuredHeight}px` : "0px",
           overflow: "hidden",
           transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1)",
           background: "#faf8f5",
@@ -637,6 +660,7 @@ const MobileSection = ({ title, items, allSections }) => {
 /* ─── TRUST BADGES ─────────────────────────────────────────────────────── */
 const TrustBadges = ({ scrolled }) => (
   <div
+    className={scrolled ? "nb-trustbar" : "nb-trustbar nb-trustbar-expanded"}
     style={{
       background: "var(--color-cream-white, #faf8f5)",
       borderBottom: "1px solid rgba(196,168,130,0.2)",
@@ -646,8 +670,7 @@ const TrustBadges = ({ scrolled }) => (
     }}
   >
     <div
-      className="flex justify-center items-center gap-[28px] sm:gap-[44px] flex-wrap px-4"
-      style={{ height: 36 }}
+      className="flex justify-center items-center gap-[28px] sm:gap-[44px] flex-wrap px-4 py-[7px]"
     >
       {[
         "🌿 100% Pure & Natural",
@@ -683,7 +706,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
 
   const oilsItems = categories.map((category) => ({
     label: category.name,
-    href: `/category/${category.slug}`,
+    href: categoryHref(category.slug),
   }));
 
   const navItems = [
@@ -782,6 +805,19 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
         }
         .nb-mobile-drawer {
           animation: drawerIn 0.22s ease forwards;
+        }
+        @supports (height: 100dvh) {
+          .nb-drawer { max-height: calc(100dvh - 80px) !important; }
+        }
+        /* Phone + email in the top bar can wrap to two lines on very
+           narrow screens — the fixed 40px collapse height only allowed
+           for one, clipping the second. */
+        @media (max-width: 480px) {
+          .nb-topbar-expanded { max-height: 76px !important; }
+          .nb-trustbar-expanded { max-height: 90px !important; }
+        }
+        @media (min-width: 481px) and (max-width: 640px) {
+          .nb-trustbar-expanded { max-height: 60px !important; }
         }
       `}</style>
 
@@ -928,7 +964,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
           {/* ── MOBILE DRAWER ── */}
           {menuOpen && (
             <div
-              className="lg:hidden nb-mobile-drawer"
+              className="lg:hidden nb-mobile-drawer nb-drawer"
               style={{
                 position: "absolute",
                 left: 0,
@@ -940,6 +976,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                 boxShadow: "0 16px 48px rgba(62,43,30,0.16)",
                 maxHeight: "calc(100vh - 80px)",
                 overflowY: "auto",
+                WebkitOverflowScrolling: "touch",
               }}
             >
               {/* Mobile trust strip */}

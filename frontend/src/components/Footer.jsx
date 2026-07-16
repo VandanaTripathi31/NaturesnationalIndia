@@ -4,6 +4,7 @@ import { useState } from "react";
 const logo = "/images/logo1.png";
 import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube } from "react-icons/fa";
 import { MapPin, Phone, Mail, Leaf, ChevronRight } from "lucide-react";
+import { categoryHref } from "../lib/seo-routes";
 
 /* ── Design Tokens ─────────────────────────────────────────── */
 const DS = {
@@ -175,10 +176,10 @@ export default function Footer({ onInquiryOpen, categories = [] }) {
       : window.dispatchEvent(new CustomEvent("open-inquiry"));
 
   // Same live category list the Navbar renders — every link below opens the
-  // identical dynamic /category/[slug] route, never a duplicate page.
+  // identical dynamic /{category-slug}.html route, never a duplicate page.
   const productLinks = categories.slice(0, 8).map((category) => ({
     label: category.name,
-    href: `/category/${category.slug}`,
+    href: categoryHref(category.slug),
   }));
 
   return (

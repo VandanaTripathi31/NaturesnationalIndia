@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ArrowUpRight, Leaf } from "lucide-react";
 import Link from "next/link";
+import { categoryHref } from "../lib/seo-routes";
 
 // Fallback image used only when a category has no image set in the
 // admin-managed data yet — keeps the grid from breaking, never hardcodes
@@ -26,7 +27,7 @@ function CategoryCard({ name, img, slug, index }) {
   // Same route the Navbar uses for this exact category — guarantees both
   // entry points open the identical dynamic category page, never a
   // duplicate.
-  const categoryLink = slug ? `/category/${slug}` : "/";
+  const categoryLink = categoryHref(slug);
 
   return (
     <Link

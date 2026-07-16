@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { categoryHref } from "../../lib/seo-routes";
 import {
   MapPin,
   Droplets,
@@ -133,7 +134,7 @@ export default function ProductPageView({
               product.category
                 ? {
                     label: product.category.name,
-                    href: `/category/${product.category.slug}`,
+                    href: categoryHref(product.category.slug),
                   }
                 : null,
               { label: product.name },

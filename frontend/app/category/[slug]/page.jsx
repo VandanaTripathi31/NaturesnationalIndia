@@ -1,62 +1,20 @@
-import { Suspense } from "react";
-import { notFound } from "next/navigation";
-// import { CategoryPageSkeleton } from "@/src/components/ui/CatalogSkeletons";
-import {
-  getCategories,
-  getCategoryBySlug,
-} from "../../../src/services/categoryService";
-import CategoryPageView from "../../../src/components/catalog/CategoryPageView";
-import { CategoryPageSkeleton } from "../../../src/components/ui/CatalogSkeletons";
+import { redirect, notFound } from "next/navigation";
+import { getCategoryBySlug } from "../../../src/services/categoryService";
+import { categoryHref } from "../../../src/lib/seo-routes";
 
-export async function generateMetadata({ params, searchParams }) {
+// Legacy path kept working (nothing removed) but permanently redirected to
+// the canonical SEO URL used across the rest of the site:
+// /{category-slug}.html — matching the live reference site's structure.
+export default async function LegacyCategoryRedirect({ params }) {
   const { slug } = await params;
+  let target = null;
 
   try {
     const data = await getCategoryBySlug(slug, { page: 1, limit: 1 });
-    const category = data.category;
-
-    return {
-      title: category.metaTitle || category.name,
-      description: category.metaDescription || category.description,
-      keywords: category.metaKeywords?.split(",").map((item) => item.trim()),
-    };
-  } catch {
-    return { title: "Category" };
-  }
-}
-
-export default async function CategoryPage({ params, searchParams }) {
-  const { slug } = await params;
-  const query = await searchParams;
-  const page = Number(query.page || 1);
-  const search = typeof query.search === "string" ? query.search : "";
-
-  let categories = [];
-  let data;
-
-  try {
-    [categories, data] = await Promise.all([
-      getCategories(),
-      getCategoryBySlug(slug, { page, limit: 12, search }),
-    ]);
+    target = categoryHref(data.category.slug);
   } catch {
     notFound();
   }
 
-  const featuredProducts = (data.products ?? [])
-    .filter((product) => product.featured)
-    .slice(0, 4);
-
-  return (
-    <Suspense fallback={<CategoryPageSkeleton />}>
-      <CategoryPageView
-        category={data.category}
-        products={data.products ?? []}
-        pagination={data.pagination}
-        categories={categories}
-        featuredProducts={featuredProducts}
-        searchQuery={search}
-      />
-    </Suspense>
-  );
+  redirect(target);
 }
