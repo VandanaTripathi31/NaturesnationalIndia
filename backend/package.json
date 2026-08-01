@@ -28,6 +28,7 @@
     "mongoose": "^9.7.2",
     "multer": "^2.2.0",
     "mysql2": "^3.11.5",
+    "nodemailer": "^6.9.16",
     "streamifier": "^0.1.1"
   },
   "devDependencies": {

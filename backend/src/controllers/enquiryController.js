@@ -1,4 +1,5 @@
 import Enquiry from "../models/Enquiry.js";
+import { sendEnquiryEmail } from "../utils/mailer.js";
 
 // Verify a Google reCAPTCHA token. If RECAPTCHA_SECRET_KEY is not configured,
 // verification is skipped so the form keeps working until keys are added.
@@ -40,6 +41,21 @@ export async function createEnquiry(req, res) {
       return res.status(400).json({ message: captcha.error });
     }
 
+    // Prevent duplicate submissions: same email + message within 60s
+    // (double-clicks, retries) returns the existing record instead of a dup.
+    const recent = await Enquiry.findOne({
+      email: String(email).toLowerCase(),
+      message: message ?? "",
+      createdAt: { $gte: new Date(Date.now() - 60_000) },
+    });
+    if (recent) {
+      return res.status(200).json({
+        message: "Enquiry already received.",
+        id: recent._id.toString(),
+        duplicate: true,
+      });
+    }
+
     const enquiry = await Enquiry.create({
       name,
       email,
@@ -50,6 +66,9 @@ export async function createEnquiry(req, res) {
       message,
       source,
     });
+
+    // Email the company inbox (non-blocking; failure never blocks the user).
+    sendEnquiryEmail(enquiry).catch(() => {});
 
     return res.status(201).json({
       message: "Enquiry submitted successfully.",

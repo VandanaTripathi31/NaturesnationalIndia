@@ -80,18 +80,34 @@ export async function searchPublicProducts(req, res) {
     const safe = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(safe, "i");
 
-    const products = await Product.find({
-      isActive: true,
-      $or: [{ name: regex }, { slug: regex }, { botanicalName: regex }],
-    })
-      .populate({
-        path: "category",
-        match: { isActive: true },
-        select: "name slug",
+    const [products, categoryMatches] = await Promise.all([
+      Product.find({
+        isActive: true,
+        $or: [{ name: regex }, { slug: regex }, { botanicalName: regex }],
       })
-      .sort({ featured: -1, name: 1 })
-      .limit(limit)
-      .select("name slug botanicalName images featured category");
+        .populate({
+          path: "category",
+          match: { isActive: true },
+          select: "name slug",
+        })
+        .sort({ featured: -1, name: 1 })
+        .limit(limit)
+        .select("name slug botanicalName images featured category"),
+      Category.find({
+        isActive: true,
+        $or: [{ name: regex }, { slug: regex }],
+      })
+        .sort({ name: 1 })
+        .limit(5)
+        .select("name slug image"),
+    ]);
+
+    const categories = categoryMatches.map((c) => ({
+      id: c._id.toString(),
+      name: c.name,
+      slug: c.slug,
+      image: c.image?.url ?? null,
+    }));
 
     // Drop products whose category is inactive/removed (populate → null),
     // since those have no valid public URL.
@@ -109,7 +125,7 @@ export async function searchPublicProducts(req, res) {
         },
       }));
 
-    return res.status(200).json({ query, products: results });
+    return res.status(200).json({ query, products: results, categories });
   } catch (error) {
     return res.status(500).json({
       message: "Failed to search products",
