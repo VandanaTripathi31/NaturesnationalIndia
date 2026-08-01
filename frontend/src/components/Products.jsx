@@ -102,14 +102,20 @@ function CategoryCard({ name, img, slug, index }) {
           <img
             src={img || FALLBACK_IMG}
             alt={name}
+            // If a migrated category URL is broken/404, fall back to the
+            // local placeholder instead of showing an empty circle.
+            onError={(e) => {
+              if (e.currentTarget.src !== window.location.origin + FALLBACK_IMG) {
+                e.currentTarget.src = FALLBACK_IMG;
+              }
+            }}
             style={{
               width: "100%",
               height: "100%",
-              // "contain" keeps the ENTIRE uploaded photo visible inside
-              // the circle (nothing cropped off), unlike "cover" which
-              // fills the circle by cutting off the edges of the source
-              // image.
-              objectFit: "contain",
+              // "cover" fills the whole circle (no empty white bands) while
+              // preserving aspect ratio, so images are never stretched — the
+              // edges are cropped instead.
+              objectFit: "cover",
               objectPosition: "center",
               transition: "transform 0.55s cubic-bezier(0.22,1,0.36,1)",
               transform: hovered ? "scale(1.06)" : "scale(1)",

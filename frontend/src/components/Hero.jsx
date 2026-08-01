@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 const slides = [
   {
     eyebrow: "OEM & ODM Private Label Solutions",
@@ -14,7 +14,7 @@ const slides = [
       { number: "Global", label: "Shipping" },
     ],
     primaryCta: "Start Private Label",
-    secondaryCta: { label: "View Private Label", href: "#" },
+    secondaryCta: { label: "View Private Label", href: "/private-labelling" },
     badge: "White Label · B2B Bulk Supply",
     image: "/images/slider1.jpeg",
     overlay:
@@ -55,7 +55,7 @@ const slides = [
       { number: "ISO", label: "Certified" },
     ],
     primaryCta: "Request Sample",
-    secondaryCta: { label: "Quality Standards", href: "#" },
+    secondaryCta: { label: "Quality Standards", href: "/quality-assurance" },
     badge: "ISO · WHO-GMP · HACCP · Kosher",
     image: "/images/silder3.jpeg",
     overlay:
@@ -75,7 +75,7 @@ const slides = [
       { number: "48hr", label: "Sample TAT" },
     ],
     primaryCta: "Get Bulk Quote",
-    secondaryCta: { label: "Our Capabilities", href: "#" },
+    secondaryCta: { label: "Our Capabilities", href: "/wholesale" },
     badge: "Bulk · Contract · Private Label",
     image: "/images/silder4.jpeg",
     overlay:
@@ -83,7 +83,15 @@ const slides = [
   },
 ];
 
-export const Hero = ({ openInquiry }) => {
+export const Hero = ({ onOpenInquiry }) => {
+  // Accept the shared `onOpenInquiry` prop name used across the app
+  // (SiteShell / Navbar / HomePage). If it isn't wired for any reason,
+  // fall back to the global "open-inquiry" event that FloatingInquiry
+  // listens for, so the primary CTA can never become a silent no-op.
+  const openInquiry =
+    onOpenInquiry ??
+    (() => window.dispatchEvent(new CustomEvent("open-inquiry")));
+
   const [current, setCurrent] = useState(0);
   const [animKey, setAnimKey] = useState(0);
   const timerRef = useRef(null);
@@ -569,8 +577,8 @@ export const Hero = ({ openInquiry }) => {
             }}
           >
             {s.stats.map((st, i) => (
-              <>
-                <div key={st.label}>
+              <Fragment key={st.label}>
+                <div>
                   <span
                     style={{
                       display: "block",
@@ -600,9 +608,9 @@ export const Hero = ({ openInquiry }) => {
                   </span>
                 </div>
                 {i < s.stats.length - 1 && (
-                  <div key={`sep-${i}`} className="stat-sep" />
+                  <div className="stat-sep" />
                 )}
-              </>
+              </Fragment>
             ))}
           </div>
 

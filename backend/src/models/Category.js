@@ -44,6 +44,15 @@ const categorySchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // Original Magento `catalog_category_entity.entity_id`. Set only for
+    // records brought in by the MySQL→MongoDB migration so the import can
+    // be re-run safely (upsert by legacyId) and rolled back cleanly.
+    legacyId: {
+      type: Number,
+      index: true,
+      sparse: true,
+      unique: true,
+    },
   },
   {
     timestamps: true,

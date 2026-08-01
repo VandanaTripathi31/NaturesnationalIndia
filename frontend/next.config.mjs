@@ -10,16 +10,20 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "res.cloudinary.com",
+        hostname: "www.naturesnaturalindia.com",
+        pathname: "/media/**",
       },
       {
         protocol: "https",
-        hostname: "images.unsplash.com",
+        hostname: "naturesnaturalindia.com",
+        pathname: "/media/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
       },
     ],
-  },
-  turbopack: {
-    root: __dirname,
   },
 };
 

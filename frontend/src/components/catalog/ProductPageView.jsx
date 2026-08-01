@@ -161,8 +161,7 @@ export default function ProductPageView({
                 <motion.div variants={fadeUp}>
                   {/* Main Image */}
                   <div
-                    className="group relative aspect-square overflow-hidden rounded-2xl"
-                    style={{ background: "var(--color-sage-light)" }}
+                    className="group relative aspect-square overflow-hidden rounded-2xl bg-white"
                   >
                     <AnimatePresence mode="wait">
                       <motion.div
@@ -179,7 +178,7 @@ export default function ProductPageView({
                             alt={product.name}
                             fill
                             priority
-                            className="object-cover transition-transform duration-700 group-hover:scale-105"
+                            className="object-contain p-6 transition-transform duration-700 group-hover:scale-105"
                             sizes="(max-width: 1024px) 100vw, 50vw"
                           />
                         ) : (
@@ -240,10 +239,10 @@ export default function ProductPageView({
                     <div className="mt-3 grid grid-cols-5 gap-2">
                       {images.map((image, index) => (
                         <button
-                          key={image.public_id}
+                          key={image.public_id || `${image.url}-${index}`}
                           type="button"
                           onClick={() => setActiveImage(index)}
-                          className={`relative aspect-square overflow-hidden rounded-xl border-2 transition ${
+                          className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-white transition ${
                             activeImage === index
                               ? "border-[var(--color-dark-brown)]"
                               : "border-transparent opacity-60 hover:opacity-100"
@@ -253,7 +252,7 @@ export default function ProductPageView({
                             src={image.url}
                             alt={`${product.name} ${index + 1}`}
                             fill
-                            className="object-cover"
+                            className="object-contain p-1"
                             sizes="80px"
                           />
                         </button>

@@ -18,6 +18,7 @@ const { default: authRoutes } = await import("./src/routes/authRoutes.js");
 const { default: categoryRoutes } = await import("./src/routes/categoryRoutes.js");
 const { default: productRoutes } = await import("./src/routes/productRoutes.js");
 const { default: publicRoutes } = await import("./src/routes/publicRoutes.js");
+const { default: enquiryRoutes } = await import("./src/routes/enquiryRoutes.js");
 const { errorHandler, notFoundHandler } = await import(
   "./src/middleware/errorMiddleware.js"
 );
@@ -54,6 +55,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/public", publicRoutes);
+app.use("/api/enquiries", enquiryRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

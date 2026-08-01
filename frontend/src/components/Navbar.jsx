@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { categoryHref } from "../lib/seo-routes";
+import HeaderSearch from "./HeaderSearch";
 
 const logo = "/images/logo1.png";
 
@@ -284,7 +285,7 @@ const MegaMenu = ({ sections, tags }) => (
   animated with opacity/transform instead of display — so it fades in
   smoothly with zero layout shift, rather than popping.
 */
-const DropdownMenu = ({ items, open }) => (
+const DropdownMenu = ({ items, open, columns = 1 }) => (
   <div
     className="absolute top-full left-0 z-[999]"
     style={{
@@ -297,7 +298,14 @@ const DropdownMenu = ({ items, open }) => (
       border: "1px solid rgba(196,168,130,0.22)",
       borderTop: "3px solid var(--color-brown-light)",
       boxShadow: "0 16px 40px rgba(62,43,30,0.12)",
-      minWidth: 210,
+      ...(columns > 1
+        ? {
+            display: "grid",
+            gridTemplateColumns: `repeat(${columns}, minmax(190px, 1fr))`,
+            padding: "10px 8px",
+            columnGap: 4,
+          }
+        : { minWidth: 210 }),
     }}
   >
     {items.map((item, i) => {
@@ -311,7 +319,11 @@ const DropdownMenu = ({ items, open }) => (
         color: "var(--color-text-muted)",
         padding: "10px 18px",
         borderBottom:
-          i < items.length - 1 ? "1px solid rgba(196,168,130,0.15)" : "none",
+          columns > 1
+            ? "none"
+            : i < items.length - 1
+              ? "1px solid rgba(196,168,130,0.15)"
+              : "none",
         textDecoration: "none",
         fontWeight: 400,
         transition: "background 0.15s, color 0.15s, padding-left 0.18s",
@@ -375,7 +387,7 @@ const DropdownMenu = ({ items, open }) => (
   onMouseEnter/onMouseLeave, instead of relying on CSS `.group:hover`,
   which is what let the dropdown pop in without any transition before.
 */
-const NavItem = ({ label, items, href, openKey, onOpen, onClose }) => {
+const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
   const isOpen = openKey === label;
 
   const linkStyle = {
@@ -448,7 +460,7 @@ const NavItem = ({ label, items, href, openKey, onOpen, onClose }) => {
         </a>
       )}
       {(items || []).length > 0 && items && (
-        <DropdownMenu items={items} open={isOpen} />
+        <DropdownMenu items={items} open={isOpen} columns={columns} />
       )}
     </div>
   );
@@ -712,6 +724,12 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
   const navItems = [
     {
       label: "Oils",
+      // Render the (long) category list as a compact multi-column mega-menu
+      // instead of one tall column. ~7 items per column, capped at 4 columns.
+      columns:
+        oilsItems.length > 7
+          ? Math.min(4, Math.ceil(oilsItems.length / 7))
+          : 1,
       items:
         oilsItems.length > 0
           ? oilsItems
@@ -900,6 +918,11 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                 flexShrink: 0,
               }}
             >
+              {/* Product search (desktop / tablet) */}
+              <div className="hidden md:block">
+                <HeaderSearch />
+              </div>
+
               {/* CTA */}
               <a
                 href="#"
@@ -979,6 +1002,14 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                 WebkitOverflowScrolling: "touch",
               }}
             >
+              {/* Mobile product search */}
+              <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(196,168,130,0.2)" }}>
+                <HeaderSearch
+                  variant="mobile"
+                  onNavigate={() => setMenuOpen(false)}
+                />
+              </div>
+
               {/* Mobile trust strip */}
               <div
                 style={{

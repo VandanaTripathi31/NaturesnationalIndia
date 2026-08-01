@@ -7,6 +7,11 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "seed:admin": "node scripts/seedAdmin.js",
+    "migrate:discover": "node migration/discover.js",
+    "migrate:dry": "node migration/run.js --dry-run",
+    "migrate": "node migration/run.js",
+    "migrate:validate": "node migration/validate.js",
+    "migrate:rollback": "node migration/rollback.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -22,6 +27,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.2",
     "multer": "^2.2.0",
+    "mysql2": "^3.11.5",
     "streamifier": "^0.1.1"
   },
   "devDependencies": {

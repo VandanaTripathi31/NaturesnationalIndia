@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import apiClient from "../lib/api-client";
+
+// reCAPTCHA v2 site key. When unset, the captcha step is skipped so the
+// form still works; the backend applies the same rule with its secret key.
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const countries = [
   "United States",
@@ -161,6 +166,10 @@ export default function InquiryWidget() {
   const [closing, setClosing] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [captchaError, setCaptchaError] = useState("");
+
+  const recaptchaRef = useRef(null);
+  const widgetIdRef = useRef(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -181,7 +190,45 @@ export default function InquiryWidget() {
     setOpen(true);
     setClosing(false);
     setSubmitted(false);
+    setCaptchaError("");
   };
+
+  // Load the reCAPTCHA script once (only when a site key is configured).
+  useEffect(() => {
+    if (!RECAPTCHA_SITE_KEY) return;
+    if (document.querySelector("script[data-recaptcha]")) return;
+    const script = document.createElement("script");
+    script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+    script.async = true;
+    script.defer = true;
+    script.setAttribute("data-recaptcha", "true");
+    document.head.appendChild(script);
+  }, []);
+
+  // Render the widget each time the modal opens.
+  useEffect(() => {
+    if (!RECAPTCHA_SITE_KEY || !open) return;
+    let cancelled = false;
+    const tryRender = () => {
+      if (cancelled) return;
+      const grecaptcha = window.grecaptcha;
+      if (!grecaptcha?.render || !recaptchaRef.current) {
+        setTimeout(tryRender, 300);
+        return;
+      }
+      if (widgetIdRef.current === null) {
+        widgetIdRef.current = grecaptcha.render(recaptchaRef.current, {
+          sitekey: RECAPTCHA_SITE_KEY,
+        });
+      } else {
+        grecaptcha.reset(widgetIdRef.current);
+      }
+    };
+    tryRender();
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   useEffect(() => {
     const handler = () => openModal();
@@ -197,8 +244,19 @@ export default function InquiryWidget() {
     }, 260);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.name || !form.email || !form.country) return;
+
+    // Require a solved captcha when reCAPTCHA is configured.
+    let captchaToken = "";
+    if (RECAPTCHA_SITE_KEY) {
+      captchaToken = window.grecaptcha?.getResponse(widgetIdRef.current) ?? "";
+      if (!captchaToken) {
+        setCaptchaError("Please confirm you're not a robot.");
+        return;
+      }
+    }
+    setCaptchaError("");
     setSubmitted(true);
 
     const params = new URLSearchParams();
@@ -207,6 +265,24 @@ export default function InquiryWidget() {
     if (form.phone) params.set("phone", form.phone);
     if (form.category) params.set("category", form.category);
     if (form.quantity) params.set("quantity", form.quantity);
+
+    // Persist the enquiry to the backend. Failure here should not block the
+    // user's confirmation flow, so we log and still show the Thank You page.
+    try {
+      await apiClient.post("/api/public/enquiries", {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        country: form.country,
+        category: form.category,
+        quantity: form.quantity,
+        message: form.message,
+        source: typeof window !== "undefined" ? window.location.pathname : "",
+        captchaToken,
+      });
+    } catch (err) {
+      console.error("Failed to save enquiry:", err);
+    }
 
     // Brief pause so the in-modal "Inquiry Sent!" confirmation is visible
     // before navigating through to the full Thank You page.
@@ -609,6 +685,25 @@ export default function InquiryWidget() {
                       onChange={set("message")}
                     />
                   </Field>
+
+                  {RECAPTCHA_SITE_KEY && (
+                    <div style={{ marginBottom: "16px" }}>
+                      <div ref={recaptchaRef} />
+                      {captchaError && (
+                        <span
+                          style={{
+                            display: "block",
+                            marginTop: "6px",
+                            fontSize: "11px",
+                            color: "#c0392b",
+                            fontFamily: "'Outfit', sans-serif",
+                          }}
+                        >
+                          {captchaError}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   <button
                     onClick={handleSubmit}

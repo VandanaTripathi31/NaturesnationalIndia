@@ -77,6 +77,35 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    // ── Extended product-detail fields (from Magento) ─────────────────
+    productCode: { type: String, trim: true, maxlength: 120 },
+    blendsWith: { type: String, trim: true },
+    history: { type: String, trim: true },
+    storage: { type: String, trim: true },
+    precautions: { type: String, trim: true },
+    faqs: { type: String, trim: true },
+    // Free-form "Additional Information" rows (CAS No, Specific Gravity,
+    // Flash Point, Refractive Index, Solubility, Shelf Life, Odor, Colour,
+    // Appearance, etc.) preserved verbatim as label/value pairs so the
+    // product page can render the full spec table without schema churn.
+    specifications: [
+      {
+        _id: false,
+        label: { type: String, trim: true },
+        value: { type: String, trim: true },
+      },
+    ],
+
+    // Original Magento `catalog_product_entity.entity_id`. Set only for
+    // records brought in by the MySQL→MongoDB migration so the import can
+    // be re-run safely (upsert by legacyId) and rolled back cleanly.
+    legacyId: {
+      type: Number,
+      index: true,
+      sparse: true,
+      unique: true,
+    },
   },
   {
     timestamps: true,

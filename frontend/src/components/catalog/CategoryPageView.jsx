@@ -45,27 +45,23 @@ const stagger = {
 
 /* ─── Product Card ─────────────────────────────────────────── */
 function ProductCard({ product, index, categorySlug }) {
-  const imageUrl = product.images?.[0]?.url;
-  const description =
-    product.description?.length > 110
-      ? `${product.description.slice(0, 110)}…`
-      : product.description;
+  const imageUrl = product.images?.[0]?.url?.trim() || null;
 
   return (
     <motion.article
       variants={fadeUp}
       custom={index}
-      className="product-card group relative flex flex-col overflow-hidden rounded-3xl bg-[var(--color-cream-white)] border border-[var(--color-warm-gray)] shadow-sm"
+      className="product-card group relative flex flex-col overflow-hidden rounded-2xl bg-[var(--color-cream-white)] border border-[var(--color-warm-gray)] shadow-sm"
       style={{ boxShadow: "0 2px 20px rgba(92,64,51,0.07)" }}
     >
       {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-sage-light)]">
+      <div className="relative aspect-[4/3] overflow-hidden bg-white">
         {imageUrl ? (
           <Image
             src={imageUrl}
             alt={product.name}
             fill
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-108"
+            className="object-contain p-3 transition-transform duration-700 ease-out group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, 33vw"
           />
         ) : (
@@ -73,9 +69,6 @@ function ProductCard({ product, index, categorySlug }) {
             <Leaf size={32} className="text-[var(--color-brown-muted)]" />
           </div>
         )}
-
-        {/* Gradient overlay on hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-brown-deep)]/60 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
         {/* Badges */}
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
@@ -85,23 +78,19 @@ function ProductCard({ product, index, categorySlug }) {
             </span>
           )}
         </div>
-
-        {/* Hover CTA */}
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 translate-y-3 transition-all duration-400 group-hover:opacity-100 group-hover:translate-y-0">
-          <Link
-            href={productHref(product.category?.slug || categorySlug, product.slug)}
-            className="flex items-center gap-2 rounded-full bg-[var(--color-cream-white)] px-5 py-2 text-xs font-semibold text-[var(--color-dark-brown)] shadow-lg hover:bg-white transition"
-          >
-            View Details <ArrowRight size={12} />
-          </Link>
-        </div>
       </div>
 
       {/* Body */}
       <div className="flex flex-1 flex-col p-5">
-        <h2 className="font-playfair text-lg font-semibold leading-snug text-[var(--color-text-primary)]">
+        <Link
+          href={productHref(
+            product.category?.slug || categorySlug,
+            product.slug,
+          )}
+          className="font-playfair text-lg font-semibold leading-snug text-[var(--color-text-primary)] transition hover:text-[var(--color-dark-brown)]"
+        >
           {product.name}
-        </h2>
+        </Link>
         {product.botanicalName && (
           <p className="mt-1 text-[11px] italic text-[var(--color-brown-muted)]">
             {product.botanicalName}
@@ -111,51 +100,50 @@ function ProductCard({ product, index, categorySlug }) {
         {(product.origin || product.extractionMethod) && (
           <div className="mt-2.5 flex flex-col gap-1">
             {product.origin && (
-              <p className="flex items-center gap-1.5 text-[11.5px] text-[var(--color-text-muted)]">
-                <MapPin size={11} className="shrink-0 text-[var(--color-brown-muted)]" />
-                {product.origin}
+              <p className="flex items-start gap-1.5 text-[11.5px] text-[var(--color-text-muted)]">
+                <MapPin
+                  size={12}
+                  className="mt-0.5 shrink-0 text-[var(--color-brown-muted)]"
+                />
+                <span>
+                  <span className="font-semibold">Origin:</span>{" "}
+                  {product.origin}
+                </span>
               </p>
             )}
             {product.extractionMethod && (
-              <p className="flex items-center gap-1.5 text-[11.5px] text-[var(--color-text-muted)]">
-                <FlaskConical size={11} className="shrink-0 text-[var(--color-brown-muted)]" />
-                {product.extractionMethod}
+              <p className="flex items-start gap-1.5 text-[11.5px] text-[var(--color-text-muted)]">
+                <FlaskConical
+                  size={12}
+                  className="mt-0.5 shrink-0 text-[var(--color-brown-muted)]"
+                />
+                <span>
+                  <span className="font-semibold">Extraction:</span>{" "}
+                  {product.extractionMethod}
+                </span>
               </p>
             )}
           </div>
         )}
 
-        {description && (
-          <p className="mt-2.5 text-[13px] leading-6 text-[var(--color-text-muted)] flex-1">
-            {description}
-          </p>
-        )}
-
-        <div className="mt-4 flex flex-col gap-2.5 border-t border-[var(--color-warm-gray)] pt-4">
-          <Link
-            href={productHref(product.category?.slug || categorySlug, product.slug)}
-            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-dark-brown)] transition hover:gap-3"
+        {/* CTAs — solid Get a Quote + Request Call Back (matches live site) */}
+        <div className="mt-auto flex flex-wrap gap-2 pt-5">
+          <button
+            type="button"
+            onClick={openInquiry}
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-[11.5px] font-semibold text-[var(--color-cream-white)] transition hover:opacity-90"
+            style={{ background: "var(--color-dark-brown)" }}
           >
-            Explore Product <ArrowRight size={14} />
-          </Link>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={openInquiry}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-[11.5px] font-semibold uppercase tracking-wide text-[var(--color-cream-white)] transition"
-              style={{ background: "var(--gradient-btn)" }}
-            >
-              Get a Quote
-            </button>
-            <button
-              type="button"
-              onClick={openInquiry}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-[var(--color-warm-gray)] px-3 py-2 text-[11.5px] font-semibold uppercase tracking-wide text-[var(--color-dark-brown)] transition hover:border-[var(--color-dark-brown)]"
-            >
-              <PhoneCall size={12} /> Call Back
-            </button>
-          </div>
+            <Mail size={13} /> Get a Quote
+          </button>
+          <button
+            type="button"
+            onClick={openInquiry}
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-[11.5px] font-semibold text-[var(--color-cream-white)] transition hover:opacity-90"
+            style={{ background: "var(--color-brown-muted)" }}
+          >
+            <PhoneCall size={13} /> Request Call Back
+          </button>
         </div>
       </div>
     </motion.article>
@@ -181,20 +169,25 @@ export default function CategoryPageView({
       : categoryHref(category.slug);
   };
 
+  const heroImageUrl = category.image?.url?.trim() || null;
+
   return (
     <div
       className="min-h-screen"
       style={{ background: "var(--color-cream-white)" }}
     >
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="relative min-h-[70vh] flex items-end overflow-hidden">
+      {/* Fixed, contained height so a long category description can't
+          stretch the banner to an unattractive size. */}
+      <section className="relative flex items-end overflow-hidden min-h-[320px] h-[42vh] max-h-[460px]">
         {/* Background image */}
-        {category.image?.url ? (
+        {heroImageUrl ? (
           <Image
-            src={category.image.url}
+            src={heroImageUrl}
             alt={category.name}
             fill
             priority
+            className="object-cover object-center"
             sizes="100vw"
           />
         ) : (
@@ -224,22 +217,14 @@ export default function CategoryPageView({
                 },
                 { label: category.name },
               ]}
-              dark
             />
           </div>
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 w-full px-6 pb-16 sm:px-10 sm:pb-20 lg:px-16 lg:pb-24">
+        <div className="relative z-10 w-full px-6 pb-10 sm:px-10 sm:pb-12 lg:px-16 lg:pb-14">
           <div className="mx-auto max-w-7xl">
             <motion.div initial="hidden" animate="visible" variants={stagger}>
-              <motion.p
-                variants={fadeUp}
-                className="mb-4 text-[14px] uppercase tracking-[0.2em] font-medium"
-                style={{ color: "rgba(248,245,242,0.65)" }}
-              >
-                Our Collection
-              </motion.p>
               <motion.h1
                 variants={fadeUp}
                 custom={1}
@@ -258,7 +243,7 @@ export default function CategoryPageView({
                 <motion.p
                   variants={fadeUp}
                   custom={2}
-                  className="mt-5 max-w-2xl leading-relaxed"
+                  className="mt-4 max-w-2xl leading-relaxed line-clamp-2 text-sm sm:text-[15px]"
                   style={{ color: "rgba(248,245,242,0.80)" }}
                 >
                   {category.description}
@@ -268,7 +253,7 @@ export default function CategoryPageView({
                 variants={fadeUp}
                 custom={3}
                 style={{
-                  marginTop: "1.4rem",
+                  marginTop: "1.1rem",
                   display: "flex",
                   flexWrap: "wrap",
                   gap: "0.65rem",

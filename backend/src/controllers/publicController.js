@@ -30,6 +30,13 @@ function formatPublicProduct(product) {
     extractionMethod: product.extractionMethod ?? "",
     benefits: product.benefits ?? [],
     uses: product.uses ?? [],
+    productCode: product.productCode ?? "",
+    blendsWith: product.blendsWith ?? "",
+    history: product.history ?? "",
+    storage: product.storage ?? "",
+    precautions: product.precautions ?? "",
+    faqs: product.faqs ?? "",
+    specifications: product.specifications ?? [],
     featured: product.featured,
     category,
     images: product.images ?? [],
@@ -51,6 +58,61 @@ export async function getPublicCategories(_req, res) {
   } catch (error) {
     return res.status(500).json({
       message: "Failed to fetch categories",
+      error: error.message,
+    });
+  }
+}
+
+export async function searchPublicProducts(req, res) {
+  try {
+    const query = req.query.q?.trim() ?? req.query.search?.trim() ?? "";
+    const limit = Math.min(
+      Math.max(Number.parseInt(req.query.limit, 10) || 8, 1),
+      20,
+    );
+
+    if (query.length < 2) {
+      return res.status(200).json({ query, products: [] });
+    }
+
+    // Escape any regex metacharacters so a user typing "(" or "*" can't
+    // break the query or trigger a costly pattern.
+    const safe = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(safe, "i");
+
+    const products = await Product.find({
+      isActive: true,
+      $or: [{ name: regex }, { slug: regex }, { botanicalName: regex }],
+    })
+      .populate({
+        path: "category",
+        match: { isActive: true },
+        select: "name slug",
+      })
+      .sort({ featured: -1, name: 1 })
+      .limit(limit)
+      .select("name slug botanicalName images featured category");
+
+    // Drop products whose category is inactive/removed (populate → null),
+    // since those have no valid public URL.
+    const results = products
+      .filter((product) => product.category)
+      .map((product) => ({
+        id: product._id.toString(),
+        name: product.name,
+        slug: product.slug,
+        botanicalName: product.botanicalName ?? "",
+        image: product.images?.[0]?.url ?? null,
+        category: {
+          name: product.category.name,
+          slug: product.category.slug,
+        },
+      }));
+
+    return res.status(200).json({ query, products: results });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to search products",
       error: error.message,
     });
   }

@@ -10,10 +10,16 @@ export default function Breadcrumb({ items = [] }) {
           </Link>
         </li>
         {items.map((item, index) => (
-          <li key={`${item.label}-${index}`} className="flex items-center gap-2">
+          <li
+            key={`${item.label}-${index}`}
+            className="flex items-center gap-2"
+          >
             <span aria-hidden="true">/</span>
             {item.href ? (
-              <Link href={item.href} className="transition hover:text-[#2C1A0E]">
+              <Link
+                href={item.href}
+                className="transition hover:text-[#2C1A0E]"
+              >
                 {item.label}
               </Link>
             ) : (
