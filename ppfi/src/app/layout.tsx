@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
 
+import { AuthSessionProvider } from "@/components/providers/session-provider";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
@@ -63,7 +64,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn(fontSans.variable, fontDisplay.variable, "font-sans")}>
-        {children}
+        <AuthSessionProvider>{children}</AuthSessionProvider>
       </body>
     </html>
   );

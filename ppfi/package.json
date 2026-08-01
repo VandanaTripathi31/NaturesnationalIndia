@@ -10,7 +10,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "seed:admin": "node --env-file=.env.local scripts/seed-admin.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
