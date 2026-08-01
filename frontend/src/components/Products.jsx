@@ -112,10 +112,7 @@ function CategoryCard({ name, img, slug, index }) {
             style={{
               width: "100%",
               height: "100%",
-              // "cover" fills the whole circle (no empty white bands) while
-              // preserving aspect ratio, so images are never stretched — the
-              // edges are cropped instead.
-              objectFit: "cover",
+              objectFit: "contain",
               objectPosition: "center",
               transition: "transform 0.55s cubic-bezier(0.22,1,0.36,1)",
               transform: hovered ? "scale(1.06)" : "scale(1)",
