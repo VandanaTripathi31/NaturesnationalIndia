@@ -21,8 +21,8 @@ function formatDate(date: string) {
   });
 }
 
-export default function BlogPage() {
-  const posts = getBlogPosts();
+export default async function BlogPage() {
+  const posts = await getBlogPosts();
 
   return (
     <div className="container py-20">

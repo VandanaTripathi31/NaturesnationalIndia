@@ -10,9 +10,8 @@ export const metadata: Metadata = {
     "Browse practical, project-based courses in film, video, marketing, design and more — taught by working industry professionals.",
 };
 
-export default function CoursesPage() {
-  const courses = getCourses();
-  const categories = getCourseCategories();
+export default async function CoursesPage() {
+  const [courses, categories] = await Promise.all([getCourses(), getCourseCategories()]);
 
   return (
     <div className="container py-20">

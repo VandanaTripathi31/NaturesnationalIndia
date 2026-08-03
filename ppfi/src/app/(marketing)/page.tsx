@@ -40,9 +40,9 @@ const differentiators = [
   },
 ];
 
-export default function HomePage() {
-  const featured = getFeaturedCourses();
-  const mentors = getMentors().slice(0, 4);
+export default async function HomePage() {
+  const [featured, allMentors] = await Promise.all([getFeaturedCourses(), getMentors()]);
+  const mentors = allMentors.slice(0, 4);
 
   return (
     <>

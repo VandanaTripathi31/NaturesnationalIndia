@@ -11,13 +11,13 @@ import { formatINR } from "@/lib/utils";
 
 type Params = Promise<{ slug: string }>;
 
-export function generateStaticParams() {
-  return getCourses().map((c) => ({ slug: c.slug }));
+export async function generateStaticParams() {
+  return (await getCourses()).map((c) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const course = getCourseBySlug(slug);
+  const course = await getCourseBySlug(slug);
   if (!course) return { title: "Course not found" };
   return {
     title: course.title,
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function CourseDetailPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const course = getCourseBySlug(slug);
+  const course = await getCourseBySlug(slug);
   if (!course) notFound();
 
   const meta = [

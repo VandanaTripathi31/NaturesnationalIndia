@@ -13,8 +13,8 @@ export const metadata: Metadata = {
     "Meet the active industry professionals who mentor at Pixel Perfect Films Institute.",
 };
 
-export default function MentorsPage() {
-  const mentors = getMentors();
+export default async function MentorsPage() {
+  const mentors = await getMentors();
 
   return (
     <div className="container py-20">

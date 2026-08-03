@@ -9,20 +9,20 @@ import { getMentorBySlug, getMentors } from "@/features/content";
 
 type Params = Promise<{ slug: string }>;
 
-export function generateStaticParams() {
-  return getMentors().map((m) => ({ slug: m.slug }));
+export async function generateStaticParams() {
+  return (await getMentors()).map((m) => ({ slug: m.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  const mentor = getMentorBySlug(slug);
+  const mentor = await getMentorBySlug(slug);
   if (!mentor) return { title: "Mentor not found" };
   return { title: mentor.name, description: `${mentor.name} — ${mentor.role}` };
 }
 
 export default async function MentorDetailPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const mentor = getMentorBySlug(slug);
+  const mentor = await getMentorBySlug(slug);
   if (!mentor) notFound();
 
   return (

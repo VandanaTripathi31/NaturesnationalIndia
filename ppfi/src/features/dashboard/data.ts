@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getCourseBySlug } from "@/features/content";
+import { getCourses } from "@/features/content";
 import { connectToDatabase } from "@/server/db/mongoose";
 import { Certificate } from "@/server/db/models/Certificate";
 import { Enrollment } from "@/server/db/models/Enrollment";
@@ -31,10 +31,14 @@ export interface CertificateView {
 /** Enrollments for a student, enriched with course catalogue metadata. */
 export async function getStudentEnrollments(userId: string): Promise<EnrollmentView[]> {
   await connectToDatabase();
-  const rows = await Enrollment.find({ student: userId }).sort({ createdAt: -1 }).lean();
+  const [rows, courses] = await Promise.all([
+    Enrollment.find({ student: userId }).sort({ createdAt: -1 }).lean(),
+    getCourses(),
+  ]);
+  const courseBySlug = new Map(courses.map((c) => [c.slug, c]));
 
   return rows.map((e) => {
-    const course = getCourseBySlug(e.courseSlug);
+    const course = courseBySlug.get(e.courseSlug);
     return {
       id: String(e._id),
       courseSlug: e.courseSlug,
