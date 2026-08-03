@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Award, ExternalLink } from "lucide-react";
+import { Award, Download, ExternalLink } from "lucide-react";
 
 import { EmptyState, PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +57,16 @@ export default async function CertificatesPage() {
                 Issued {formatDate(c.issuedAt)} · ID {c.certificateId}
               </p>
               <div className="mt-5 flex gap-2">
+                <Button asChild size="sm">
+                  <a
+                    href={`/api/certificates/${c.certificateId}/pdf`}
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    <Download className="size-3.5" />
+                    Download
+                  </a>
+                </Button>
                 <Button asChild size="sm" variant="outline">
                   <Link href={`/verify/${c.certificateId}`}>
                     Verify

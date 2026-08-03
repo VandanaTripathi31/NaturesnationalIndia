@@ -82,6 +82,14 @@ export function Footer() {
                 Create account
               </Link>
             </li>
+            <li>
+              <Link
+                href="/verify"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Verify a certificate
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
