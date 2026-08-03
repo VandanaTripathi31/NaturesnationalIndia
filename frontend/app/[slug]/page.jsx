@@ -53,7 +53,9 @@ export async function generateMetadata({ params }) {
       title: product.metaTitle || product.name,
       description: product.metaDescription || product.description,
       keywords: product.metaKeywords?.split(",").map((item) => item.trim()),
-      alternates: { canonical: productHref(product.slug) },
+      alternates: {
+        canonical: productHref(product.category?.slug, product.slug),
+      },
     };
   }
 
