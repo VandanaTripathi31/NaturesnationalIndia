@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  deleteEnquiry,
   listEnquiries,
   updateEnquiryStatus,
 } from "../controllers/enquiryController.js";
@@ -12,5 +13,6 @@ router.use(protectAdmin);
 
 router.get("/", listEnquiries);
 router.patch("/:id", updateEnquiryStatus);
+router.delete("/:id", deleteEnquiry);
 
 export default router;

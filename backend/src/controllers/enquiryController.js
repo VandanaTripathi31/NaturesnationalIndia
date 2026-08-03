@@ -89,6 +89,21 @@ export async function listEnquiries(req, res) {
     const filter = {};
     if (req.query.status) filter.status = req.query.status;
 
+    // Free-text search across the fields shown in the admin table.
+    const search = req.query.q?.trim() ?? req.query.search?.trim() ?? "";
+    if (search) {
+      const safe = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(safe, "i");
+      filter.$or = [
+        { name: regex },
+        { email: regex },
+        { phone: regex },
+        { country: regex },
+        { category: regex },
+        { message: regex },
+      ];
+    }
+
     const [items, total] = await Promise.all([
       Enquiry.find(filter)
         .sort({ createdAt: -1 })
@@ -97,7 +112,13 @@ export async function listEnquiries(req, res) {
       Enquiry.countDocuments(filter),
     ]);
 
-    return res.status(200).json({ enquiries: items, total, page, limit });
+    return res.status(200).json({
+      enquiries: items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit) || 1,
+    });
   } catch (error) {
     return res
       .status(500)
@@ -120,5 +141,18 @@ export async function updateEnquiryStatus(req, res) {
     return res
       .status(500)
       .json({ message: "Failed to update enquiry", error: error.message });
+  }
+}
+
+// DELETE /api/enquiries/:id — admin delete (protected).
+export async function deleteEnquiry(req, res) {
+  try {
+    const enquiry = await Enquiry.findByIdAndDelete(req.params.id);
+    if (!enquiry) return res.status(404).json({ message: "Enquiry not found" });
+    return res.status(200).json({ message: "Enquiry deleted" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Failed to delete enquiry", error: error.message });
   }
 }

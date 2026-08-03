@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   FolderTree,
   Package,
+  Inbox,
   LogOut,
   Leaf,
   ChevronLeft,
@@ -19,6 +20,7 @@ const navItems = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
   { label: "Products", href: "/admin/products", icon: Package },
+  { label: "Enquiries", href: "/admin/enquiries", icon: Inbox },
 ];
 
 type SidebarProps = {
