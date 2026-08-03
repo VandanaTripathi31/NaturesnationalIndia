@@ -6,6 +6,7 @@ import { ArrowRight, Check, Clock, Layers, SignalHigh } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EnrollCta } from "@/features/payments/components/enroll-cta";
 import { getCourseBySlug, getCourses } from "@/features/content";
 import { formatINR } from "@/lib/utils";
 
@@ -115,13 +116,15 @@ export default async function CourseDetailPage({ params }: { params: Params }) {
               ))}
             </dl>
 
-            <Button asChild className="mt-6 w-full" disabled={course.comingSoon}>
+            <div className="mt-6">
               {course.comingSoon ? (
-                <span>Notify me</span>
+                <Button className="w-full" disabled>
+                  Notify me
+                </Button>
               ) : (
-                <Link href={`/signup?course=${course.slug}`}>Enrol now</Link>
+                <EnrollCta courseSlug={course.slug} />
               )}
-            </Button>
+            </div>
             <p className="mt-3 text-center text-xs text-muted-foreground">
               Secure payment · Certificate on completion
             </p>
