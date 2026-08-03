@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { categoryHref } from "../../lib/seo-routes";
+import ProductInfoTabs from "./ProductInfoTabs";
 import {
   MapPin,
   Droplets,
@@ -531,6 +532,62 @@ export default function ProductPageView({
                   </div>
                 </motion.section>
               )}
+
+              {/* ── Additional Information (spec table from DB) ── */}
+              {product.specifications?.length > 0 && (
+                <motion.section
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-60px" }}
+                  variants={stagger}
+                  className="mt-10"
+                >
+                  <motion.div
+                    variants={fadeUp}
+                    className="mb-5 flex items-center gap-3"
+                  >
+                    <div
+                      className="flex h-8 w-8 items-center justify-center rounded-xl"
+                      style={{ background: "var(--color-sage-light)" }}
+                    >
+                      <ClipboardList
+                        size={15}
+                        style={{ color: "var(--color-sage-dark)" }}
+                      />
+                    </div>
+                    <h2 className="font-playfair text-xl font-semibold text-[var(--color-text-primary)]">
+                      Additional Information
+                    </h2>
+                  </motion.div>
+                  <motion.div
+                    variants={fadeUp}
+                    className="overflow-hidden rounded-2xl border border-[var(--color-warm-gray)] bg-white"
+                  >
+                    {product.specifications
+                      .filter((row) => row.label && row.value)
+                      .map((row, i, arr) => (
+                        <div
+                          key={`${row.label}-${i}`}
+                          className={`flex flex-col gap-1 px-5 py-3.5 sm:flex-row sm:gap-4 ${
+                            i < arr.length - 1
+                              ? "border-b border-[var(--color-warm-gray)]"
+                              : ""
+                          } ${i % 2 === 1 ? "bg-[var(--color-off-white)]" : ""}`}
+                        >
+                          <span className="w-full text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] sm:w-56 sm:shrink-0">
+                            {row.label}
+                          </span>
+                          <span className="text-sm text-[var(--color-text-primary)]">
+                            {row.value}
+                          </span>
+                        </div>
+                      ))}
+                  </motion.div>
+                </motion.section>
+              )}
+
+              {/* ── Product info tabs (Overview + company-wide) ── */}
+              <ProductInfoTabs product={product} />
 
               {/* ── Related Products ──────────────────────── */}
               <RelatedProducts

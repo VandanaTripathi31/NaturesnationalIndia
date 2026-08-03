@@ -53,6 +53,15 @@ const categorySchema = new mongoose.Schema(
       sparse: true,
       unique: true,
     },
+
+    // Slugs this category was previously served under. Populated by the
+    // slug-alignment migration so old (already-indexed) URLs can 301-redirect
+    // to the current canonical slug instead of 404ing.
+    previousSlugs: {
+      type: [String],
+      default: [],
+      index: true,
+    },
   },
   {
     timestamps: true,

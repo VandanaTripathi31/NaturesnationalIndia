@@ -1,81 +1,135 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   getCategories,
   getCategoryBySlug,
 } from "../../src/services/categoryService";
+import {
+  getProductBySlug,
+  getRelatedProducts,
+} from "../../src/services/productService";
 import CategoryPageView from "../../src/components/catalog/CategoryPageView";
+import ProductPageView from "../../src/components/catalog/ProductPageView";
 import { CategoryPageSkeleton } from "../../src/components/ui/CatalogSkeletons";
-import { stripHtml, categoryHref } from "../../src/lib/seo-routes";
+import { stripHtml, categoryHref, productHref } from "../../src/lib/seo-routes";
 
-// This route owns every "/{category-slug}.html" URL — the same pattern
-// used on the live site. The slug itself is never hardcoded: it's read
-// straight from each category's `slug` field in MongoDB via the existing
-// public categories API, so any category created from the Admin Dashboard
-// automatically gets a matching page here with zero code changes.
+// This route owns every flat "/{slug}.html" URL — the exact structure used on
+// the live site (see sitemap.xml), where BOTH categories and products live at
+// the top level. A slug is resolved as a category first; if none matches, it
+// is resolved as a product. Slugs come straight from MongoDB, so anything
+// created in the Admin Dashboard appears here automatically.
+
+async function resolveCategory(slug) {
+  try {
+    return await getCategoryBySlug(slug, { page: 1, limit: 1 });
+  } catch {
+    return null;
+  }
+}
+
+async function resolveProduct(slug) {
+  try {
+    return await getProductBySlug(slug);
+  } catch {
+    return null;
+  }
+}
 
 export async function generateMetadata({ params }) {
   const { slug: rawSlug } = await params;
-
   if (!rawSlug.endsWith(".html")) return {};
   const slug = stripHtml(rawSlug);
 
-  try {
-    const data = await getCategoryBySlug(slug, { page: 1, limit: 1 });
-    const category = data.category;
-
+  const categoryData = await resolveCategory(slug);
+  if (categoryData?.category) {
+    const category = categoryData.category;
     return {
       title: category.metaTitle || category.name,
       description: category.metaDescription || category.description,
       keywords: category.metaKeywords?.split(",").map((item) => item.trim()),
-      alternates: {
-        canonical: categoryHref(category.slug),
-      },
+      alternates: { canonical: categoryHref(category.slug) },
     };
-  } catch {
-    return { title: "Category" };
   }
+
+  const product = await resolveProduct(slug);
+  if (product) {
+    return {
+      title: product.metaTitle || product.name,
+      description: product.metaDescription || product.description,
+      keywords: product.metaKeywords?.split(",").map((item) => item.trim()),
+      alternates: { canonical: productHref(product.slug) },
+    };
+  }
+
+  return { title: "Natures Natural India" };
 }
 
-export default async function SeoCategoryPage({ params, searchParams }) {
+export default async function SeoSlugPage({ params, searchParams }) {
   const { slug: rawSlug } = await params;
 
-  // Only handle "*.html" segments here — anything else genuinely isn't a
-  // page this route owns, so it 404s like normal instead of swallowing
-  // unrelated single-segment paths.
+  // Only flat "*.html" slugs belong to this route.
   if (!rawSlug.endsWith(".html")) notFound();
-
   const slug = stripHtml(rawSlug);
+
+  // ── 1. Try to resolve the slug as a category ──────────────────────
   const query = await searchParams;
   const page = Number(query.page || 1);
   const search = typeof query.search === "string" ? query.search : "";
 
-  let categories = [];
-  let data;
+  const categoryData = await resolveCategory(slug);
+  if (categoryData?.category) {
+    // Old (indexed) slug → 301 to the canonical category URL.
+    if (categoryData.category.slug !== slug) {
+      redirect(categoryHref(categoryData.category.slug));
+    }
 
-  try {
-    [categories, data] = await Promise.all([
-      getCategories(),
-      getCategoryBySlug(slug, { page, limit: 12, search }),
-    ]);
-  } catch {
-    notFound();
+    const categories = await getCategories().catch(() => []);
+    const featuredProducts = (categoryData.products ?? [])
+      .filter((product) => product.featured)
+      .slice(0, 4);
+
+    return (
+      <Suspense fallback={<CategoryPageSkeleton />}>
+        <CategoryPageView
+          category={categoryData.category}
+          products={categoryData.products ?? []}
+          pagination={categoryData.pagination}
+          categories={categories}
+          featuredProducts={featuredProducts}
+          searchQuery={search}
+        />
+      </Suspense>
+    );
   }
 
-  const featuredProducts = (data.products ?? [])
-    .filter((product) => product.featured)
-    .slice(0, 4);
+  // ── 2. Fall back to resolving the slug as a product ───────────────
+  const product = await resolveProduct(slug);
+  if (!product) notFound();
+
+  // Old (indexed) slug → 301 to the canonical product URL.
+  if (product.slug !== slug) {
+    redirect(productHref(product.slug));
+  }
+
+  const [relatedProducts, categories] = await Promise.all([
+    getRelatedProducts(product.slug).catch(() => []),
+    getCategories().catch(() => []),
+  ]);
+
+  let featuredProducts = [];
+  if (product.category?.slug) {
+    const relatedCategory = await resolveCategory(product.category.slug);
+    featuredProducts = (relatedCategory?.products ?? [])
+      .filter((item) => item.featured && item.id !== product.id)
+      .slice(0, 4);
+  }
 
   return (
-    <Suspense fallback={<CategoryPageSkeleton />}>
-      <CategoryPageView
-        category={data.category}
-        products={data.products ?? []}
-        pagination={data.pagination}
-        categories={categories}
-        featuredProducts={featuredProducts}
-        searchQuery={search}
-      />
-    </Suspense>
+    <ProductPageView
+      product={product}
+      relatedProducts={relatedProducts}
+      categories={categories}
+      featuredProducts={featuredProducts}
+    />
   );
 }

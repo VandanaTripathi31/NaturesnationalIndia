@@ -20,10 +20,21 @@ export function categoryHref(slug) {
   return `/${slug}.html`;
 }
 
-/** Build the public URL for a product page from its category + product slug. */
-export function productHref(categorySlug, productSlug) {
-  if (!categorySlug || !productSlug) return "/";
-  return `/${categorySlug}/${productSlug}.html`;
+/**
+ * Build the public URL for a product page.
+ *
+ * The live site (see sitemap.xml) serves products as FLAT "/{product-slug}.html"
+ * URLs — they are NOT nested under their category. This helper is kept
+ * backward-compatible with the previous two-argument call style
+ * `productHref(categorySlug, productSlug)` that is still used across the app:
+ * when a second argument is present it is treated as the product slug and the
+ * category segment is dropped. Single-argument `productHref(productSlug)` also
+ * works.
+ */
+export function productHref(productSlugOrCategory, productSlug) {
+  const slug = productSlug ?? productSlugOrCategory;
+  if (!slug) return "/";
+  return `/${slug}.html`;
 }
 
 /** Strip a trailing ".html" from a route segment, e.g. "foo.html" -> "foo". */

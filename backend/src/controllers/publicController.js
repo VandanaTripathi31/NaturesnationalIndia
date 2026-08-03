@@ -145,8 +145,8 @@ export async function getPublicCategoryBySlug(req, res) {
     const skip = (page - 1) * limit;
 
     const category = await Category.findOne({
-      slug: req.params.slug,
       isActive: true,
+      $or: [{ slug: req.params.slug }, { previousSlugs: req.params.slug }],
     });
 
     if (!category) {
@@ -198,8 +198,8 @@ export async function getPublicCategoryBySlug(req, res) {
 export async function getPublicProductBySlug(req, res) {
   try {
     const product = await Product.findOne({
-      slug: req.params.slug,
       isActive: true,
+      $or: [{ slug: req.params.slug }, { previousSlugs: req.params.slug }],
     }).populate({
       path: "category",
       match: { isActive: true },
