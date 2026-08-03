@@ -14,6 +14,19 @@ import { COMPANY_INFO_TABS } from "../../lib/company-info";
 */
 
 function Block({ block }) {
+  if (block.type === "image") {
+    // Images render responsively without cropping (aspect ratio preserved).
+    // eslint-disable-next-line @next/next/no-img-element
+    return (
+      <img
+        src={block.src}
+        alt={block.alt ?? ""}
+        className="my-4 h-auto max-w-full rounded-xl border border-[var(--color-warm-gray)]"
+        style={{ objectFit: "contain" }}
+        loading="lazy"
+      />
+    );
+  }
   if (block.type === "heading") {
     return (
       <h3 className="mt-5 mb-2 font-playfair text-base font-semibold text-[var(--color-text-primary)]">

@@ -4,12 +4,8 @@ import {
   getCategories,
   getCategoryBySlug,
 } from "../../src/services/categoryService";
-import {
-  getProductBySlug,
-  getRelatedProducts,
-} from "../../src/services/productService";
+import { getProductBySlug } from "../../src/services/productService";
 import CategoryPageView from "../../src/components/catalog/CategoryPageView";
-import ProductPageView from "../../src/components/catalog/ProductPageView";
 import { CategoryPageSkeleton } from "../../src/components/ui/CatalogSkeletons";
 import { stripHtml, categoryHref, productHref } from "../../src/lib/seo-routes";
 
@@ -76,7 +72,15 @@ export default async function SeoSlugPage({ params, searchParams }) {
   const page = Number(query.page || 1);
   const search = typeof query.search === "string" ? query.search : "";
 
-  const categoryData = await resolveCategory(slug);
+  // Fetch the FULL first page of products (bug fix: previously this route
+  // only fetched a single product, so category pages showed just one item).
+  let categoryData = null;
+  try {
+    categoryData = await getCategoryBySlug(slug, { page, limit: 12, search });
+  } catch {
+    categoryData = null;
+  }
+
   if (categoryData?.category) {
     // Old (indexed) slug → 301 to the canonical category URL.
     if (categoryData.category.slug !== slug) {
@@ -102,34 +106,10 @@ export default async function SeoSlugPage({ params, searchParams }) {
     );
   }
 
-  // ── 2. Fall back to resolving the slug as a product ───────────────
+  // ── 2. Flat product slug → 301 to the canonical NESTED product URL ──
+  // Products live at /{category-slug}/{product-slug}.html; if someone hits a
+  // flat "/{product-slug}.html" (e.g. an old sitemap URL) send them there.
   const product = await resolveProduct(slug);
   if (!product) notFound();
-
-  // Old (indexed) slug → 301 to the canonical product URL.
-  if (product.slug !== slug) {
-    redirect(productHref(product.slug));
-  }
-
-  const [relatedProducts, categories] = await Promise.all([
-    getRelatedProducts(product.slug).catch(() => []),
-    getCategories().catch(() => []),
-  ]);
-
-  let featuredProducts = [];
-  if (product.category?.slug) {
-    const relatedCategory = await resolveCategory(product.category.slug);
-    featuredProducts = (relatedCategory?.products ?? [])
-      .filter((item) => item.featured && item.id !== product.id)
-      .slice(0, 4);
-  }
-
-  return (
-    <ProductPageView
-      product={product}
-      relatedProducts={relatedProducts}
-      categories={categories}
-      featuredProducts={featuredProducts}
-    />
-  );
+  redirect(productHref(product.category?.slug, product.slug));
 }
