@@ -449,6 +449,30 @@ export default function CategoryPageView({
                   </div>
                 </motion.div>
               )}
+
+              {/* ── SEO content (shown on the first page, from the DB) ── */}
+              {(!pagination || pagination.page === 1) &&
+                category.description && (
+                  <section className="mt-14 border-t border-[var(--color-warm-gray)] pt-10">
+                    <h2 className="font-playfair text-2xl font-semibold text-[var(--color-text-primary)]">
+                      {category.name}
+                    </h2>
+                    <div className="mt-4 space-y-4">
+                      {category.description
+                        .split(/\n{2,}|\r\n\r\n/)
+                        .map((para) => para.trim())
+                        .filter(Boolean)
+                        .map((para, i) => (
+                          <p
+                            key={i}
+                            className="text-[15px] leading-relaxed text-[var(--color-text-muted)]"
+                          >
+                            {para}
+                          </p>
+                        ))}
+                    </div>
+                  </section>
+                )}
             </section>
           </div>
         </div>

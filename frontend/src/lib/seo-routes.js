@@ -23,18 +23,19 @@ export function categoryHref(slug) {
 /**
  * Build the public URL for a product page.
  *
- * The live site (see sitemap.xml) serves products as FLAT "/{product-slug}.html"
- * URLs — they are NOT nested under their category. This helper is kept
- * backward-compatible with the previous two-argument call style
- * `productHref(categorySlug, productSlug)` that is still used across the app:
- * when a second argument is present it is treated as the product slug and the
- * category segment is dropped. Single-argument `productHref(productSlug)` also
- * works.
+ * The live site nests products under their category:
+ *   /{category-slug}/{product-slug}.html
+ * (e.g. /pure-and-natural-essential-oils/agarwood-essential-oil.html).
  */
-export function productHref(productSlugOrCategory, productSlug) {
-  const slug = productSlug ?? productSlugOrCategory;
-  if (!slug) return "/";
-  return `/${slug}.html`;
+export function productHref(categorySlug, productSlug) {
+  // Products live UNDER their category on the live site:
+  //   /{category-slug}/{product-slug}.html
+  if (categorySlug && productSlug) {
+    return `/${categorySlug}/${productSlug}.html`;
+  }
+  // Fallback if only one segment is known (e.g. a flat legacy link):
+  const only = productSlug ?? categorySlug;
+  return only ? `/${only}.html` : "/";
 }
 
 /** Strip a trailing ".html" from a route segment, e.g. "foo.html" -> "foo". */

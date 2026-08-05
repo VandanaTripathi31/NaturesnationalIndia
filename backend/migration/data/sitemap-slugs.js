@@ -45,21 +45,28 @@ export const SUBCATEGORY_SLUGS = [
 // Keyed by generateSlug(name) so it is robust to spacing/case. Edit an entry
 // here if a category's display name differs from what is assumed.
 export const CATEGORY_NAME_TO_SLUG = {
+  // ── Exact current → live mappings supplied by the client ──────────
   "essential-oils": "pure-and-natural-essential-oils",
+  "hydrosols-floral-water": "hydrosols",
+  "absolute-oils": "floral-absolute-oils",
+  "3-exotic-oil-dilution": "exotic-oil-dilutions",
+  "indian-attars": "traditional-indian-attars",
+  "cosmetic-butters": "natural-cosmetic-butters",
+  "oleoresins-oils": "oleoresins",
+  // ── Canonical + common-variant fallbacks ─────────────────────────
   "pure-and-natural-essential-oils": "pure-and-natural-essential-oils",
   "carrier-oils": "carrier-oils",
   "organic-oils": "certified-organic-oils",
   "certified-organic-oils": "certified-organic-oils",
-  "absolute-oils": "floral-absolute-oils",
   "floral-absolute-oils": "floral-absolute-oils",
   "attars": "traditional-indian-attars",
   "traditional-indian-attars": "traditional-indian-attars",
-  "indian-attars": "traditional-indian-attars",
   "spice-oils": "spice-oils",
   "hydrosols": "hydrosols",
   "floral-water": "hydrosols",
   "floral-waters": "hydrosols",
   "exotic-oil-dilutions": "exotic-oil-dilutions",
+  "exotic-oil-dilution": "exotic-oil-dilutions",
   "dilutions": "exotic-oil-dilutions",
   "oleoresins": "oleoresins",
   "natural-cosmetic-butters": "natural-cosmetic-butters",
