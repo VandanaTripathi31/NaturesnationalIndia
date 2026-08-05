@@ -7,11 +7,41 @@ function formatPublicCategory(category) {
     name: category.name,
     slug: category.slug,
     description: category.description ?? "",
+    content: category.content ?? "",
     image: category.image ?? null,
     metaTitle: category.metaTitle ?? "",
     metaDescription: category.metaDescription ?? "",
     metaKeywords: category.metaKeywords ?? "",
   };
+}
+
+// Normalise whatever image shape a product has into a consistent
+// [{ public_id, url }] list. Handles: array of {url}/{secure_url} objects,
+// array of plain URL strings, and a single legacy `image` string field. This
+// keeps the public API tolerant of how the data was imported/edited so the
+// frontend never has to guess.
+function normalizeImages(product) {
+  const out = [];
+  const push = (url, public_id = "") => {
+    const u = typeof url === "string" ? url.trim() : "";
+    if (u) out.push({ public_id: public_id || "", url: u });
+  };
+
+  const raw = product.images;
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (typeof item === "string") push(item);
+      else if (item && typeof item === "object")
+        push(item.url ?? item.secure_url, item.public_id);
+    }
+  }
+  // Legacy single-image fallbacks.
+  if (out.length === 0) {
+    if (typeof product.image === "string") push(product.image);
+    else if (product.image && typeof product.image === "object")
+      push(product.image.url ?? product.image.secure_url, product.image.public_id);
+  }
+  return out;
 }
 
 function formatPublicProduct(product) {
@@ -39,7 +69,7 @@ function formatPublicProduct(product) {
     specifications: product.specifications ?? [],
     featured: product.featured,
     category,
-    images: product.images ?? [],
+    images: normalizeImages(product),
     metaTitle: product.metaTitle ?? "",
     metaDescription: product.metaDescription ?? "",
     metaKeywords: product.metaKeywords ?? "",
@@ -118,7 +148,7 @@ export async function searchPublicProducts(req, res) {
         name: product.name,
         slug: product.slug,
         botanicalName: product.botanicalName ?? "",
-        image: product.images?.[0]?.url ?? null,
+        image: normalizeImages(product)[0]?.url ?? null,
         category: {
           name: product.category.name,
           slug: product.category.slug,

@@ -456,6 +456,18 @@ export default function CategoryPageView({
                   fall back to the plain description from MongoDB. */}
               {(!pagination || pagination.page === 1) &&
                 (() => {
+                  // 1) DB-managed HTML content (Admin Dashboard) — highest priority.
+                  if (category.content && category.content.trim()) {
+                    return (
+                      <section className="mt-14 border-t border-[var(--color-warm-gray)] pt-10">
+                        <div
+                          className="category-content max-w-none space-y-4 text-[15px] leading-relaxed text-[var(--color-text-muted)] [&_h2]:font-playfair [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-[var(--color-text-primary)] [&_h3]:mt-8 [&_h3]:font-playfair [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-[var(--color-text-primary)] [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[var(--color-dark-brown)] [&_a]:underline"
+                          dangerouslySetInnerHTML={{ __html: category.content }}
+                        />
+                      </section>
+                    );
+                  }
+                  // 2) Structured code content (keyed by slug) — reusable fallback.
                   const rich = CATEGORY_CONTENT[category.slug];
                   if (rich) {
                     return (

@@ -21,6 +21,15 @@ const categorySchema = new mongoose.Schema(
       trim: true,
       maxlength: [1000, "Description cannot exceed 1000 characters"],
     },
+    // Long-form, per-category SEO content shown below the product listing
+    // (Introduction, Uses, Applications, FAQ, …). Stored as HTML authored in
+    // the Admin Dashboard so every category can have its own content without
+    // code changes. Rendered by the frontend CategoryPageView.
+    content: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     image: {
       public_id: String,
       url: String,

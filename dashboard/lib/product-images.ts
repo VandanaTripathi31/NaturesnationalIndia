@@ -8,5 +8,8 @@ export function normalizeProductImages(
       public_id: image.public_id ?? "",
       url: image.url ?? image.secure_url ?? "",
     }))
-    .filter((image) => image.public_id && image.url);
+    // Keep any image that has a URL. `public_id` is empty for images imported
+    // in reference mode (they point straight at the source URL), so requiring
+    // it here previously dropped EVERY migrated product image.
+    .filter((image) => image.url);
 }

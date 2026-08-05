@@ -54,6 +54,7 @@ export default function CategoryFormModal({
       reset({
         name: category.name,
         description: category.description,
+        content: category.content ?? "",
         metaTitle: category.metaTitle,
         metaDescription: category.metaDescription,
         metaKeywords: category.metaKeywords,
@@ -142,6 +143,23 @@ export default function CategoryFormModal({
                 placeholder="Briefly describe this category…"
                 className="admin-input resize-none"
                 {...register("description")}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="content" className={labelClass}>
+                <FileText className="h-3.5 w-3.5 text-[var(--text-muted)]" aria-hidden="true" />
+                Page content (HTML)
+                <span className="ml-auto text-[11px] font-normal text-[var(--text-muted)]">
+                  Shown below the products
+                </span>
+              </label>
+              <textarea
+                id="content"
+                rows={10}
+                placeholder="Long-form SEO content for this category. Basic HTML is supported: <h2>, <h3>, <p>, <ul><li>, <a>…"
+                className="admin-input resize-y font-mono text-[13px]"
+                {...register("content")}
               />
             </div>
           </div>

@@ -94,15 +94,21 @@ async function main() {
       { "images.0.url": { $in: [null, ""] } },
     ],
   });
-  console.log(`PRODUCTS WITH NO USABLE IMAGE: ${noImage}`);
-  if (noImage > 0) {
-    const sample = await Product.find({
-      $or: [{ images: { $size: 0 } }, { "images.0.url": { $in: [null, ""] } }],
-    })
-      .limit(10)
-      .select("name slug");
-    for (const p of sample) console.log(`  - ${p.name} [${p.slug}]`);
+  console.log(`PRODUCTS WITH NO USABLE IMAGE (images[0].url null/empty): ${noImage}`);
+
+  // Dump the RAW image field of a few products so we can see exactly how
+  // images are stored (object vs string vs different field name).
+  console.log(`\n  RAW image shape of 3 sample products (.lean()):`);
+  const rawSamples = await Product.find({}).limit(3).lean();
+  for (const p of rawSamples) {
+    console.log(`  · ${p.name} [${p.slug}]`);
+    console.log(`      top-level keys: ${Object.keys(p).join(", ")}`);
+    console.log(`      images = ${JSON.stringify(p.images)}`);
+    if (p.image !== undefined) console.log(`      image  = ${JSON.stringify(p.image)}`);
   }
+  // How many actually have a non-empty images[0].url vs some other shape.
+  const withObjUrl = await Product.countDocuments({ "images.0.url": { $nin: [null, ""] } });
+  console.log(`\n  products where images[0].url is a non-empty string: ${withObjUrl}`);
 
   // ── Seven Chakra Blends focus (client item #2) ───────────────────
   line();

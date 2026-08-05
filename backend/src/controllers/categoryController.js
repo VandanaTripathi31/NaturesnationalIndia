@@ -8,6 +8,7 @@ function formatCategory(category) {
     name: category.name,
     slug: category.slug,
     description: category.description ?? "",
+    content: category.content ?? "",
     image: category.image ?? null,
     metaTitle: category.metaTitle ?? "",
     metaDescription: category.metaDescription ?? "",
@@ -98,6 +99,7 @@ export async function createCategory(req, res) {
     const {
       name,
       description = "",
+      content = "",
       metaTitle = "",
       metaDescription = "",
       metaKeywords = "",
@@ -120,6 +122,7 @@ export async function createCategory(req, res) {
         name: name.trim(),
         slug,
         description: description?.trim(),
+        content: content ?? "",
         metaTitle: metaTitle?.trim(),
         metaDescription: metaDescription?.trim(),
         metaKeywords: metaKeywords?.trim(),
@@ -162,6 +165,7 @@ export async function updateCategory(req, res) {
     const {
       name,
       description,
+      content,
       metaTitle,
       metaDescription,
       metaKeywords,
@@ -174,6 +178,7 @@ export async function updateCategory(req, res) {
     }
 
     if (description !== undefined) category.description = description.trim();
+    if (content !== undefined) category.content = content;
     if (metaTitle !== undefined) category.metaTitle = metaTitle.trim();
     if (metaDescription !== undefined) {
       category.metaDescription = metaDescription.trim();

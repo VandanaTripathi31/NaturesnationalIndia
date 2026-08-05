@@ -74,7 +74,13 @@ export const CATEGORY_NAME_TO_SLUG = {
   "butters": "natural-cosmetic-butters",
   "fragrances-oil": "fragrances-oil",
   "fragrance-oils": "fragrances-oil",
+  "fragrances-oils": "fragrances-oil",
   "fragrances": "fragrances-oil",
+  // liquid-herbals-extracts sub-categories (live URLs are nested under
+  // /liquid-herbals-extracts/; the flat category route serves them at the
+  // leaf slug).
+  "water-soluble": "water-soluble",
+  "oil-soluble": "oil-soluble",
   "ayurvedic-herbal-oil": "ayurvedic-herbal-oil",
   "ayurvedic-herbal-oils": "ayurvedic-herbal-oil",
   "organic-essential-oil": "organic-essential-oil",

@@ -8,6 +8,7 @@ export type Category = {
   name: string;
   slug: string;
   description: string;
+  content: string;
   image: CategoryImage | null;
   metaTitle: string;
   metaDescription: string;
@@ -32,6 +33,7 @@ export type CategoryListResponse = {
 export type CategoryFormValues = {
   name: string;
   description: string;
+  content: string;
   metaTitle: string;
   metaDescription: string;
   metaKeywords: string;
@@ -48,6 +50,7 @@ export type CategoryQueryParams = {
 export const defaultCategoryFormValues: CategoryFormValues = {
   name: "",
   description: "",
+  content: "",
   metaTitle: "",
   metaDescription: "",
   metaKeywords: "",
