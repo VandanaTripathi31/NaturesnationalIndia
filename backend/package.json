@@ -14,7 +14,8 @@
     "migrate:rollback": "node migration/rollback.js",
     "migrate:slugs:dry": "node migration/align-slugs.js",
     "migrate:slugs": "node migration/align-slugs.js --commit",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "verify:data": "node migration/verify.js"
   },
   "keywords": [],
   "author": "",
