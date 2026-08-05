@@ -212,10 +212,10 @@ export default function CategoryPageView({
           <div className="mx-auto max-w-7xl">
             <Breadcrumb
               items={[
-                {
-                  label: "Categories",
-                  href: categories[0] ? categoryHref(categories[0].slug) : "/",
-                },
+                // {
+                //   label: "Categories",
+                //   href: categories[0] ? categoryHref(categories[0].slug) : "/",
+                // },
                 { label: category.name },
               ]}
             />
