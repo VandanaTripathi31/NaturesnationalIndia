@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { categoryHref, productHref } from "../../lib/seo-routes";
+import { CATEGORY_CONTENT } from "../../lib/category-content";
 import {
   ArrowRight,
   Leaf,
@@ -450,29 +451,90 @@ export default function CategoryPageView({
                 </motion.div>
               )}
 
-              {/* ── SEO content (shown on the first page, from the DB) ── */}
+              {/* ── SEO content (first page only) ──
+                  Prefer the rich, per-category editorial content; otherwise
+                  fall back to the plain description from MongoDB. */}
               {(!pagination || pagination.page === 1) &&
-                category.description && (
-                  <section className="mt-14 border-t border-[var(--color-warm-gray)] pt-10">
-                    <h2 className="font-playfair text-2xl font-semibold text-[var(--color-text-primary)]">
-                      {category.name}
-                    </h2>
-                    <div className="mt-4 space-y-4">
-                      {category.description
-                        .split(/\n{2,}|\r\n\r\n/)
-                        .map((para) => para.trim())
-                        .filter(Boolean)
-                        .map((para, i) => (
-                          <p
-                            key={i}
-                            className="text-[15px] leading-relaxed text-[var(--color-text-muted)]"
-                          >
-                            {para}
-                          </p>
-                        ))}
-                    </div>
-                  </section>
-                )}
+                (() => {
+                  const rich = CATEGORY_CONTENT[category.slug];
+                  if (rich) {
+                    return (
+                      <section className="mt-14 border-t border-[var(--color-warm-gray)] pt-10">
+                        <h2 className="font-playfair text-2xl font-semibold text-[var(--color-text-primary)]">
+                          {rich.title || category.name}
+                        </h2>
+                        <div className="mt-5 space-y-4">
+                          {rich.blocks.map((block, i) => {
+                            if (block.type === "heading") {
+                              return (
+                                <h3
+                                  key={i}
+                                  className="mt-8 font-playfair text-xl font-semibold text-[var(--color-text-primary)]"
+                                >
+                                  {block.text}
+                                </h3>
+                              );
+                            }
+                            if (block.type === "list") {
+                              return (
+                                <ul
+                                  key={i}
+                                  className="list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-[var(--color-text-muted)]"
+                                >
+                                  {block.items.map((it, j) => (
+                                    <li key={j}>{it}</li>
+                                  ))}
+                                </ul>
+                              );
+                            }
+                            if (block.type === "faq") {
+                              return (
+                                <div key={i} className="mt-2">
+                                  <p className="font-semibold text-[var(--color-text-primary)]">
+                                    {block.q}
+                                  </p>
+                                  <p className="mt-1 text-[15px] leading-relaxed text-[var(--color-text-muted)]">
+                                    {block.a}
+                                  </p>
+                                </div>
+                              );
+                            }
+                            return (
+                              <p
+                                key={i}
+                                className="text-[15px] leading-relaxed text-[var(--color-text-muted)]"
+                              >
+                                {block.text}
+                              </p>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    );
+                  }
+                  if (!category.description) return null;
+                  return (
+                    <section className="mt-14 border-t border-[var(--color-warm-gray)] pt-10">
+                      <h2 className="font-playfair text-2xl font-semibold text-[var(--color-text-primary)]">
+                        {category.name}
+                      </h2>
+                      <div className="mt-4 space-y-4">
+                        {category.description
+                          .split(/\n{2,}|\r\n\r\n/)
+                          .map((para) => para.trim())
+                          .filter(Boolean)
+                          .map((para, i) => (
+                            <p
+                              key={i}
+                              className="text-[15px] leading-relaxed text-[var(--color-text-muted)]"
+                            >
+                              {para}
+                            </p>
+                          ))}
+                      </div>
+                    </section>
+                  );
+                })()}
             </section>
           </div>
         </div>

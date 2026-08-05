@@ -43,7 +43,10 @@ html {
 html,
 body {
   max-width: 100%;
-  overflow-x: hidden;
+  /* `clip` prevents horizontal scroll WITHOUT creating a scroll container,
+     so the sticky header keeps sticking to the viewport. `hidden` here would
+     silently break position:sticky on descendants. */
+  overflow-x: clip;
 }
 body {
   margin: 0;
