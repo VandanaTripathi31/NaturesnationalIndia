@@ -15,11 +15,16 @@
  * it only consumes the exported shape below.
  */
 
+// Live theme image assets (host allow-listed in next.config remotePatterns).
+// Swap this base to "/images/product-tabs" once local copies are added.
+const IMG = "https://www.naturesnaturalindia.com/skin/frontend/rwd/default/images";
+
 export const COMPANY_INFO_TABS = [
   {
     id: "order-processing",
     label: "Order Processing",
     blocks: [
+      { type: "image", src: `${IMG}/oil-processing.png`, alt: "Order processing steps" },
       {
         type: "paragraph",
         text: "Natures Natural India acknowledges the reputation that its clients bear in the market and our well-trained workforce have dedicated itself to sustain it with a mode of service that is centered on the requirements of our clients. The sole urge to serve our clients in the best possible way, along with our years-long experience, made us the first choice of many leading companies across the globe to whom we have successfully delivered essential oils and fragrances.",
@@ -34,6 +39,8 @@ export const COMPANY_INFO_TABS = [
     id: "packaging",
     label: "Packaging",
     blocks: [
+      { type: "image", src: `${IMG}/range-img.png`, alt: "Bottle range" },
+      { type: "image", src: `${IMG}/drum.jpg`, alt: "Bulk packaging drums" },
       {
         type: "heading",
         text: "Bottles Packaging",
@@ -65,6 +72,7 @@ export const COMPANY_INFO_TABS = [
     id: "private-labelling",
     label: "Private Labelling",
     blocks: [
+      { type: "image", src: `${IMG}/labelling-img1.png`, alt: "Private labelling bottles" },
       {
         type: "paragraph",
         text: "It is a universally accepted fact that a 'Brand' is the medium of connecting a product with its target consumers and hence an integral part of the Sales & Marketing strategy for every enterprise. We understand how important it is for you to project the image of your esteemed brand with every sale and with each of your marketing campaigns.",
@@ -79,6 +87,7 @@ export const COMPANY_INFO_TABS = [
     id: "shipping-preferences",
     label: "Shipping Preferences",
     blocks: [
+      { type: "image", src: `${IMG}/shipping.png`, alt: "Shipping partners: FedEx, UPS, DHL, EMS" },
       {
         type: "paragraph",
         text: "We have partnered with major freight and shipping stalwarts like DHL, FedEx and UPS to meet our delivery-time standards. As per the client's requirement, we dispatch consignments either by sea or by air.",
@@ -93,6 +102,7 @@ export const COMPANY_INFO_TABS = [
     id: "payment-method",
     label: "Payment Method",
     blocks: [
+      { type: "image", src: `${IMG}/payment.png`, alt: "Accepted payment methods" },
       {
         type: "paragraph",
         text: "Naturesnaturalindia.com is a popular and reputable e-commerce store from where you can purchase organic essential and natural oils at your convenience. Customers can make payments through debit / credit card, PayPal and wire transfer.",
