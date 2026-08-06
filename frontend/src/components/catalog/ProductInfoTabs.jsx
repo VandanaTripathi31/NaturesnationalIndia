@@ -51,17 +51,19 @@ function Block({ block }) {
 }
 
 export default function ProductInfoTabs({ product }) {
+  // Overview must NOT duplicate the product description shown above the tabs.
+  // Prefer a dedicated `overview`, then the long-form `history`, and only fall
+  // back to `description` if nothing else exists.
+  const overviewText =
+    product?.overview?.trim() ||
+    product?.history?.trim() ||
+    product?.description?.trim() ||
+    `${product?.name ?? "This product"} is offered by Natures Natural India as a manufacturer, supplier and wholesaler of pure and natural oils.`;
+
   const overview = {
     id: "overview",
     label: "Overview",
-    blocks: [
-      {
-        type: "paragraph",
-        text:
-          product?.description ||
-          `${product?.name ?? "This product"} is offered by Natures Natural India as a manufacturer, supplier and wholesaler of pure and natural oils.`,
-      },
-    ],
+    blocks: [{ type: "paragraph", text: overviewText }],
   };
 
   const tabs = [overview, ...COMPANY_INFO_TABS];

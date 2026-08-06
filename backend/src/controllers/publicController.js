@@ -55,6 +55,7 @@ function formatPublicProduct(product) {
     name: product.name,
     slug: product.slug,
     description: product.description ?? "",
+    overview: product.overview ?? "",
     botanicalName: product.botanicalName ?? "",
     origin: product.origin ?? "",
     extractionMethod: product.extractionMethod ?? "",
