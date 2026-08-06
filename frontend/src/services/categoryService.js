@@ -1,9 +1,13 @@
+import { cache } from "react";
 import apiClient from "../lib/api-client";
 
-export async function getCategories() {
+// Wrapped in React's request-scoped cache so the layout (Navbar/Footer) and
+// the page (CategorySidebar) share a single "/api/public/categories" call per
+// server render instead of duplicating the request. No behavior change.
+export const getCategories = cache(async function getCategories() {
   const { data } = await apiClient.get("/api/public/categories");
   return data.categories ?? [];
-}
+});
 
 export async function getCategoryBySlug(
   slug,

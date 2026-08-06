@@ -80,6 +80,10 @@ const productSchema = new mongoose.Schema(
 
     // ── Extended product-detail fields (from Magento) ─────────────────
     productCode: { type: String, trim: true, maxlength: 120 },
+    // Long-form "Overview" shown in the product page Overview tab. Kept
+    // separate from `description` so the tab doesn't duplicate the short
+    // product description (client review).
+    overview: { type: String, trim: true },
     blendsWith: { type: String, trim: true },
     history: { type: String, trim: true },
     storage: { type: String, trim: true },

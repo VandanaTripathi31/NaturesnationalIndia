@@ -15,7 +15,10 @@ export default function SiteShell({ children, categories = [] }) {
   return (
     <div className="min-h-screen bg-[#faf6ee] text-[#3a2c1a] font-outfit">
       <Navbar categories={categories} onOpenInquiry={openInquiryModal} />
-      <main>{children}</main>
+      {/* overflow-x clipping lives HERE (a sibling of the sticky header), not
+          on html/body — so nothing in the header's ancestor chain creates a
+          scroll container that would break position:sticky. */}
+      <main style={{ overflowX: "clip" }}>{children}</main>
       <Footer categories={categories} onInquiryOpen={openInquiryModal} />
       <BackToTop />
       <InquiryWidget />

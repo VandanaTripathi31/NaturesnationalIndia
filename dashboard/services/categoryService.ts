@@ -22,6 +22,7 @@ function buildCategoryFormData(values: CategoryFormValues, image?: File | null) 
 
   formData.append("name", values.name);
   formData.append("description", values.description);
+  formData.append("content", values.content ?? "");
   formData.append("metaTitle", values.metaTitle);
   formData.append("metaDescription", values.metaDescription);
   formData.append("metaKeywords", values.metaKeywords);

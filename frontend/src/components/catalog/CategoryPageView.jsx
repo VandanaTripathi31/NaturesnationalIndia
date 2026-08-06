@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { categoryHref, productHref } from "../../lib/seo-routes";
-import { CATEGORY_CONTENT } from "../../lib/category-content";
+import CategoryContent from "./CategoryContent";
 import {
   ArrowRight,
   Leaf,
@@ -406,135 +406,113 @@ export default function CategoryPageView({
                 </motion.div>
               )}
 
-              {/* Pagination */}
-              {pagination && pagination.totalPages > 1 && (
+              {/* Pagination — Prev / numbered pages / Next + totals */}
+              {pagination && pagination.total > 0 && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="mt-12 flex items-center justify-between"
+                  transition={{ delay: 0.4 }}
+                  className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-between"
                 >
                   <p className="text-sm text-[var(--color-text-muted)]">
-                    Page{" "}
+                    Showing page{" "}
                     <span className="font-semibold text-[var(--color-text-primary)]">
                       {pagination.page}
                     </span>{" "}
-                    of {pagination.totalPages}
+                    of {pagination.totalPages} ·{" "}
+                    <span className="font-semibold text-[var(--color-text-primary)]">
+                      {pagination.total}
+                    </span>{" "}
+                    {pagination.total === 1 ? "product" : "products"}
                   </p>
-                  <div className="flex gap-2">
-                    {pagination.page > 1 ? (
-                      <Link
-                        href={buildPageHref(pagination.page - 1)}
-                        className="flex items-center gap-1.5 rounded-full border border-[var(--color-warm-gray)] bg-white px-5 py-2.5 text-sm font-medium text-[var(--color-text-primary)] transition hover:border-[var(--color-dark-brown)] hover:text-[var(--color-dark-brown)] shadow-sm"
-                      >
-                        <ChevronLeft size={15} /> Previous
-                      </Link>
-                    ) : (
-                      <span className="flex items-center gap-1.5 rounded-full border border-[var(--color-warm-gray)] px-5 py-2.5 text-sm opacity-35 cursor-not-allowed">
-                        <ChevronLeft size={15} /> Previous
-                      </span>
-                    )}
-                    {pagination.page < pagination.totalPages ? (
-                      <Link
-                        href={buildPageHref(pagination.page + 1)}
-                        className="flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-medium text-[var(--color-cream-white)] transition shadow-sm"
-                        style={{ background: "var(--gradient-btn)" }}
-                      >
-                        Next <ChevronRight size={15} />
-                      </Link>
-                    ) : (
-                      <span className="flex items-center gap-1.5 rounded-full border border-[var(--color-warm-gray)] px-5 py-2.5 text-sm opacity-35 cursor-not-allowed">
-                        Next <ChevronRight size={15} />
-                      </span>
-                    )}
-                  </div>
+
+                  {pagination.totalPages > 1 && (
+                    <nav className="flex flex-wrap items-center justify-center gap-1.5" aria-label="Pagination">
+                      {/* Previous */}
+                      {pagination.page > 1 ? (
+                        <Link
+                          href={buildPageHref(pagination.page - 1)}
+                          aria-label="Previous page"
+                          className="flex h-9 items-center gap-1 rounded-full border border-[var(--color-warm-gray)] bg-white px-3 text-sm font-medium text-[var(--color-text-primary)] transition hover:border-[var(--color-dark-brown)] hover:text-[var(--color-dark-brown)]"
+                        >
+                          <ChevronLeft size={15} />
+                        </Link>
+                      ) : (
+                        <span className="flex h-9 items-center rounded-full border border-[var(--color-warm-gray)] px-3 text-sm opacity-35">
+                          <ChevronLeft size={15} />
+                        </span>
+                      )}
+
+                      {/* Numbered pages with ellipsis window */}
+                      {(() => {
+                        const total = pagination.totalPages;
+                        const cur = pagination.page;
+                        const pages = [];
+                        for (let n = 1; n <= total; n++) {
+                          if (
+                            n === 1 ||
+                            n === total ||
+                            (n >= cur - 1 && n <= cur + 1)
+                          ) {
+                            pages.push(n);
+                          } else if (pages[pages.length - 1] !== "…") {
+                            pages.push("…");
+                          }
+                        }
+                        return pages.map((n, i) =>
+                          n === "…" ? (
+                            <span
+                              key={`e${i}`}
+                              className="flex h-9 w-9 items-center justify-center text-sm text-[var(--color-text-muted)]"
+                            >
+                              …
+                            </span>
+                          ) : n === cur ? (
+                            <span
+                              key={n}
+                              aria-current="page"
+                              className="flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-semibold text-[var(--color-cream-white)]"
+                              style={{ background: "var(--gradient-btn)" }}
+                            >
+                              {n}
+                            </span>
+                          ) : (
+                            <Link
+                              key={n}
+                              href={buildPageHref(n)}
+                              className="flex h-9 min-w-9 items-center justify-center rounded-full border border-[var(--color-warm-gray)] bg-white px-3 text-sm font-medium text-[var(--color-text-primary)] transition hover:border-[var(--color-dark-brown)] hover:text-[var(--color-dark-brown)]"
+                            >
+                              {n}
+                            </Link>
+                          ),
+                        );
+                      })()}
+
+                      {/* Next */}
+                      {pagination.page < pagination.totalPages ? (
+                        <Link
+                          href={buildPageHref(pagination.page + 1)}
+                          aria-label="Next page"
+                          className="flex h-9 items-center gap-1 rounded-full px-3 text-sm font-medium text-[var(--color-cream-white)]"
+                          style={{ background: "var(--gradient-btn)" }}
+                        >
+                          <ChevronRight size={15} />
+                        </Link>
+                      ) : (
+                        <span className="flex h-9 items-center rounded-full border border-[var(--color-warm-gray)] px-3 text-sm opacity-35">
+                          <ChevronRight size={15} />
+                        </span>
+                      )}
+                    </nav>
+                  )}
                 </motion.div>
               )}
 
-              {/* ── SEO content (first page only) ──
-                  Prefer the rich, per-category editorial content; otherwise
-                  fall back to the plain description from MongoDB. */}
-              {(!pagination || pagination.page === 1) &&
-                (() => {
-                  const rich = CATEGORY_CONTENT[category.slug];
-                  if (rich) {
-                    return (
-                      <section className="mt-14 border-t border-[var(--color-warm-gray)] pt-10">
-                        <h2 className="font-playfair text-2xl font-semibold text-[var(--color-text-primary)]">
-                          {rich.title || category.name}
-                        </h2>
-                        <div className="mt-5 space-y-4">
-                          {rich.blocks.map((block, i) => {
-                            if (block.type === "heading") {
-                              return (
-                                <h3
-                                  key={i}
-                                  className="mt-8 font-playfair text-xl font-semibold text-[var(--color-text-primary)]"
-                                >
-                                  {block.text}
-                                </h3>
-                              );
-                            }
-                            if (block.type === "list") {
-                              return (
-                                <ul
-                                  key={i}
-                                  className="list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-[var(--color-text-muted)]"
-                                >
-                                  {block.items.map((it, j) => (
-                                    <li key={j}>{it}</li>
-                                  ))}
-                                </ul>
-                              );
-                            }
-                            if (block.type === "faq") {
-                              return (
-                                <div key={i} className="mt-2">
-                                  <p className="font-semibold text-[var(--color-text-primary)]">
-                                    {block.q}
-                                  </p>
-                                  <p className="mt-1 text-[15px] leading-relaxed text-[var(--color-text-muted)]">
-                                    {block.a}
-                                  </p>
-                                </div>
-                              );
-                            }
-                            return (
-                              <p
-                                key={i}
-                                className="text-[15px] leading-relaxed text-[var(--color-text-muted)]"
-                              >
-                                {block.text}
-                              </p>
-                            );
-                          })}
-                        </div>
-                      </section>
-                    );
-                  }
-                  if (!category.description) return null;
-                  return (
-                    <section className="mt-14 border-t border-[var(--color-warm-gray)] pt-10">
-                      <h2 className="font-playfair text-2xl font-semibold text-[var(--color-text-primary)]">
-                        {category.name}
-                      </h2>
-                      <div className="mt-4 space-y-4">
-                        {category.description
-                          .split(/\n{2,}|\r\n\r\n/)
-                          .map((para) => para.trim())
-                          .filter(Boolean)
-                          .map((para, i) => (
-                            <p
-                              key={i}
-                              className="text-[15px] leading-relaxed text-[var(--color-text-muted)]"
-                            >
-                              {para}
-                            </p>
-                          ))}
-                      </div>
-                    </section>
-                  );
-                })()}
+              {/* ── SEO content (first page only): DB HTML → structured
+                  code content → description, with Read More / FAQ accordion. */}
+              {(!pagination || pagination.page === 1) && (
+                <CategoryContent category={category} />
+              )}
             </section>
           </div>
         </div>
