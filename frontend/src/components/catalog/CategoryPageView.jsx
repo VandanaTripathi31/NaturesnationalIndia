@@ -179,9 +179,32 @@ export default function CategoryPageView({
       style={{ background: "var(--color-cream-white)" }}
     >
       {/* ── Hero ─────────────────────────────────────────────── */}
-      {/* Fixed, contained height so a long category description can't
-          stretch the banner to an unattractive size. */}
-      <section className="relative flex items-end overflow-hidden min-h-[320px] h-[42vh] max-h-[460px]">
+      {/*
+        FIX (category hero aspect ratio): this previously used a
+        viewport-height-relative box (`h-[42vh]`, clamped 320–460px) with
+        `object-cover`, which has no relationship to the actual category
+        hero image's native 1200×624 (≈1.923:1) design ratio — so at most
+        widths the container's ratio didn't match the image's, and
+        object-cover cropped whatever didn't fit (commonly the top/bottom
+        of the composition).
+
+        Fix: the container's aspect ratio now matches the source image's
+        ratio directly (`aspect-[1200/624]`) at sm and up, so object-cover
+        has nothing to crop — a matching-ratio container IS the full
+        image, edge to edge, neither stretched nor cropped. `max-h-[1000px]`
+        is a ceiling only reached past ~1920px width (1920×998 is the
+        widest composition already validated), so it never fights the
+        ratio at any real desktop size, only guards against it growing
+        unbounded on ultra-wide monitors.
+
+        Below `sm` the pure ratio would be ~195px tall at 375px wide — too
+        short to hold the title/description/CTA overlay — so mobile keeps
+        a taller `min-h` with `object-cover` instead of forcing the exact
+        desktop ratio onto a cramped screen (per the "adapt appropriately,
+        don't force desktop dimensions" requirement); the crop there is
+        minor and object-position stays centered on the composition.
+      */}
+      <section className="relative flex items-end overflow-hidden min-h-[300px] aspect-[3/2] sm:aspect-[1200/624] sm:min-h-0 sm:max-h-[1000px]">
         {/* Background image */}
         {heroImageUrl ? (
           <Image
