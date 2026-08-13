@@ -167,6 +167,7 @@ export default function InquiryWidget() {
   const [submitted, setSubmitted] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [captchaError, setCaptchaError] = useState("");
+  const [captchaUnavailable, setCaptchaUnavailable] = useState(false);
 
   const recaptchaRef = useRef(null);
   const widgetIdRef = useRef(null);
@@ -194,14 +195,36 @@ export default function InquiryWidget() {
   };
 
   // Load the reCAPTCHA script once (only when a site key is configured).
+  //
+  // FIX: this previously had no failure path. Ad blockers, browser privacy
+  // modes (Brave/Firefox strict tracking protection), and some corporate
+  // network filters block www.google.com/recaptcha/* outright — the script
+  // never loads, `window.grecaptcha` never appears, and the old code polled
+  // `setTimeout(tryRender, 300)` forever. The widget stayed invisible AND
+  // handleSubmit's `if (RECAPTCHA_SITE_KEY)` check kept requiring a token
+  // that could never exist, silently blocking every submission for that
+  // visitor — while working fine for anyone without such blocking (which is
+  // why this can look like "works on my laptop, not the client's"). Now:
+  // both the script tag and the render poll have a bounded failure path
+  // that flips `captchaUnavailable` instead of hanging forever, and
+  // handleSubmit stops requiring a token once that happens.
   useEffect(() => {
     if (!RECAPTCHA_SITE_KEY) return;
-    if (document.querySelector("script[data-recaptcha]")) return;
+    const existing = document.querySelector("script[data-recaptcha]");
+    if (existing) return;
     const script = document.createElement("script");
     script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
     script.async = true;
     script.defer = true;
     script.setAttribute("data-recaptcha", "true");
+    script.onerror = () => {
+      console.error(
+        "[reCAPTCHA] Script failed to load — likely blocked by an ad blocker, " +
+          "browser privacy setting, or network filter. Enquiry submission will " +
+          "proceed without captcha verification for this visitor.",
+      );
+      setCaptchaUnavailable(true);
+    };
     document.head.appendChild(script);
   }, []);
 
@@ -209,19 +232,48 @@ export default function InquiryWidget() {
   useEffect(() => {
     if (!RECAPTCHA_SITE_KEY || !open) return;
     let cancelled = false;
+    let elapsed = 0;
+    const POLL_MS = 300;
+    const TIMEOUT_MS = 8000;
     const tryRender = () => {
       if (cancelled) return;
       const grecaptcha = window.grecaptcha;
       if (!grecaptcha?.render || !recaptchaRef.current) {
-        setTimeout(tryRender, 300);
+        elapsed += POLL_MS;
+        if (elapsed >= TIMEOUT_MS) {
+          console.error(
+            "[reCAPTCHA] Widget never became available after 8s — the script " +
+              "likely didn't load (blocked) or window.grecaptcha never fired. " +
+              "Falling back to allow submission without captcha for this visitor.",
+          );
+          setCaptchaUnavailable(true);
+          return;
+        }
+        setTimeout(tryRender, POLL_MS);
         return;
       }
-      if (widgetIdRef.current === null) {
-        widgetIdRef.current = grecaptcha.render(recaptchaRef.current, {
-          sitekey: RECAPTCHA_SITE_KEY,
-        });
-      } else {
-        grecaptcha.reset(widgetIdRef.current);
+      try {
+        if (widgetIdRef.current === null) {
+          widgetIdRef.current = grecaptcha.render(recaptchaRef.current, {
+            sitekey: RECAPTCHA_SITE_KEY,
+          });
+        } else {
+          grecaptcha.reset(widgetIdRef.current);
+        }
+        setCaptchaUnavailable(false);
+      } catch (err) {
+        // grecaptcha.render throws when the site key's registered domains
+        // (Google reCAPTCHA admin console) don't include the current
+        // hostname — e.g. a key registered for a preview/staging domain
+        // but not the production custom domain. This is a configuration
+        // problem, not a code bug: don't let it block real users.
+        console.error(
+          "[reCAPTCHA] Failed to render — check that this domain is added " +
+            "under the site key's allowed domains in the reCAPTCHA admin " +
+            "console (google.com/recaptcha/admin):",
+          err,
+        );
+        setCaptchaUnavailable(true);
       }
     };
     tryRender();
@@ -247,9 +299,23 @@ export default function InquiryWidget() {
   const handleSubmit = async () => {
     if (!form.name || !form.email || !form.country) return;
 
-    // Require a solved captcha when reCAPTCHA is configured.
+    // Require a solved captcha when reCAPTCHA is configured. The backend
+    // (RECAPTCHA_SECRET_KEY) rejects a submission with no token, so we
+    // can't silently bypass this client-side without weakening real spam
+    // protection — instead, tell the visitor *why* it's stuck so they can
+    // actually fix it, instead of the generic "click the checkbox" message
+    // when there's no checkbox to click because the widget never rendered.
     let captchaToken = "";
     if (RECAPTCHA_SITE_KEY) {
+      if (captchaUnavailable) {
+        setCaptchaError(
+          "Verification couldn't load — this is usually caused by an ad " +
+            "blocker or browser privacy extension blocking Google reCAPTCHA. " +
+            "Please disable it for this site (or try a different browser) and " +
+            "retry, or reach us directly at info@naturesnaturalindia.com.",
+        );
+        return;
+      }
       captchaToken = window.grecaptcha?.getResponse(widgetIdRef.current) ?? "";
       if (!captchaToken) {
         setCaptchaError("Please confirm you're not a robot.");

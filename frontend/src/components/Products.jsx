@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ArrowUpRight, Leaf } from "lucide-react";
 import Link from "next/link";
 import { categoryHref } from "../lib/seo-routes";
+import { resolveImageUrl } from "../lib/image-url";
 
 // Fallback image used only when a category has no image set in the
 // admin-managed data yet — keeps the grid from breaking, never hardcodes
@@ -204,7 +205,7 @@ export default function ProductCategories({ categories = [] }) {
   const cards = categories.map((category) => ({
     name: category.name,
     slug: category.slug,
-    img: category.image?.url || "",
+    img: resolveImageUrl(category.image?.url) || "",
   }));
 
   const visibleCategories = showMore

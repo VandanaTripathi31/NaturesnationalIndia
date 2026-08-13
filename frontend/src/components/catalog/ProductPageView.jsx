@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { categoryHref } from "../../lib/seo-routes";
+import { resolveImageObject } from "../../lib/image-url";
 import ProductInfoTabs from "./ProductInfoTabs";
 import {
   MapPin,
@@ -19,8 +20,6 @@ import {
   Sparkles,
   FlaskConical,
   CheckCircle2,
-  Zap,
-  ClipboardList,
 } from "lucide-react";
 
 // Both CTAs on this page use the site's existing global inquiry / brochure
@@ -73,42 +72,6 @@ function InfoRow({ icon: Icon, label, value }) {
   );
 }
 
-/* ─── Benefit Card ─────────────────────────────────────────── */
-function BenefitCard({ text, index }) {
-  return (
-    <motion.div
-      variants={fadeUp}
-      custom={index}
-      className="flex items-start gap-3 rounded-2xl border border-[var(--color-warm-gray)] bg-white p-4 shadow-sm"
-    >
-      <CheckCircle2
-        size={16}
-        className="mt-0.5 shrink-0"
-        style={{ color: "var(--color-sage-dark)" }}
-      />
-      <p className="text-sm leading-6 text-[var(--color-text-muted)]">{text}</p>
-    </motion.div>
-  );
-}
-
-/* ─── Use Card ─────────────────────────────────────────────── */
-function UseCard({ text, index }) {
-  return (
-    <motion.div
-      variants={fadeUp}
-      custom={index}
-      className="flex items-start gap-3 rounded-2xl border border-[var(--color-warm-gray)] bg-[var(--color-off-white)] p-4"
-    >
-      <Zap
-        size={15}
-        className="mt-0.5 shrink-0"
-        style={{ color: "var(--color-brown-muted)" }}
-      />
-      <p className="text-sm leading-6 text-[var(--color-text-muted)]">{text}</p>
-    </motion.div>
-  );
-}
-
 /* ─── Main ─────────────────────────────────────────────────── */
 export default function ProductPageView({
   product,
@@ -117,7 +80,9 @@ export default function ProductPageView({
   featuredProducts = [],
 }) {
   const [activeImage, setActiveImage] = useState(0);
-  const images = product.images ?? [];
+  const images = (product.images ?? [])
+    .map(resolveImageObject)
+    .filter(Boolean);
 
   const prev = () =>
     setActiveImage((i) => (i - 1 + images.length) % images.length);
@@ -399,192 +364,18 @@ export default function ProductPageView({
                 </div>
               </motion.div>
 
-              {/* ── Specifications ────────────────────────── */}
-              <motion.section
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-60px" }}
-                variants={stagger}
-                className="mt-10"
-              >
-                <motion.div
-                  variants={fadeUp}
-                  className="mb-5 flex items-center gap-3"
-                >
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-xl"
-                    style={{ background: "var(--color-sage-light)" }}
-                  >
-                    <ClipboardList
-                      size={15}
-                      style={{ color: "var(--color-sage-dark)" }}
-                    />
-                  </div>
-                  <h2 className="font-playfair text-xl font-semibold text-[var(--color-text-primary)]">
-                    Specifications
-                  </h2>
-                </motion.div>
-                <motion.div
-                  variants={fadeUp}
-                  className="overflow-hidden rounded-2xl border border-[var(--color-warm-gray)] bg-white"
-                >
-                  {[
-                    { label: "Product Name", value: product.name },
-                    { label: "Botanical Name", value: product.botanicalName },
-                    { label: "Category", value: product.category?.name },
-                    { label: "Origin", value: product.origin },
-                    {
-                      label: "Extraction Method",
-                      value: product.extractionMethod,
-                    },
-                    {
-                      label: "Availability",
-                      value: product.featured
-                        ? "Featured / In Demand"
-                        : "In Stock",
-                    },
-                  ]
-                    .filter((row) => row.value)
-                    .map((row, i, arr) => (
-                      <div
-                        key={row.label}
-                        className={`flex flex-col gap-1 px-5 py-3.5 sm:flex-row sm:items-center sm:gap-4 ${
-                          i < arr.length - 1
-                            ? "border-b border-[var(--color-warm-gray)]"
-                            : ""
-                        } ${i % 2 === 1 ? "bg-[var(--color-off-white)]" : ""}`}
-                      >
-                        <span className="w-full text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] sm:w-48 sm:shrink-0">
-                          {row.label}
-                        </span>
-                        <span className="text-sm font-medium text-[var(--color-text-primary)]">
-                          {row.value}
-                        </span>
-                      </div>
-                    ))}
-                </motion.div>
-              </motion.section>
-
-              {/* ── Benefits ───────────────────────────────── */}
-              {product.benefits?.length > 0 && (
-                <motion.section
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: "-60px" }}
-                  variants={stagger}
-                  className="mt-10"
-                >
-                  <motion.div
-                    variants={fadeUp}
-                    className="mb-5 flex items-center gap-3"
-                  >
-                    <div
-                      className="flex h-8 w-8 items-center justify-center rounded-xl"
-                      style={{ background: "var(--color-sage-light)" }}
-                    >
-                      <CheckCircle2
-                        size={15}
-                        style={{ color: "var(--color-sage-dark)" }}
-                      />
-                    </div>
-                    <h2 className="font-playfair text-xl font-semibold text-[var(--color-text-primary)]">
-                      Key Benefits
-                    </h2>
-                  </motion.div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {product.benefits.map((item, i) => (
-                      <BenefitCard key={item} text={item} index={i} />
-                    ))}
-                  </div>
-                </motion.section>
-              )}
-
-              {/* ── Uses ──────────────────────────────────── */}
-              {product.uses?.length > 0 && (
-                <motion.section
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: "-60px" }}
-                  variants={stagger}
-                  className="mt-10"
-                >
-                  <motion.div
-                    variants={fadeUp}
-                    className="mb-5 flex items-center gap-3"
-                  >
-                    <div
-                      className="flex h-8 w-8 items-center justify-center rounded-xl"
-                      style={{ background: "var(--color-off-white)" }}
-                    >
-                      <Zap
-                        size={15}
-                        style={{ color: "var(--color-brown-muted)" }}
-                      />
-                    </div>
-                    <h2 className="font-playfair text-xl font-semibold text-[var(--color-text-primary)]">
-                      How to Use
-                    </h2>
-                  </motion.div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {product.uses.map((item, i) => (
-                      <UseCard key={item} text={item} index={i} />
-                    ))}
-                  </div>
-                </motion.section>
-              )}
-
-              {/* ── Additional Information (spec table from DB) ── */}
-              {product.specifications?.length > 0 && (
-                <motion.section
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: "-60px" }}
-                  variants={stagger}
-                  className="mt-10"
-                >
-                  <motion.div
-                    variants={fadeUp}
-                    className="mb-5 flex items-center gap-3"
-                  >
-                    <div
-                      className="flex h-8 w-8 items-center justify-center rounded-xl"
-                      style={{ background: "var(--color-sage-light)" }}
-                    >
-                      <ClipboardList
-                        size={15}
-                        style={{ color: "var(--color-sage-dark)" }}
-                      />
-                    </div>
-                    <h2 className="font-playfair text-xl font-semibold text-[var(--color-text-primary)]">
-                      Additional Information
-                    </h2>
-                  </motion.div>
-                  <motion.div
-                    variants={fadeUp}
-                    className="overflow-hidden rounded-2xl border border-[var(--color-warm-gray)] bg-white"
-                  >
-                    {product.specifications
-                      .filter((row) => row.label && row.value)
-                      .map((row, i, arr) => (
-                        <div
-                          key={`${row.label}-${i}`}
-                          className={`flex flex-col gap-1 px-5 py-3.5 sm:flex-row sm:gap-4 ${
-                            i < arr.length - 1
-                              ? "border-b border-[var(--color-warm-gray)]"
-                              : ""
-                          } ${i % 2 === 1 ? "bg-[var(--color-off-white)]" : ""}`}
-                        >
-                          <span className="w-full text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)] sm:w-56 sm:shrink-0">
-                            {row.label}
-                          </span>
-                          <span className="text-sm text-[var(--color-text-primary)]">
-                            {row.value}
-                          </span>
-                        </div>
-                      ))}
-                  </motion.div>
-                </motion.section>
-              )}
+              {/*
+                FIX (reference-structure pass): the standalone
+                Specifications / Key Benefits / How to Use / Additional
+                Information cards previously here duplicated the same
+                botanical name, origin, extraction method, benefits, uses,
+                and specification data now shown once in the Overview tab
+                below — which is how the original site actually structures
+                this (see ProductInfoTabs.jsx / lib/product-overview.js,
+                built from the client-supplied reference HTML). Removed to
+                match that reference and stop the duplication named in
+                client review item 7.
+              */}
 
               {/* ── Product info tabs (Overview + company-wide) ── */}
               <ProductInfoTabs product={product} />

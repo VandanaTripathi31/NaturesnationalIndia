@@ -24,6 +24,13 @@ const nextConfig = {
         protocol: "https",
         hostname: "naturesnaturalindia.com",
       },
+      // Legacy Magento media occasionally lives under a subdomain (e.g. a
+      // CDN/media host) rather than the bare domain above. Wildcarding this
+      // covers those without needing to know every exact subdomain in use.
+      {
+        protocol: "https",
+        hostname: "*.naturesnaturalindia.com",
+      },
     ],
   },
   turbopack: {

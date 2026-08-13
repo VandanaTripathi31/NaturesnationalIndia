@@ -3,6 +3,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Leaf } from "lucide-react";
 import { categoryHref, productHref } from "../lib/seo-routes";
+import { resolveImageUrl } from "../lib/image-url";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -19,6 +20,7 @@ const stagger = {
 };
 
 function RelatedCard({ product, index, categorySlug }) {
+  const imageUrl = resolveImageUrl(product.images?.[0]?.url);
   return (
     <motion.div variants={fadeUp} custom={index}>
       <Link
@@ -30,9 +32,9 @@ function RelatedCard({ product, index, categorySlug }) {
           className="relative aspect-square overflow-hidden"
           style={{ background: "var(--color-sage-light)" }}
         >
-          {product.images?.[0]?.url ? (
+          {imageUrl ? (
             <Image
-              src={product.images[0].url}
+              src={imageUrl}
               alt={product.name}
               fill
               className="object-cover transition-transform duration-600 ease-out group-hover:scale-107"

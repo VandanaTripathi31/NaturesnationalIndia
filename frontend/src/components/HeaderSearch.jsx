@@ -114,7 +114,9 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
       ref={containerRef}
       style={{
         position: "relative",
-        width: isMobile ? "100%" : "clamp(180px, 22vw, 280px)",
+        // Fluid width: full 280px at wide viewports, compacting down to
+        // 110px by the ~1130px hamburger cutoff instead of overflowing.
+        width: isMobile ? "100%" : "clamp(110px, 13vw, 280px)",
       }}
     >
       <div

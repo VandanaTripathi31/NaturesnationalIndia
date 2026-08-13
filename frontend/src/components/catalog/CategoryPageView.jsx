@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { categoryHref, productHref } from "../../lib/seo-routes";
+import { resolveImageUrl } from "../../lib/image-url";
 import CategoryContent from "./CategoryContent";
 import {
   ArrowRight,
@@ -46,7 +47,7 @@ const stagger = {
 
 /* ─── Product Card ─────────────────────────────────────────── */
 function ProductCard({ product, index, categorySlug }) {
-  const imageUrl = product.images?.[0]?.url?.trim() || null;
+  const imageUrl = resolveImageUrl(product.images?.[0]?.url);
 
   return (
     <motion.article
@@ -170,7 +171,7 @@ export default function CategoryPageView({
       : categoryHref(category.slug);
   };
 
-  const heroImageUrl = category.image?.url?.trim() || null;
+  const heroImageUrl = resolveImageUrl(category.image?.url);
 
   return (
     <div
