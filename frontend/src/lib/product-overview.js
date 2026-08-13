@@ -1,17 +1,33 @@
 /**
  * Builds the product page's "Overview" tab content to match the structure
  * of the original (Magento) product pages — see the client-supplied
- * reference HTML/screenshot: a label/value block (Botanical Name, Country
- * of origin, Odor, Colour, Extraction Method, Components, Solubility),
- * then Blends well with, History, Uses, Therapeutic Benefits, and FAQs.
+ * reference HTML/screenshots and the explicit field-order example
+ * (Product Code, Botanical Name, Country of origin, Source, Cultivation,
+ * Colour and odor, Note, Extraction Method, Refractive Index, Specific
+ * Gravity, Optical Rotation, Flash Point, Components, Solubility, Shelf
+ * Life, Storage, Certificate on Demand, Blends well with, History, Uses,
+ * Therapeutic Benefits, FAQs).
  *
- * Every field here already exists on the Product model (see
+ * Every per-product field here already exists on the Product model (see
  * backend/src/models/Product.js) and was populated for exactly this
  * purpose by the Magento migration (backend/migration/migrate-products.js,
- * lib/transform.js SPEC_FIELDS) — nothing here is invented; this only maps
- * existing fields into the reference order/shape. Works for every product:
- * a row/section is only added when the underlying field is actually set.
+ * lib/transform.js SPEC_FIELDS/PRODUCT_CODE_MAP) — nothing here is
+ * invented; this only maps existing fields into the reference order/shape.
+ * A row/section only renders when the underlying field is actually set,
+ * so this works for every product regardless of which fields it has.
+ *
+ * The one exception is "Certificate on Demand": the client supplied this
+ * verbatim in their requirements as fixed, product-independent boilerplate
+ * (same COA/GC/MS explanation for every product, not a per-product DB
+ * field) — see CERTIFICATE_ON_DEMAND_TEXT below.
  */
+
+const CERTIFICATE_ON_DEMAND_TEXT =
+  "At our customer's request, we provide the subsequent indenture (COA) " +
+  "Certificate of Analysis which gives the information on color, odor & " +
+  "additional details, (GC) Gas Chromatography provides statistics of the " +
+  "product element & its percentage, and (MS) Mass Spectrometry gives " +
+  "details of the component present in the product & its quantity.";
 
 function specValue(product, label) {
   const row = (product?.specifications || []).find(
@@ -49,20 +65,60 @@ export function buildOverviewSections(product) {
   if (!product) return [];
   const sections = [];
 
+  // Odor/Colour: some products carry them as two separate migrated spec
+  // rows ("Odor", "Colour"); others only have the combined Magento
+  // "colorodor" attribute ("Colour and Odor"). Prefer whichever the
+  // product actually has — never invent the one it doesn't.
+  const odor = specValue(product, "Odor");
+  const colour = specValue(product, "Colour");
+  const colourAndOdorCombined = specValue(product, "Colour and Odor");
+
   const primaryRows = [
+    { label: "Product Code", value: product.productCode?.trim() },
     { label: "Botanical Name", value: product.botanicalName?.trim() },
     { label: "Country of Origin", value: product.origin?.trim() },
-    { label: "Odor", value: specValue(product, "Odor") },
-    { label: "Colour", value: specValue(product, "Colour") },
+    { label: "Source", value: specValue(product, "Source") },
+    { label: "Cultivation", value: specValue(product, "Cultivation") },
+    ...(odor || colour
+      ? [
+          { label: "Odor", value: odor },
+          { label: "Colour", value: colour },
+        ]
+      : colourAndOdorCombined
+        ? [{ label: "Colour and Odor", value: colourAndOdorCombined }]
+        : []),
+    { label: "Note", value: specValue(product, "Note") },
     { label: "Extraction Method", value: product.extractionMethod?.trim() },
+    { label: "Refractive Index", value: specValue(product, "Refractive Index") },
+    { label: "Specific Gravity", value: specValue(product, "Specific Gravity") },
+    { label: "Optical Rotation", value: specValue(product, "Optical Rotation") },
+    { label: "Flash Point", value: specValue(product, "Flash Point") },
     { label: "Components", value: specValue(product, "Components") },
     { label: "Solubility", value: specValue(product, "Solubility") },
+    { label: "Shelf Life", value: specValue(product, "Shelf Life") },
   ].filter((r) => r.value);
 
-  // Any other migrated spec rows not already surfaced above (Product Code,
-  // CAS No, Appearance, Specific Gravity, Shelf Life, etc.) — preserved,
-  // never dropped, just appended after the reference's primary fields.
-  const consumed = new Set(["odor", "colour", "components", "solubility"]);
+  // Any other migrated spec rows not already surfaced above (Other Names,
+  // CAS No, Appearance, Molecular Formula, Molecular Weight, Purity,
+  // Properties, etc.) — preserved, never dropped, just appended after the
+  // reference's named fields so no migrated data silently disappears.
+  const consumed = new Set(
+    [
+      "odor",
+      "colour",
+      "colour and odor",
+      "source",
+      "cultivation",
+      "note",
+      "refractive index",
+      "specific gravity",
+      "optical rotation",
+      "flash point",
+      "components",
+      "solubility",
+      "shelf life",
+    ].map((s) => s.toLowerCase()),
+  );
   const extraSpecRows = (product.specifications || []).filter(
     (r) => r.value?.trim() && !consumed.has(r.label?.trim().toLowerCase()),
   );
@@ -71,11 +127,19 @@ export function buildOverviewSections(product) {
     sections.push({ type: "rows", rows: [...primaryRows, ...extraSpecRows] });
   }
 
+  if (product.storage?.trim()) {
+    sections.push({ type: "heading", text: "Storage" });
+    sections.push({ type: "paragraph", text: product.storage.trim() });
+  }
+
+  // Fixed boilerplate — see the module comment. Always shown; it isn't
+  // per-product data so it doesn't depend on any product field being set.
+  sections.push({ type: "heading", text: "Certificate on Demand" });
+  sections.push({ type: "paragraph", text: CERTIFICATE_ON_DEMAND_TEXT });
+
   if (product.blendsWith?.trim()) {
-    sections.push({
-      type: "rows",
-      rows: [{ label: "Blends Well With", value: product.blendsWith.trim() }],
-    });
+    sections.push({ type: "heading", text: "Blends Well With" });
+    sections.push({ type: "paragraph", text: product.blendsWith.trim() });
   }
 
   if (product.history?.trim()) {
@@ -96,11 +160,6 @@ export function buildOverviewSections(product) {
   if (product.precautions?.trim()) {
     sections.push({ type: "heading", text: "Precautions" });
     sections.push({ type: "paragraph", text: product.precautions.trim() });
-  }
-
-  if (product.storage?.trim()) {
-    sections.push({ type: "heading", text: "Storage" });
-    sections.push({ type: "paragraph", text: product.storage.trim() });
   }
 
   const faqs = parseFaqs(product.faqs);

@@ -26,6 +26,7 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
 
@@ -39,11 +40,13 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
     if (term.length < 2) {
       setResults([]);
       setLoading(false);
+      setSearchError(false);
       abortRef.current?.abort();
       return;
     }
 
     setLoading(true);
+    setSearchError(false);
     const timer = setTimeout(async () => {
       abortRef.current?.abort();
       const controller = new AbortController();
@@ -55,18 +58,24 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
           signal: controller.signal,
         });
         setResults(products);
+        setSearchError(false);
         setActive(-1);
       } catch (err) {
         // A genuinely aborted request (superseded by a newer keystroke) is
         // expected and silent. Anything else — network failure, CORS,
-        // backend down, wrong API base URL — was previously swallowed
-        // here with zero trace, which is indistinguishable from "search
-        // works but found nothing." Surface it so a real outage is
-        // diagnosable instead of looking like "search is broken" with no
-        // way to tell why.
+        // backend down, wrong API base URL — was previously indistinguishable
+        // from "search ran and found nothing" (both rendered "No products
+        // found."). This is the ONLY client-side, browser-initiated
+        // cross-origin request in the whole app (every other product/
+        // category page is fetched server-side during SSR, which CORS never
+        // touches) — so it's uniquely exposed to a CORS/base-URL
+        // misconfiguration nothing else would surface. Now a real failure
+        // shows a distinct "Unable to load results" message instead of
+        // silently looking like a genuine zero-result search.
         if (err?.name !== "AbortError" && err?.code !== "ERR_CANCELED") {
           console.error("[search] Request failed:", err);
           setResults([]);
+          setSearchError(true);
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -209,7 +218,16 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
             overflowY: "auto",
           }}
         >
-          {results.length === 0 && !loading ? (
+          {loading ? (
+            <div style={{ padding: "16px 18px", fontSize: 13, color: "var(--color-text-muted, #8a7a68)" }}>
+              Searching…
+            </div>
+          ) : searchError ? (
+            <div style={{ padding: "16px 18px", fontSize: 13, color: "#b91c1c" }}>
+              Unable to load results. Please check your connection and try
+              again.
+            </div>
+          ) : results.length === 0 ? (
             <div style={{ padding: "16px 18px", fontSize: 13, color: "var(--color-text-muted, #8a7a68)" }}>
               No products found.
             </div>

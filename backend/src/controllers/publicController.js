@@ -190,7 +190,16 @@ export async function getPublicCategoryBySlug(req, res) {
     };
 
     if (search) {
-      const regex = new RegExp(search.trim(), "i");
+      // FIX: unlike searchPublicProducts (the header dropdown), this never
+      // escaped regex metacharacters. Product names in this catalog
+      // routinely contain them (e.g. "Fenugreek Carrier Oil (100ml)") --
+      // `new RegExp("(100ml)", "i")` throws a SyntaxError (unmatched
+      // group), which the outer try/catch turns into a 500 and the
+      // frontend has nothing sensible to show. Escaping makes the
+      // in-category sidebar search behave the same as the header search
+      // for any query, special characters included.
+      const safe = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(safe, "i");
       productFilter.$or = [
         { name: regex },
         { slug: regex },
