@@ -180,31 +180,30 @@ export default function CategoryPageView({
     >
       {/* ── Hero ─────────────────────────────────────────────── */}
       {/*
-        FIX (category hero aspect ratio): this previously used a
-        viewport-height-relative box (`h-[42vh]`, clamped 320–460px) with
-        `object-cover`, which has no relationship to the actual category
-        hero image's native 1200×624 (≈1.923:1) design ratio — so at most
-        widths the container's ratio didn't match the image's, and
-        object-cover cropped whatever didn't fit (commonly the top/bottom
-        of the composition).
+        FIX (round 2 — hero content position): the previous pass made the
+        box's *geometry* match the 1200×624 source (aspect-[1200/624]),
+        which is correct for the image, but the content block was still
+        bottom-anchored (`flex items-end`) — a layout that only worked
+        when the hero was a modest fixed height. Once the box could be
+        ~1000px tall at wide viewports, bottom-anchoring pinned the title/
+        description/buttons to the very bottom of that tall box, often
+        below the fold — exactly the "title too low, feels oversized"
+        report.
 
-        Fix: the container's aspect ratio now matches the source image's
-        ratio directly (`aspect-[1200/624]`) at sm and up, so object-cover
-        has nothing to crop — a matching-ratio container IS the full
-        image, edge to edge, neither stretched nor cropped. `max-h-[1000px]`
-        is a ceiling only reached past ~1920px width (1920×998 is the
-        widest composition already validated), so it never fights the
-        ratio at any real desktop size, only guards against it growing
-        unbounded on ultra-wide monitors.
-
-        Below `sm` the pure ratio would be ~195px tall at 375px wide — too
-        short to hold the title/description/CTA overlay — so mobile keeps
-        a taller `min-h` with `object-cover` instead of forcing the exact
-        desktop ratio onto a cramped screen (per the "adapt appropriately,
-        don't force desktop dimensions" requirement); the crop there is
-        minor and object-position stays centered on the composition.
+        Two changes, not one:
+        1. The height is still driven by the 1200:624 ratio, but now
+           capped at a sane banner height (`sm:max-h-[440px]`) instead of
+           letting it grow toward ~1000px — a professional category
+           banner, not a nearly-full-viewport image. object-position stays
+           centered so the crop this introduces at wide viewports only
+           trims image margin, not the subject.
+        2. Content (breadcrumb → title → description → buttons) is now one
+           flex column, vertically centered in the hero via `justify-center`
+           on a full-height wrapper — no absolute positioning, no negative
+           margins — so it's centered regardless of the exact resolved
+           height instead of pinned to an edge.
       */}
-      <section className="relative flex items-end overflow-hidden min-h-[300px] aspect-[3/2] sm:aspect-[1200/624] sm:min-h-0 sm:max-h-[1000px]">
+      <section className="relative overflow-hidden aspect-[3/2] sm:aspect-[1200/624] sm:max-h-[440px]">
         {/* Background image */}
         {heroImageUrl ? (
           <Image
@@ -231,9 +230,10 @@ export default function CategoryPageView({
           }}
         />
 
-        {/* Breadcrumb */}
-        <div className="absolute top-8 left-0 right-0 px-6 sm:px-10 lg:px-16 z-10">
-          <div className="mx-auto max-w-7xl">
+        {/* Content column: breadcrumb, title, description, buttons —
+            vertically centered in the hero's full height. */}
+        <div className="relative z-10 flex h-full flex-col justify-center px-6 py-8 sm:px-10 lg:px-16">
+          <div className="mx-auto w-full max-w-7xl">
             <Breadcrumb
               items={[
                 // {
@@ -243,17 +243,11 @@ export default function CategoryPageView({
                 { label: category.name },
               ]}
             />
-          </div>
-        </div>
-
-        {/* Hero Content */}
-        <div className="relative z-10 w-full px-6 pb-10 sm:px-10 sm:pb-12 lg:px-16 lg:pb-14">
-          <div className="mx-auto max-w-7xl">
             <motion.div initial="hidden" animate="visible" variants={stagger}>
               <motion.h1
                 variants={fadeUp}
                 custom={1}
-                className="font-playfair"
+                className="font-playfair mt-3"
                 style={{
                   fontSize: "clamp(1.75rem, 3.5vw, 2.8rem)",
                   fontWeight: 600,
