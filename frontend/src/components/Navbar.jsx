@@ -441,7 +441,9 @@ const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
   const isOpen = openKey === label;
 
   const linkStyle = {
-    fontSize: 13.5,
+    // Fluid: full 13.5px/13px padding at ~1920px+, compacting down to
+    // 11px/6px by the ~1130px hamburger cutoff instead of snapping.
+    fontSize: "clamp(11px, 0.62vw, 13.5px)",
     fontWeight: 600,
     letterSpacing: "0.04em",
     display: "flex",
@@ -449,7 +451,7 @@ const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
     gap: 4,
     whiteSpace: "nowrap",
     height: 76,
-    padding: "0 13px",
+    padding: "0 clamp(6px, 0.68vw, 13px)",
     color: "var(--color-text-primary)",
     textDecoration: "none",
     borderBottom: "2px solid transparent",
@@ -825,19 +827,21 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
         }
 
         /*
-          FIX: the desktop nav links + search bar + "Get Free Quote" button
-          were shown from Tailwind's \`lg\` breakpoint (1024px) via
-          \`hidden lg:flex\`, but their combined intrinsic width (7 nav
-          links + search + CTA + register) only actually fits from
-          ~1700px onward. Between 1024px and ~1700px — i.e. most real
-          laptop screens (1366/1440/1536/1600/1680) — the row overflowed
-          its container with no wrap/shrink, so the search box and "Get
-          Free Quote" button rendered on top of each other and nav items
-          could be pushed off-screen (reported as "submenu not visible").
-          Raising the breakpoint to a custom 1700px, with the existing
-          (already fully working) hamburger + mobile drawer as the
-          fallback below it, removes the overflow entirely instead of
-          trying to squeeze content that doesn't fit.
+          FIX (round 2): the previous fix pushed the desktop nav behind a
+          single hard 1700px breakpoint so it would never overflow, but
+          that meant every real laptop (1366/1440/1536/1600/1680) fell
+          back to the hamburger menu even though there's plenty of room
+          for a slightly compacted nav.
+
+          Real fix: every dimension that adds up across the row — nav
+          link font-size/padding, logo width, search width, CTA
+          padding/font-size, right-side gaps — now scales fluidly with
+          \`clamp(min, vw, max)\` instead of a fixed px value. The row
+          compacts continuously as the viewport shrinks (full size at
+          ~1920px, visibly tighter by 1366px) instead of snapping. Only
+          once the *minimum* sizes in that clamp() still can't fit — verified
+          with Playwright down to ~1130px for the 7-item nav used here —
+          does it fall back to the hamburger + mobile drawer.
         */
         .nb-desktop-nav,
         .nb-desktop-search {
@@ -846,7 +850,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
         .nb-mobile-toggle {
           display: flex;
         }
-        @media (min-width: 1700px) {
+        @media (min-width: 1130px) {
           .nb-desktop-nav {
             display: flex;
           }
@@ -858,16 +862,18 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
             display: none;
           }
         }
+        /* Below ~1130px the search bar moves into the mobile drawer, so
+           reclaim its slot for the nav — nothing to compact there. */
 
         .nb-cta-btn {
           background: var(--gradient-btn, linear-gradient(135deg, #5C3D2E 0%, #8B6344 100%));
           color: var(--color-cream-white) !important;
           border: none;
           border-radius: 100px;
-          padding: 10px 24px;
-          font-size: 11px;
+          padding: clamp(7px, 0.65vw, 10px) clamp(12px, 1.55vw, 24px);
+          font-size: clamp(9.5px, 0.62vw, 11px);
           font-weight: 700;
-          letter-spacing: 0.16em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
           text-decoration: none !important;
           box-shadow: 0 3px 14px rgba(92,64,51,0.30);
@@ -941,7 +947,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "0 28px 0 24px",
+              padding: "0 clamp(14px, 1.45vw, 28px) 0 clamp(12px, 1.25vw, 24px)",
               height: 76,
               transition: "box-shadow 0.35s, background 0.35s",
               backdropFilter: scrolled ? "blur(8px)" : "none",
@@ -970,7 +976,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                 width={250}
                 height={80}
                 style={{
-                  width: 190,
+                  width: "clamp(140px, 10vw, 190px)",
                   height: "auto",
                   objectFit: "contain",
                   filter: "contrast(1.15) brightness(1.04) saturate(1.1)",
@@ -999,7 +1005,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 14,
+                gap: "clamp(6px, 0.85vw, 14px)",
                 flexShrink: 0,
               }}
             >

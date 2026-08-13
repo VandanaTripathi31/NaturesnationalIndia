@@ -223,6 +223,7 @@ export default function Contact() {
   });
   const [submitted, setSubmitted] = useState(false);
   const [captchaError, setCaptchaError] = useState("");
+  const [captchaUnavailable, setCaptchaUnavailable] = useState(false);
 
   const recaptchaRef = useRef(null);
   const widgetIdRef = useRef(null);
@@ -233,6 +234,12 @@ export default function Contact() {
   };
 
   // Load the reCAPTCHA script once (only when a site key is configured).
+  //
+  // FIX: see FloatingInquiry.jsx for the full explanation — this previously
+  // had no failure path, so an ad blocker / privacy extension / network
+  // filter blocking www.google.com/recaptcha/* left the widget invisible
+  // and silently blocked submission forever, with no diagnostic. Same
+  // bounded-timeout + onerror fix applied here.
   useEffect(() => {
     if (!RECAPTCHA_SITE_KEY) return;
     if (document.querySelector("script[data-recaptcha]")) return;
@@ -241,6 +248,13 @@ export default function Contact() {
     script.async = true;
     script.defer = true;
     script.setAttribute("data-recaptcha", "true");
+    script.onerror = () => {
+      console.error(
+        "[reCAPTCHA] Script failed to load — likely blocked by an ad blocker, " +
+          "browser privacy setting, or network filter.",
+      );
+      setCaptchaUnavailable(true);
+    };
     document.head.appendChild(script);
   }, []);
 
@@ -248,17 +262,39 @@ export default function Contact() {
   useEffect(() => {
     if (!RECAPTCHA_SITE_KEY || submitted) return;
     let cancelled = false;
+    let elapsed = 0;
+    const POLL_MS = 300;
+    const TIMEOUT_MS = 8000;
     const tryRender = () => {
       if (cancelled) return;
       const grecaptcha = window.grecaptcha;
       if (!grecaptcha?.render || !recaptchaRef.current) {
-        setTimeout(tryRender, 300);
+        elapsed += POLL_MS;
+        if (elapsed >= TIMEOUT_MS) {
+          console.error(
+            "[reCAPTCHA] Widget never became available after 8s.",
+          );
+          setCaptchaUnavailable(true);
+          return;
+        }
+        setTimeout(tryRender, POLL_MS);
         return;
       }
-      if (widgetIdRef.current === null) {
-        widgetIdRef.current = grecaptcha.render(recaptchaRef.current, {
-          sitekey: RECAPTCHA_SITE_KEY,
-        });
+      try {
+        if (widgetIdRef.current === null) {
+          widgetIdRef.current = grecaptcha.render(recaptchaRef.current, {
+            sitekey: RECAPTCHA_SITE_KEY,
+          });
+        }
+        setCaptchaUnavailable(false);
+      } catch (err) {
+        console.error(
+          "[reCAPTCHA] Failed to render — check that this domain is added " +
+            "under the site key's allowed domains in the reCAPTCHA admin " +
+            "console (google.com/recaptcha/admin):",
+          err,
+        );
+        setCaptchaUnavailable(true);
       }
     };
     tryRender();
@@ -273,6 +309,15 @@ export default function Contact() {
     // Require a solved captcha when reCAPTCHA is configured.
     let captchaToken = "";
     if (RECAPTCHA_SITE_KEY) {
+      if (captchaUnavailable) {
+        setCaptchaError(
+          "Verification couldn't load — this is usually caused by an ad " +
+            "blocker or browser privacy extension blocking Google reCAPTCHA. " +
+            "Please disable it for this site (or try a different browser) and " +
+            "retry, or reach us directly at info@naturesnaturalindia.com.",
+        );
+        return;
+      }
       captchaToken = window.grecaptcha?.getResponse(widgetIdRef.current) ?? "";
       if (!captchaToken) {
         setCaptchaError("Please confirm you're not a robot.");
