@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { categoryHref, productHref } from "../../lib/seo-routes";
 import { resolveImageUrl } from "../../lib/image-url";
+import SafeImage from "../ui/SafeImage";
 import CategoryContent from "./CategoryContent";
 import {
   ArrowRight,
@@ -65,19 +66,14 @@ function ProductCard({ product, index, categorySlug }) {
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-white">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={product.name}
-            fill
-            className="object-contain p-3 transition-transform duration-700 ease-out group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, 33vw"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <Leaf size={32} className="text-[var(--color-brown-muted)]" />
-          </div>
-        )}
+        <SafeImage
+          src={imageUrl}
+          alt={product.name}
+          fill
+          className="object-contain p-3 transition-transform duration-700 ease-out group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, 33vw"
+          fallbackIconSize={32}
+        />
 
         {/* Badges */}
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">

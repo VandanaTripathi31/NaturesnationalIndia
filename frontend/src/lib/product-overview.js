@@ -1,18 +1,23 @@
 /**
  * Builds the product page's "Overview" tab content to match the structure
  * of the original (Magento) product pages — see the client-supplied
- * reference HTML/screenshots and the explicit field-order example
- * (Product Code, Botanical Name, Country of origin, Source, Cultivation,
- * Colour and odor, Note, Extraction Method, Refractive Index, Specific
- * Gravity, Optical Rotation, Flash Point, Components, Solubility, Shelf
- * Life, Storage, Certificate on Demand, Blends well with, History, Uses,
- * Therapeutic Benefits, FAQs).
+ * reference HTML/screenshots.
+ *
+ * Structure requested (final pass): a short primary summary — Scientific
+ * Name, Country of origin, Colour, Extraction Method — followed by Blends
+ * Well With, then the long-form content (Uses, Therapeutic Benefits,
+ * FAQs), with the remaining technical attributes (Product Code, Source,
+ * Cultivation, Note, Refractive Index, Specific Gravity, Optical
+ * Rotation, Flash Point, Components, Solubility, Shelf Life, Storage,
+ * Certificate on Demand) kept in a separate "Technical Information"
+ * section rather than the top summary — present, not deleted, just not
+ * mixed into the first thing a visitor reads.
  *
  * Every per-product field here already exists on the Product model (see
  * backend/src/models/Product.js) and was populated for exactly this
  * purpose by the Magento migration (backend/migration/migrate-products.js,
  * lib/transform.js SPEC_FIELDS/PRODUCT_CODE_MAP) — nothing here is
- * invented; this only maps existing fields into the reference order/shape.
+ * invented; this only maps existing fields into the requested order/shape.
  * A row/section only renders when the underlying field is actually set,
  * so this works for every product regardless of which fields it has.
  *
@@ -67,18 +72,17 @@ export function buildOverviewSections(product) {
 
   // Odor/Colour: some products carry them as two separate migrated spec
   // rows ("Odor", "Colour"); others only have the combined Magento
-  // "colorodor" attribute ("Colour and Odor"). Prefer whichever the
-  // product actually has — never invent the one it doesn't.
+  // "colorodor" attribute ("Colour and Odor"), and some only have a
+  // free-text "Colour" description (e.g. dilution products). Prefer
+  // whichever the product actually has — never invent the ones it doesn't.
   const odor = specValue(product, "Odor");
   const colour = specValue(product, "Colour");
   const colourAndOdorCombined = specValue(product, "Colour and Odor");
 
-  const primaryRows = [
-    { label: "Product Code", value: product.productCode?.trim() },
-    { label: "Botanical Name", value: product.botanicalName?.trim() },
+  // ── Primary summary: the first thing a visitor reads ──────────────
+  const summaryRows = [
+    { label: "Scientific Name", value: product.botanicalName?.trim() },
     { label: "Country of Origin", value: product.origin?.trim() },
-    { label: "Source", value: specValue(product, "Source") },
-    { label: "Cultivation", value: specValue(product, "Cultivation") },
     ...(odor || colour
       ? [
           { label: "Odor", value: odor },
@@ -87,55 +91,12 @@ export function buildOverviewSections(product) {
       : colourAndOdorCombined
         ? [{ label: "Colour and Odor", value: colourAndOdorCombined }]
         : []),
-    { label: "Note", value: specValue(product, "Note") },
     { label: "Extraction Method", value: product.extractionMethod?.trim() },
-    { label: "Refractive Index", value: specValue(product, "Refractive Index") },
-    { label: "Specific Gravity", value: specValue(product, "Specific Gravity") },
-    { label: "Optical Rotation", value: specValue(product, "Optical Rotation") },
-    { label: "Flash Point", value: specValue(product, "Flash Point") },
-    { label: "Components", value: specValue(product, "Components") },
-    { label: "Solubility", value: specValue(product, "Solubility") },
-    { label: "Shelf Life", value: specValue(product, "Shelf Life") },
   ].filter((r) => r.value);
 
-  // Any other migrated spec rows not already surfaced above (Other Names,
-  // CAS No, Appearance, Molecular Formula, Molecular Weight, Purity,
-  // Properties, etc.) — preserved, never dropped, just appended after the
-  // reference's named fields so no migrated data silently disappears.
-  const consumed = new Set(
-    [
-      "odor",
-      "colour",
-      "colour and odor",
-      "source",
-      "cultivation",
-      "note",
-      "refractive index",
-      "specific gravity",
-      "optical rotation",
-      "flash point",
-      "components",
-      "solubility",
-      "shelf life",
-    ].map((s) => s.toLowerCase()),
-  );
-  const extraSpecRows = (product.specifications || []).filter(
-    (r) => r.value?.trim() && !consumed.has(r.label?.trim().toLowerCase()),
-  );
-
-  if (primaryRows.length || extraSpecRows.length) {
-    sections.push({ type: "rows", rows: [...primaryRows, ...extraSpecRows] });
+  if (summaryRows.length) {
+    sections.push({ type: "rows", rows: summaryRows });
   }
-
-  if (product.storage?.trim()) {
-    sections.push({ type: "heading", text: "Storage" });
-    sections.push({ type: "paragraph", text: product.storage.trim() });
-  }
-
-  // Fixed boilerplate — see the module comment. Always shown; it isn't
-  // per-product data so it doesn't depend on any product field being set.
-  sections.push({ type: "heading", text: "Certificate on Demand" });
-  sections.push({ type: "paragraph", text: CERTIFICATE_ON_DEMAND_TEXT });
 
   if (product.blendsWith?.trim()) {
     sections.push({ type: "heading", text: "Blends Well With" });
@@ -167,6 +128,80 @@ export function buildOverviewSections(product) {
     sections.push({ type: "heading", text: "FAQs" });
     sections.push({ type: "faqs", items: faqs });
   }
+
+  // ── Technical Information: everything else, preserved but kept out of
+  // the primary summary (Product Code, Source, Cultivation, Note,
+  // Refractive Index, Specific Gravity, Optical Rotation, Flash Point,
+  // Components, Solubility, Shelf Life, Storage, Certificate on Demand,
+  // plus any other migrated spec row not already shown above). Nothing
+  // here is dropped — it just isn't mixed into the top summary.
+  const consumedFromSummary = new Set(
+    ["odor", "colour", "colour and odor"].map((s) => s.toLowerCase()),
+  );
+  const technicalRows = [
+    { label: "Product Code", value: product.productCode?.trim() },
+    { label: "Source", value: specValue(product, "Source") },
+    { label: "Cultivation", value: specValue(product, "Cultivation") },
+    { label: "Note", value: specValue(product, "Note") },
+    { label: "Refractive Index", value: specValue(product, "Refractive Index") },
+    { label: "Specific Gravity", value: specValue(product, "Specific Gravity") },
+    { label: "Optical Rotation", value: specValue(product, "Optical Rotation") },
+    { label: "Flash Point", value: specValue(product, "Flash Point") },
+    { label: "Components", value: specValue(product, "Components") },
+    { label: "Solubility", value: specValue(product, "Solubility") },
+    { label: "Shelf Life", value: specValue(product, "Shelf Life") },
+  ].filter((r) => r.value);
+
+  const consumedTechnical = new Set(
+    [
+      "odor",
+      "colour",
+      "colour and odor",
+      "source",
+      "cultivation",
+      "note",
+      "refractive index",
+      "specific gravity",
+      "optical rotation",
+      "flash point",
+      "components",
+      "solubility",
+      "shelf life",
+    ].map((s) => s.toLowerCase()),
+  );
+  // Any other migrated spec rows not already surfaced above (Other Names,
+  // CAS No, Appearance, Molecular Formula, Molecular Weight, Purity,
+  // Properties, etc.) — preserved, never dropped.
+  const extraSpecRows = (product.specifications || []).filter(
+    (r) =>
+      r.value?.trim() &&
+      !consumedTechnical.has(r.label?.trim().toLowerCase()) &&
+      !consumedFromSummary.has(r.label?.trim().toLowerCase()),
+  );
+
+  const hasTechnicalContent =
+    technicalRows.length ||
+    extraSpecRows.length ||
+    product.storage?.trim();
+
+  if (hasTechnicalContent) {
+    sections.push({ type: "heading", text: "Technical Information" });
+    if (technicalRows.length || extraSpecRows.length) {
+      sections.push({
+        type: "rows",
+        rows: [...technicalRows, ...extraSpecRows],
+      });
+    }
+    if (product.storage?.trim()) {
+      sections.push({ type: "heading", text: "Storage" });
+      sections.push({ type: "paragraph", text: product.storage.trim() });
+    }
+  }
+
+  // Fixed boilerplate — see the module comment. Always shown; it isn't
+  // per-product data so it doesn't depend on any product field being set.
+  sections.push({ type: "heading", text: "Certificate on Demand" });
+  sections.push({ type: "paragraph", text: CERTIFICATE_ON_DEMAND_TEXT });
 
   return sections;
 }

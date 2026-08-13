@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { categoryHref } from "../../lib/seo-routes";
 import { resolveImageObject } from "../../lib/image-url";
+import SafeImage from "../ui/SafeImage";
 import ProductInfoTabs from "./ProductInfoTabs";
 import {
   MapPin,
@@ -138,23 +138,15 @@ export default function ProductPageView({
                         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                         className="absolute inset-0"
                       >
-                        {images[activeImage]?.url ? (
-                          <Image
-                            src={images[activeImage].url}
-                            alt={product.name}
-                            fill
-                            priority
-                            className="object-contain p-6 transition-transform duration-700 group-hover:scale-105"
-                            sizes="(max-width: 1024px) 100vw, 50vw"
-                          />
-                        ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <Leaf
-                              size={48}
-                              style={{ color: "var(--color-brown-muted)" }}
-                            />
-                          </div>
-                        )}
+                        <SafeImage
+                          src={images[activeImage]?.url}
+                          alt={product.name}
+                          fill
+                          priority
+                          className="object-contain p-6 transition-transform duration-700 group-hover:scale-105"
+                          sizes="(max-width: 1024px) 100vw, 50vw"
+                          fallbackIconSize={48}
+                        />
                       </motion.div>
                     </AnimatePresence>
 
@@ -214,12 +206,13 @@ export default function ProductPageView({
                               : "border-transparent opacity-60 hover:opacity-100"
                           }`}
                         >
-                          <Image
+                          <SafeImage
                             src={image.url}
                             alt={`${product.name} ${index + 1}`}
                             fill
                             className="object-contain p-1"
                             sizes="80px"
+                            fallbackIconSize={16}
                           />
                         </button>
                       ))}
