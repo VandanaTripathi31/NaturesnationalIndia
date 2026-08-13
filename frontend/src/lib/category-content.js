@@ -126,4 +126,199 @@ export const CATEGORY_CONTENT = {
       },
     ],
   },
+
+  "carrier-oils": {
+    title:
+      "Carrier Oils: Excellent Natural Source For Therapeutic Benefits & Holistic Wellness",
+    blocks: [
+      {
+        type: "paragraph",
+        text: "Carrier oils, also known as base oils, are the liquids used for dilution or blending of essential oils. The addition of carrier oils to concentrated essential oils makes them useful for skincare and haircare applications. They are very gentle in texture and lightweight in nature, which makes them non-reactive when applied to the skin. The very name of carrier oil shows its functionality and importance. It is the term typically used in the context of cosmetic and aromatherapy use. Carrier oils serve as the ideal medium for transmitting the diverse benefits of essential oils to the human body. Moreover, their application moisturizes the skin and scalp for an extended period.",
+      },
+      {
+        type: "paragraph",
+        text: "Nature's Natural India is the leading carrier oil manufacturer in India. It exports premium quality carrier/base oils in bulk worldwide. It is a reputable brand known for offering unmatched quality products that are free from chemicals and preservatives. They have been leading the natural wellness industry as a carrier oil supplier for over a decade.",
+      },
+      {
+        type: "paragraph",
+        text: "Nature's Natural India is known for providing B2B collaboration opportunities to other brands. Their wholesale carrier oils are highly demanded among the global clientele due to their authenticity, consistent product delivery, and customized packaging options.",
+      },
+      {
+        type: "paragraph",
+        text: "Whether you are planning to buy the best quality carrier oils or exploring various options, you should choose carrier oils from Nature's Natural India, whose purity and efficacy are most desirable among retailers, formulators, and aromatherapists of the beauty and wellness industry.",
+      },
+      { type: "heading", text: "What are carrier oils?" },
+      {
+        type: "paragraph",
+        text: "Carrier oils are fatty acid vegetable oils extracted from the seeds, kernels, or nuts of plants by carrier oil manufacturers. There are several colorless, pale yellow, or yellow natural carrier oils with a mild or negligible smell. They are extracted by the methods of cold pressing. They do not contain any volatile compounds and are thick in consistency. They vary in fatty acid profiles and rate of absorption to the skin from one another.",
+      },
+      {
+        type: "paragraph",
+        text: "Every carrier oil has its distinct fragrance and texture. They are not volatile, i.e., do not evaporate. However, they have a relatively shorter shelf life in comparison to pure essential oils. These oils are used for preparing aromatherapy oil blends and culinary dishes, making exotic salads & pasta, and manufacturing cosmetics, skincare, and many more products. Carrier oils for soap making and scented candles are also used as DIY activities.",
+      },
+      { type: "heading", text: "Variety of Carrier Oils!" },
+      {
+        type: "paragraph",
+        text: "As a carrier oil wholesale supplier, Nature's Natural India offers natural base oils in various forms, including",
+      },
+      {
+        type: "list",
+        items: [
+          "Unrefined/virgin carrier oils: used for skincare and haircare regimen",
+          "Refined carrier oils: used for culinary purposes",
+        ],
+      },
+      {
+        type: "paragraph",
+        text: "Nature's Natural India, as a carrier oil supplier, is known for its rich diversity of around a hundred types of premium quality carrier oils. Some popular carrier oils are",
+      },
+      {
+        type: "list",
+        items: [
+          "Jojoba oil",
+          "Olive oil",
+          "Castor oil",
+          "Cucumber oil",
+          "Coconut carrier oil",
+          "Hazelnut oil",
+          "Grape seed oil",
+          "Watermelon oil",
+          "Walnut carrier oil",
+        ],
+      },
+      { type: "heading", text: "Carrier Oil Applications" },
+      {
+        type: "list",
+        items: [
+          "Carrier oils are applied as body mist, aromatherapy blends, and massage oils.",
+          "They are used in lotions, lip balms, and other skin care items",
+          "Carrier oils are important components in skin care products.",
+          "They nourish the skin and prevent irritation & itching.",
+          "They are used as health supplements that help in maintaining good health.",
+          "They are rich in nutrients and vitamins, which help in weight loss and improve immunity.",
+        ],
+      },
+      { type: "heading", text: "Benefits of Carrier Oils" },
+      {
+        type: "paragraph",
+        text: "Carrier oils are versatile, so they have numerous benefits.",
+      },
+      { type: "heading", text: "1. Carrier oils for skincare" },
+      {
+        type: "list",
+        items: [
+          "Used for skin nourishment",
+          "Hydrate skin and balance moisture",
+          "Reduce acne and dark spots",
+          "Have anti-aging properties",
+          "The presence of antioxidants rejuvenates skin",
+        ],
+      },
+      { type: "heading", text: "2. Carrier oils for haircare" },
+      {
+        type: "list",
+        items: [
+          "Condition damaged and rough hair",
+          "Boost hair growth and strengthen the hair shaft",
+          "Help in smoothing hair",
+          "Reduce dandruff and irritation",
+          "Make hair stronger, softer, and shinier",
+        ],
+      },
+      { type: "heading", text: "3. Carrier Oils in Aromatherapy" },
+      {
+        type: "list",
+        items: [
+          "Used in diffuser blends to freshen the air",
+          "Reduce stress and anxiety",
+          "Provide relaxation and comfort",
+          "Enhance focus and concentration",
+          "Improve sleep-wake cycle",
+        ],
+      },
+      { type: "heading", text: "4. Carrier oils for a healthy lifestyle" },
+      {
+        type: "list",
+        items: [
+          "When used in massage blends, alleviate body pain",
+          "Reduce inflammation, muscle stiffness, and spasms.",
+          "Help in controlling cholesterol uptake",
+          "Boost immunity and metabolism",
+          "Good fatty acid components help in weight loss reduction",
+        ],
+      },
+      { type: "heading", text: "5. Carrier oils for domestic purposes" },
+      {
+        type: "list",
+        items: [
+          "Used for purifying the atmosphere",
+          "Antimicrobial property is used for cleaning purposes",
+          "Few carrier oils are used in cooking",
+          "Their aromatic fragrance is used in perfumery.",
+          "DIY enthusiasts use carrier oils for candles",
+        ],
+      },
+      { type: "heading", text: "Why Choose Nature's Natural Carrier Oils?" },
+      {
+        type: "paragraph",
+        text: "As the premier wholesaler and supplier of carrier oils, we provide the best quality products in bulk quantities at wholesale rates. If you are in the natural wellness industry, it is very crucial to choose the best brand where you don't have to think about price or compromise quality. That is why our bulk carrier oils are the best option for you.",
+      },
+      {
+        type: "list",
+        items: [
+          "We offer 100% pure and natural oils, organically derived",
+          "Our products are free from chemicals",
+          "Source products through sustainable and ethical means",
+          "Go through multiple tests to ensure quality and authenticity",
+          "Abide by the international standards in natural product manufacturing",
+          "Backed by numerous certifications like- WHO-GMP, KOSHER, ISO, Halal & USDA",
+          "Offer B2B collaboration opportunities",
+          "Provide private labeling and OEM/ODM solutions",
+          "Known to provide bulk supply and wholesale services globally",
+          "Have customized packaging options & excellent customer support",
+          "Serve a broad range of regions, including the United States, Canada, the United Kingdom, Saudi Arabia, Germany, South Korea, Brazil, Romania, Poland, Turkey, Spain, Thailand, Egypt, Japan, China, Ukraine, Armenia, Nigeria, Vietnam, Iran, and other countries worldwide.",
+        ],
+      },
+      {
+        type: "paragraph",
+        text: "Nature's India is your go-to destination for top-notch natural ingredients, featuring a wide array of the best botanical products out there. We're all about sustainability and purity, making sure that every single item—whether it's a rare essential oil or a high-quality extract—meets our strict standards. Explore our collection, which proudly includes certified organic products and a fantastic selection of bulk organic carrier oils, ideal for cosmetic, therapeutic, and manufacturing uses. All of this is supported by our commitment to promoting natural wellness and ethical sourcing.",
+      },
+      { type: "heading", text: "Conclusion" },
+      {
+        type: "paragraph",
+        text: "Nature's Natural India is a trusted bulk carrier of oil supplier that is known for their unwavering commitment to purity and efficacy. To have the top-quality natural products, buy carrier oils online at India mart and Alibaba, where you will get the best offers on bulk purchasing. Contact us for business-related queries.",
+      },
+      { type: "heading", text: "Frequently Asked Questions" },
+      {
+        type: "faq",
+        q: "Ques. What are the benefits of carrier oils derived from nuts?",
+        a: "Ans. They help maintain the hydration, softness, and elasticity of the skin.",
+      },
+      {
+        type: "faq",
+        q: "Ques. Which carrier oil is best for skin?",
+        a: "Ans. Jojoba oil, grapeseed oil, rosehip seed oil, avocado oil, sweet almond oil, and apricot kernel oil are good for skin.",
+      },
+      {
+        type: "faq",
+        q: "Ques. Name a few carrier oils extracted from fruits.",
+        a: "Ans. Apricots, avocados, grapeseed, peach kernels, and olive carrier oils are extracted from the fruits. They are light in texture and used for moisturizing skin.",
+      },
+      {
+        type: "faq",
+        q: "Ques. Is there any carrier oil known as essential fatty acid oil?",
+        a: "Ans. Yes, calendula, argan, and babassu carrier oils are essential fatty acid oils. They hydrate dry skin and help in skin nourishment.",
+      },
+      {
+        type: "faq",
+        q: "Ques. Where can I buy carrier oils?",
+        a: "Ans. You can buy the best carrier oils from us through Indiamart and Alibaba. Also, you can get it from us by searching for carrier oils near me or through direct contact as well.",
+      },
+      {
+        type: "faq",
+        q: "Ques: Are these carrier oils safe to use on skin?",
+        a: "Ans: Yes, our carrier oils are safe to use on skin, as they are natural and 100% pure.",
+      },
+    ],
+  },
 };
