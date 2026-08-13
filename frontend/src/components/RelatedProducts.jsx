@@ -1,9 +1,9 @@
 import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight, Leaf } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { categoryHref, productHref } from "../lib/seo-routes";
 import { resolveImageUrl } from "../lib/image-url";
+import SafeImage from "./ui/SafeImage";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -32,19 +32,14 @@ function RelatedCard({ product, index, categorySlug }) {
           className="relative aspect-square overflow-hidden"
           style={{ background: "var(--color-sage-light)" }}
         >
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={product.name}
-              fill
-              className="object-cover transition-transform duration-600 ease-out group-hover:scale-107"
-              sizes="(max-width: 768px) 50vw, 25vw"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <Leaf size={24} style={{ color: "var(--color-brown-muted)" }} />
-            </div>
-          )}
+          <SafeImage
+            src={imageUrl}
+            alt={product.name}
+            fill
+            className="object-cover transition-transform duration-600 ease-out group-hover:scale-107"
+            sizes="(max-width: 768px) 50vw, 25vw"
+            fallbackIconSize={24}
+          />
 
           {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-brown-deep)]/50 to-transparent opacity-0 transition-opacity duration-400 group-hover:opacity-100" />

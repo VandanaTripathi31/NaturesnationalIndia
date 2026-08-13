@@ -30,6 +30,12 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
   const [searchError, setSearchError] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  // Thumbnails that failed to actually load (404/broken URL, discovered
+  // only at fetch time in the browser — see SafeImage for the full
+  // rationale). Tracked by URL so a graceful fallback swaps in instead of
+  // the browser's broken-image icon; this list doesn't use next/image so
+  // it needs its own onError handling rather than SafeImage directly.
+  const [failedImages, setFailedImages] = useState(() => new Set());
 
   const containerRef = useRef(null);
   const abortRef = useRef(null);
@@ -268,13 +274,16 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
                   transition: "background 0.12s",
                 }}
               >
-                {imageUrl ? (
+                {imageUrl && !failedImages.has(imageUrl) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={imageUrl}
                     alt=""
                     width={40}
                     height={40}
+                    onError={() =>
+                      setFailedImages((prev) => new Set(prev).add(imageUrl))
+                    }
                     style={{
                       width: 40,
                       height: 40,
