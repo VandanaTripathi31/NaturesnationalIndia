@@ -22,21 +22,39 @@
  */
 const LEGACY_MEDIA_BASE = "https://www.naturesnaturalindia.com";
 
+// Magento product image filenames frequently contain raw spaces/parens
+// (e.g. "/f/e/Fenugreek Carrier Oil (100ml).jpg") — valid on a filesystem,
+// invalid inside a URL. `encodeURI` escapes exactly those characters while
+// leaving already-percent-encoded sequences and normal URL syntax (`/`,
+// `:`, `?`, `%`, ...) untouched, so it's safe to apply unconditionally
+// without double-encoding already-clean URLs. Without this, any such image
+// fails to fetch (400) even once the host/protocol is otherwise correct —
+// which, depending on which page of results happens to contain
+// space-in-filename products, can look exactly like "page 1 fine, page 2
+// broken" even though every page runs through the same code path.
+function safeEncode(url) {
+  try {
+    return encodeURI(url);
+  } catch {
+    return url;
+  }
+}
+
 export function resolveImageUrl(value) {
   const url = typeof value === "string" ? value.trim() : "";
   if (!url) return null;
 
   // Already absolute (Cloudinary, unsplash, the legacy site directly, or
-  // any other fully-qualified URL) — nothing to do.
-  if (/^https?:\/\//i.test(url)) return url;
+  // any other fully-qualified URL) — nothing to do but encode.
+  if (/^https?:\/\//i.test(url)) return safeEncode(url);
 
   // Protocol-relative ("//host/path") — just needs a scheme.
-  if (url.startsWith("//")) return `https:${url}`;
+  if (url.startsWith("//")) return safeEncode(`https:${url}`);
 
   // Bare relative path left over from a MAGENTO_MEDIA_BASE-less migration —
   // resolve it against the legacy media host so it actually loads.
   const path = url.startsWith("/") ? url : `/${url}`;
-  return `${LEGACY_MEDIA_BASE}${path}`;
+  return safeEncode(`${LEGACY_MEDIA_BASE}${path}`);
 }
 
 /** Same resolution, applied to a Cloudinary-style `{ url, public_id }` object. */

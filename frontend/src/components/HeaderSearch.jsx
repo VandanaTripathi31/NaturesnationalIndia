@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Search, Loader2, X } from "lucide-react";
 import { searchProducts } from "../services/productService";
 import { productHref } from "../lib/seo-routes";
+import { resolveImageUrl } from "../lib/image-url";
 
 /*
   Header product search with live suggestions.
@@ -55,8 +56,18 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
         });
         setResults(products);
         setActive(-1);
-      } catch {
-        // Aborted or failed request — leave previous results untouched.
+      } catch (err) {
+        // A genuinely aborted request (superseded by a newer keystroke) is
+        // expected and silent. Anything else — network failure, CORS,
+        // backend down, wrong API base URL — was previously swallowed
+        // here with zero trace, which is indistinguishable from "search
+        // works but found nothing." Surface it so a real outage is
+        // diagnosable instead of looking like "search is broken" with no
+        // way to tell why.
+        if (err?.name !== "AbortError" && err?.code !== "ERR_CANCELED") {
+          console.error("[search] Request failed:", err);
+          setResults([]);
+        }
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
@@ -105,8 +116,17 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
     }
   };
 
-  const showDropdown =
-    open && query.trim().length >= 2 && (loading || results.length > 0);
+  // FIX: this previously required `loading || results.length > 0` to show
+  // the dropdown at all — meaning the instant a search legitimately
+  // finished with zero matches (or the request errored, see the catch
+  // above), the dropdown closed itself and the "No products found."
+  // message a few lines down became unreachable dead code. The user
+  // typing a real product name that (for whatever reason) came back
+  // empty saw nothing at all, indistinguishable from the search being
+  // broken. Now the dropdown stays open for the whole "actively
+  // searching" state (query long enough + focused), and its *contents*
+  // (spinner / results / empty message) are what react to loading/results.
+  const showDropdown = open && query.trim().length >= 2;
   const isMobile = variant === "mobile";
 
   return (
@@ -194,7 +214,9 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
               No products found.
             </div>
           ) : (
-            results.map((product, i) => (
+            results.map((product, i) => {
+              const imageUrl = resolveImageUrl(product.image);
+              return (
               <Link
                 key={product.id}
                 href={productHref(product.category?.slug, product.slug)}
@@ -215,10 +237,10 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
                   transition: "background 0.12s",
                 }}
               >
-                {product.image ? (
+                {imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={product.image}
+                    src={imageUrl}
                     alt=""
                     width={40}
                     height={40}
@@ -270,7 +292,8 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
                   </span>
                 </span>
               </Link>
-            ))
+              );
+            })
           )}
         </div>
       )}
