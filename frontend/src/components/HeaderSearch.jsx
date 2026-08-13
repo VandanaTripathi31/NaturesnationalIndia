@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import axios from "axios";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Search, Loader2, X } from "lucide-react";
@@ -61,18 +62,30 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
         setSearchError(false);
         setActive(-1);
       } catch (err) {
-        // A genuinely aborted request (superseded by a newer keystroke) is
-        // expected and silent. Anything else — network failure, CORS,
-        // backend down, wrong API base URL — was previously indistinguishable
-        // from "search ran and found nothing" (both rendered "No products
-        // found."). This is the ONLY client-side, browser-initiated
-        // cross-origin request in the whole app (every other product/
-        // category page is fetched server-side during SSR, which CORS never
-        // touches) — so it's uniquely exposed to a CORS/base-URL
-        // misconfiguration nothing else would surface. Now a real failure
-        // shows a distinct "Unable to load results" message instead of
-        // silently looking like a genuine zero-result search.
-        if (err?.name !== "AbortError" && err?.code !== "ERR_CANCELED") {
+        // A genuinely aborted request (superseded by a newer keystroke —
+        // normal and constant while typing) is expected and silent.
+        // Anything else — network failure, CORS, backend down, wrong API
+        // base URL — was previously indistinguishable from "search ran and
+        // found nothing" (both rendered "No products found."). This is the
+        // ONLY client-side, browser-initiated cross-origin request in the
+        // whole app (every other product/category page is fetched
+        // server-side during SSR, which CORS never touches) — so it's
+        // uniquely exposed to a CORS/base-URL misconfiguration nothing else
+        // would surface. A real failure now shows a distinct "Unable to
+        // load results" message instead of silently looking like a genuine
+        // zero-result search.
+        //
+        // FIX: use axios's own `isCancel()` rather than checking
+        // `err.name`/`err.code` string literals — api-client.js's error
+        // interceptor previously replaced every rejection with a plain
+        // `new Error(message)`, which destroyed the AbortError/
+        // CanceledError identity on *every* request, making this check
+        // never actually match a real cancellation. That meant ordinary
+        // fast typing (which cancels the previous in-flight request on
+        // every keystroke) was misreported as "Request failed: Network
+        // Error" even though nothing was actually failing. api-client.js
+        // now passes cancellations through untouched so this works.
+        if (!axios.isCancel(err)) {
           console.error("[search] Request failed:", err);
           setResults([]);
           setSearchError(true);

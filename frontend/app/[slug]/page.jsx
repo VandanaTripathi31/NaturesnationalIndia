@@ -73,12 +73,20 @@ export default async function SeoSlugPage({ params, searchParams }) {
   const query = await searchParams;
   const page = Number(query.page || 1);
   const search = typeof query.search === "string" ? query.search : "";
+  // "Show" page-size dropdown (CategoryPageView) — mirrors the backend's
+  // own clamp (getPublicCategoryBySlug caps at 50) so an invalid/tampered
+  // value can't request something the API would silently clamp anyway.
+  const requestedLimit = Number(query.limit);
+  const limit =
+    Number.isFinite(requestedLimit) && requestedLimit > 0
+      ? Math.min(requestedLimit, 50)
+      : 15;
 
   // Fetch the FULL first page of products (bug fix: previously this route
   // only fetched a single product, so category pages showed just one item).
   let categoryData = null;
   try {
-    categoryData = await getCategoryBySlug(slug, { page, limit: 12, search });
+    categoryData = await getCategoryBySlug(slug, { page, limit, search });
   } catch {
     categoryData = null;
   }
