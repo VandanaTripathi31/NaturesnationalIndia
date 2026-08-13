@@ -824,6 +824,41 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
           display: block !important;
         }
 
+        /*
+          FIX: the desktop nav links + search bar + "Get Free Quote" button
+          were shown from Tailwind's \`lg\` breakpoint (1024px) via
+          \`hidden lg:flex\`, but their combined intrinsic width (7 nav
+          links + search + CTA + register) only actually fits from
+          ~1700px onward. Between 1024px and ~1700px — i.e. most real
+          laptop screens (1366/1440/1536/1600/1680) — the row overflowed
+          its container with no wrap/shrink, so the search box and "Get
+          Free Quote" button rendered on top of each other and nav items
+          could be pushed off-screen (reported as "submenu not visible").
+          Raising the breakpoint to a custom 1700px, with the existing
+          (already fully working) hamburger + mobile drawer as the
+          fallback below it, removes the overflow entirely instead of
+          trying to squeeze content that doesn't fit.
+        */
+        .nb-desktop-nav,
+        .nb-desktop-search {
+          display: none;
+        }
+        .nb-mobile-toggle {
+          display: flex;
+        }
+        @media (min-width: 1700px) {
+          .nb-desktop-nav {
+            display: flex;
+          }
+          .nb-desktop-search {
+            display: block;
+          }
+          .nb-mobile-toggle,
+          .nb-mobile-drawer {
+            display: none;
+          }
+        }
+
         .nb-cta-btn {
           background: var(--gradient-btn, linear-gradient(135deg, #5C3D2E 0%, #8B6344 100%));
           color: var(--color-cream-white) !important;
@@ -945,7 +980,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
 
             {/* ── DESKTOP NAV (centered) ── */}
             <nav
-              className="hidden lg:flex items-center h-full"
+              className="nb-desktop-nav items-center h-full"
               style={{ flex: 1, justifyContent: "center" }}
             >
               {navItems.map((item) => (
@@ -969,7 +1004,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               }}
             >
               {/* Product search (desktop / tablet) */}
-              <div className="hidden md:block">
+              <div className="nb-desktop-search">
                 <HeaderSearch />
               </div>
 
@@ -998,7 +1033,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               {/* Hamburger */}
               <button
                 onClick={() => setMenuOpen((p) => !p)}
-                className="flex flex-col lg:hidden"
+                className="nb-mobile-toggle flex-col"
                 aria-label="Toggle menu"
                 style={{
                   gap: 5,
@@ -1037,7 +1072,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
           {/* ── MOBILE DRAWER ── */}
           {menuOpen && (
             <div
-              className="lg:hidden nb-mobile-drawer nb-drawer"
+              className="nb-mobile-drawer nb-drawer"
               style={{
                 position: "absolute",
                 left: 0,
