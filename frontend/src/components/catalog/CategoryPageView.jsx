@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { categoryHref, productHref } from "../../lib/seo-routes";
 import { resolveImageUrl } from "../../lib/image-url";
@@ -31,6 +32,12 @@ import CategorySidebar from "../../../src/components/CategorySidebar";
 import Breadcrumb from "../../../src/components/Breadcrumb";
 
 /*  Animation Variants  */
+// Page-size options for the "Show" dropdown. 15 matches the reference
+// screenshot's default; the rest are sensible multiples capped by the
+// backend's own limit ceiling (getPublicCategoryBySlug clamps to 50).
+const DEFAULT_PAGE_SIZE = 15;
+const PAGE_SIZE_OPTIONS = [15, 30, 45, 50];
+
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
   visible: (i = 0) => ({
@@ -161,14 +168,26 @@ export default function CategoryPageView({
   featuredProducts,
   searchQuery,
 }) {
-  const buildPageHref = (page) => {
+  const router = useRouter();
+
+  const buildPageHref = (page, limit = pagination?.limit) => {
     const params = new URLSearchParams();
     if (searchQuery) params.set("search", searchQuery);
     if (page > 1) params.set("page", String(page));
+    // Only carry a non-default page size in the URL so the plain category
+    // URL stays canonical/clean at the default size.
+    if (limit && limit !== DEFAULT_PAGE_SIZE) params.set("limit", String(limit));
     const query = params.toString();
     return query
       ? `${categoryHref(category.slug)}?${query}`
       : categoryHref(category.slug);
+  };
+
+  // Changing page size resets to page 1 (the current page's items no
+  // longer line up under a different page size) and preserves the active
+  // search, matching the existing pagination link behavior.
+  const handlePageSizeChange = (event) => {
+    router.push(buildPageHref(1, Number(event.target.value)));
   };
 
   const heroImageUrl = resolveImageUrl(category.image?.url);
@@ -432,17 +451,38 @@ export default function CategoryPageView({
                   transition={{ delay: 0.4 }}
                   className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-between"
                 >
-                  <p className="text-sm text-[var(--color-text-muted)]">
-                    Showing page{" "}
-                    <span className="font-semibold text-[var(--color-text-primary)]">
-                      {pagination.page}
-                    </span>{" "}
-                    of {pagination.totalPages} ·{" "}
-                    <span className="font-semibold text-[var(--color-text-primary)]">
-                      {pagination.total}
-                    </span>{" "}
-                    {pagination.total === 1 ? "product" : "products"}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <p className="text-sm text-[var(--color-text-muted)]">
+                      <span className="font-semibold text-[var(--color-text-primary)]">
+                        {(pagination.page - 1) * pagination.limit + 1}
+                      </span>
+                      –
+                      <span className="font-semibold text-[var(--color-text-primary)]">
+                        {Math.min(pagination.page * pagination.limit, pagination.total)}
+                      </span>{" "}
+                      of{" "}
+                      <span className="font-semibold text-[var(--color-text-primary)]">
+                        {pagination.total}
+                      </span>{" "}
+                      {pagination.total === 1 ? "product" : "products"}
+                    </p>
+
+                    <label className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)]">
+                      Show:
+                      <select
+                        value={pagination.limit}
+                        onChange={handlePageSizeChange}
+                        aria-label="Products per page"
+                        className="rounded-lg border border-[var(--color-warm-gray)] bg-white px-2 py-1 text-sm font-medium text-[var(--color-text-primary)] outline-none transition focus:border-[var(--color-dark-brown)]"
+                      >
+                        {PAGE_SIZE_OPTIONS.map((size) => (
+                          <option key={size} value={size}>
+                            {size}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
 
                   {pagination.totalPages > 1 && (
                     <nav className="flex flex-wrap items-center justify-center gap-1.5" aria-label="Pagination">
