@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import apiClient from "../lib/api-client";
+
+// Same reCAPTCHA v2 site key + graceful-degrade behaviour used by the
+// global inquiry widget (FloatingInquiry.jsx): when unset, the captcha
+// step is skipped client-side and the backend applies the same rule.
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const faqs = [
   {
@@ -216,14 +222,64 @@ export default function Contact() {
     agree: false,
   });
   const [submitted, setSubmitted] = useState(false);
+  const [captchaError, setCaptchaError] = useState("");
+
+  const recaptchaRef = useRef(null);
+  const widgetIdRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
   };
 
-  const handleSubmit = (e) => {
+  // Load the reCAPTCHA script once (only when a site key is configured).
+  useEffect(() => {
+    if (!RECAPTCHA_SITE_KEY) return;
+    if (document.querySelector("script[data-recaptcha]")) return;
+    const script = document.createElement("script");
+    script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+    script.async = true;
+    script.defer = true;
+    script.setAttribute("data-recaptcha", "true");
+    document.head.appendChild(script);
+  }, []);
+
+  // Render the widget once the form (and container) are on the page.
+  useEffect(() => {
+    if (!RECAPTCHA_SITE_KEY || submitted) return;
+    let cancelled = false;
+    const tryRender = () => {
+      if (cancelled) return;
+      const grecaptcha = window.grecaptcha;
+      if (!grecaptcha?.render || !recaptchaRef.current) {
+        setTimeout(tryRender, 300);
+        return;
+      }
+      if (widgetIdRef.current === null) {
+        widgetIdRef.current = grecaptcha.render(recaptchaRef.current, {
+          sitekey: RECAPTCHA_SITE_KEY,
+        });
+      }
+    };
+    tryRender();
+    return () => {
+      cancelled = true;
+    };
+  }, [submitted]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Require a solved captcha when reCAPTCHA is configured.
+    let captchaToken = "";
+    if (RECAPTCHA_SITE_KEY) {
+      captchaToken = window.grecaptcha?.getResponse(widgetIdRef.current) ?? "";
+      if (!captchaToken) {
+        setCaptchaError("Please confirm you're not a robot.");
+        return;
+      }
+    }
+    setCaptchaError("");
     setSubmitted(true);
 
     const params = new URLSearchParams();
@@ -231,6 +287,22 @@ export default function Contact() {
     if (form.email) params.set("email", form.email);
     if (form.phone) params.set("phone", form.phone);
     if (form.subject) params.set("category", form.subject);
+
+    // Persist the enquiry to the backend (same public endpoint used by the
+    // global inquiry widget). Failure never blocks the user's confirmation.
+    try {
+      await apiClient.post("/api/public/enquiries", {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        category: form.subject,
+        message: form.message,
+        source: typeof window !== "undefined" ? window.location.pathname : "",
+        captchaToken,
+      });
+    } catch (err) {
+      console.error("Failed to save enquiry:", err);
+    }
 
     // Brief pause so the in-form "Inquiry Received" confirmation is visible
     // before navigating through to the full Thank You page.
@@ -682,6 +754,23 @@ export default function Contact() {
                     my inquiry and understand my data will be kept confidential.
                   </span>
                 </label>
+
+                {RECAPTCHA_SITE_KEY && (
+                  <div>
+                    <div ref={recaptchaRef} />
+                    {captchaError && (
+                      <p
+                        style={{
+                          marginTop: "0.4rem",
+                          fontSize: "0.8rem",
+                          color: "#b91c1c",
+                        }}
+                      >
+                        {captchaError}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <button
                   type="submit"
