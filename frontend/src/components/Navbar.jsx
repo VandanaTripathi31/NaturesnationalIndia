@@ -77,54 +77,8 @@ const TopBar = ({ scrolled, onOpenInquiry }) => (
       {/* Right */}
       <div className="hidden sm:flex gap-[16px] flex-wrap items-center">
         {/* Clickable phone (top-right) */}
-        <a
-          href="tel:+919711003901"
-          className="items-center gap-[5px] hidden md:flex"
-          style={{
-            color: "var(--color-cream-white)",
-            fontSize: 12,
-            fontWeight: 600,
-            textDecoration: "none",
-            letterSpacing: "0.01em",
-          }}
-        >
-          <span aria-hidden="true">📞</span> +91 9711003901
-        </a>
 
         {/* Get Free Sample — prominent button (high contrast) */}
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            onOpenInquiry?.();
-          }}
-          style={{
-            background: "var(--color-brown-light)",
-            color: "var(--color-brown-deep)",
-            fontSize: 11.5,
-            fontWeight: 700,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            textDecoration: "none",
-            padding: "5px 14px",
-            borderRadius: 100,
-            transition: "background 0.15s, transform 0.15s, box-shadow 0.15s",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-            whiteSpace: "nowrap",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "var(--color-cream-white)";
-            e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.28)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "var(--color-brown-light)";
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.18)";
-          }}
-        >
-          Get Free Sample
-        </a>
 
         {["Dealer Inquiry", "Private Label"].map((t) => (
           <a
@@ -168,6 +122,19 @@ const TopBar = ({ scrolled, onOpenInquiry }) => (
             display: "inline-block",
           }}
         />
+        <a
+          href="tel:+919711003901"
+          className="items-center gap-[5px] hidden md:flex"
+          style={{
+            color: "var(--color-cream-white)",
+            fontSize: 12,
+            fontWeight: 600,
+            textDecoration: "none",
+            letterSpacing: "0.01em",
+          }}
+        >
+          <span aria-hidden="true">📞</span> +91 9711003901
+        </a>
         <a
           href="#"
           onClick={(e) => {
@@ -738,9 +705,7 @@ const TrustBadges = ({ scrolled }) => (
       transition: "max-height 0.4s cubic-bezier(0.4,0,0.2,1)",
     }}
   >
-    <div
-      className="flex justify-center items-center gap-[28px] sm:gap-[44px] flex-wrap px-4 py-[7px]"
-    >
+    <div className="flex justify-center items-center gap-[28px] sm:gap-[44px] flex-wrap px-4 py-[7px]">
       {[
         "🌿 100% Pure & Natural",
         "🔬 GC/MS Tested",
@@ -784,9 +749,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
       // Render the (long) category list as a compact multi-column mega-menu
       // instead of one tall column. ~7 items per column, capped at 4 columns.
       columns:
-        oilsItems.length > 7
-          ? Math.min(4, Math.ceil(oilsItems.length / 7))
-          : 1,
+        oilsItems.length > 7 ? Math.min(4, Math.ceil(oilsItems.length / 7)) : 1,
       items:
         oilsItems.length > 0
           ? oilsItems
@@ -955,7 +918,8 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "0 clamp(14px, 1.45vw, 28px) 0 clamp(12px, 1.25vw, 24px)",
+              padding:
+                "0 clamp(14px, 1.45vw, 28px) 0 clamp(12px, 1.25vw, 24px)",
               height: 76,
               transition: "box-shadow 0.35s, background 0.35s",
               backdropFilter: scrolled ? "blur(8px)" : "none",
@@ -1104,7 +1068,12 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               }}
             >
               {/* Mobile product search */}
-              <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(196,168,130,0.2)" }}>
+              <div
+                style={{
+                  padding: "14px 20px",
+                  borderBottom: "1px solid rgba(196,168,130,0.2)",
+                }}
+              >
                 <HeaderSearch
                   variant="mobile"
                   onNavigate={() => setMenuOpen(false)}
