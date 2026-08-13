@@ -441,9 +441,14 @@ const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
   const isOpen = openKey === label;
 
   const linkStyle = {
-    // Fluid: full 13.5px/13px padding at ~1920px+, compacting down to
-    // 11px/6px by the ~1130px hamburger cutoff instead of snapping.
-    fontSize: "clamp(11px, 0.62vw, 13.5px)",
+    // FIX: the previous `clamp(11px, 0.62vw, 13.5px)` never actually
+    // reached its own max — 0.62vw is only 13.5px at a ~2177px viewport,
+    // so real screens (including 1920px, where this should look like a
+    // normal desktop navbar) sat at the *shrunk* end the whole time. Using
+    // `calc(base + k*vw)` as the preferred value makes it interpolate
+    // linearly across the actual supported range instead: ~15px at
+    // 1920px down to ~12.5px at the ~1410px hamburger cutoff.
+    fontSize: "clamp(12.5px, calc(8.9px + 0.32vw), 15px)",
     fontWeight: 600,
     letterSpacing: "0.04em",
     display: "flex",
@@ -451,7 +456,7 @@ const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
     gap: 4,
     whiteSpace: "nowrap",
     height: 76,
-    padding: "0 clamp(6px, 0.68vw, 13px)",
+    padding: "0 clamp(10px, calc(1.4px + 0.76vw), 16px)",
     color: "var(--color-text-primary)",
     textDecoration: "none",
     borderBottom: "2px solid transparent",
@@ -840,7 +845,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
           compacts continuously as the viewport shrinks (full size at
           ~1920px, visibly tighter by 1366px) instead of snapping. Only
           once the *minimum* sizes in that clamp() still can't fit — verified
-          with Playwright down to ~1130px for the 7-item nav used here —
+          with Playwright down to ~1410px for the 7-item nav used here, wide enough to keep normal-sized text/spacing at every supported width —
           does it fall back to the hamburger + mobile drawer.
         */
         .nb-desktop-nav,
@@ -850,7 +855,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
         .nb-mobile-toggle {
           display: flex;
         }
-        @media (min-width: 1130px) {
+        @media (min-width: 1410px) {
           .nb-desktop-nav {
             display: flex;
           }
@@ -862,7 +867,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
             display: none;
           }
         }
-        /* Below ~1130px the search bar moves into the mobile drawer, so
+        /* Below ~1410px the search bar moves into the mobile drawer, so
            reclaim its slot for the nav — nothing to compact there. */
 
         .nb-cta-btn {
@@ -870,8 +875,11 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
           color: var(--color-cream-white) !important;
           border: none;
           border-radius: 100px;
-          padding: clamp(7px, 0.65vw, 10px) clamp(12px, 1.55vw, 24px);
-          font-size: clamp(9.5px, 0.62vw, 11px);
+          /* Same fix as the nav links above: calc()-based preferred value
+             so this actually spans its own min..max across 1130..1920px
+             instead of sitting near the floor the whole time. */
+          padding: clamp(9px, calc(4.7px + 0.38vw), 12px) clamp(16px, calc(1.7px + 1.27vw), 26px);
+          font-size: clamp(11px, calc(8.1px + 0.25vw), 13px);
           font-weight: 700;
           letter-spacing: 0.14em;
           text-transform: uppercase;
@@ -976,7 +984,9 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                 width={250}
                 height={80}
                 style={{
-                  width: "clamp(140px, 10vw, 190px)",
+                  // Same calc()-interpolation fix: ~208px at 1920px down to
+                  // ~150px at the ~1410px cutoff, instead of flatlining.
+                  width: "clamp(150px, calc(64px + 7.6vw), 208px)",
                   height: "auto",
                   objectFit: "contain",
                   filter: "contrast(1.15) brightness(1.04) saturate(1.1)",

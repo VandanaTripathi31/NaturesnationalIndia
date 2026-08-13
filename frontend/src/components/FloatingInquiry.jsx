@@ -228,9 +228,32 @@ export default function InquiryWidget() {
     document.head.appendChild(script);
   }, []);
 
-  // Render the widget each time the modal opens.
+  // Render the widget whenever the form (not the "Inquiry Sent!" success
+  // view) is actually visible.
+  //
+  // FIX (captcha "works once" bug): the form — including the `<div
+  // ref={recaptchaRef} />` the widget mounts into — is only rendered when
+  // `{!submitted && (...)}` (see the JSX below). The modal itself is also
+  // only rendered when `{open && (...)}`. Both of those conditions
+  // unmount/remount that div's *actual DOM node*, but the previous effect
+  // only depended on `[open]` and used `if (widgetIdRef.current === null)
+  // render() else reset()`. So: first open → render() → widgetIdRef = id.
+  // Submit succeeds → `submitted` flips true → the div (and Google's
+  // injected iframe) is unmounted, but widgetIdRef still holds the old,
+  // now-dead id. Reopen without refreshing (same `open` value, so this
+  // effect never reran) → the JSX swaps back to the form, mounting a
+  // *brand new* empty div — nothing ever calls render() on it, because
+  // widgetIdRef wasn't null, so the (dead) reset() branch ran instead
+  // against nothing. Net result: the new div stays empty forever, which
+  // is exactly "works once, needs a refresh after that".
+  //
+  // Fix: depend on `[open, submitted]` so this reruns every time the form
+  // (re)appears, and always null out widgetIdRef when the container goes
+  // away (cleanup below, and explicitly on submit) so a fresh mount always
+  // takes the render() branch instead of resetting a widget that no
+  // longer exists in the DOM.
   useEffect(() => {
-    if (!RECAPTCHA_SITE_KEY || !open) return;
+    if (!RECAPTCHA_SITE_KEY || !open || submitted) return;
     let cancelled = false;
     let elapsed = 0;
     const POLL_MS = 300;
@@ -253,13 +276,21 @@ export default function InquiryWidget() {
         return;
       }
       try {
-        if (widgetIdRef.current === null) {
-          widgetIdRef.current = grecaptcha.render(recaptchaRef.current, {
-            sitekey: RECAPTCHA_SITE_KEY,
-          });
-        } else {
-          grecaptcha.reset(widgetIdRef.current);
-        }
+        // Always render fresh into whatever DOM node is here now — never
+        // try to reset() an id from a widget whose container may have
+        // been unmounted since. grecaptcha.render() on a container that
+        // already hosts an iframe would itself throw, so this is safe.
+        widgetIdRef.current = grecaptcha.render(recaptchaRef.current, {
+          sitekey: RECAPTCHA_SITE_KEY,
+          // Defensive UX: the widget already self-invalidates on expiry
+          // (getResponse() returns "" at submit time either way), but
+          // surfacing it explicitly means the visitor sees *why* rather
+          // than a generic "please confirm you're not a robot" on retry.
+          "expired-callback": () => {
+            setCaptchaError("Verification expired — please complete it again.");
+          },
+          callback: () => setCaptchaError(""),
+        });
         setCaptchaUnavailable(false);
       } catch (err) {
         // grecaptcha.render throws when the site key's registered domains
@@ -279,8 +310,12 @@ export default function InquiryWidget() {
     tryRender();
     return () => {
       cancelled = true;
+      // The container this id refers to is about to disappear (modal
+      // closing, or switching to the success view on submit) — clear it
+      // so the next mount renders fresh instead of resetting a dead id.
+      widgetIdRef.current = null;
     };
-  }, [open]);
+  }, [open, submitted]);
 
   useEffect(() => {
     const handler = () => openModal();

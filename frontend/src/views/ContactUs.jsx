@@ -259,6 +259,18 @@ export default function Contact() {
   }, []);
 
   // Render the widget once the form (and container) are on the page.
+  //
+  // FIX (captcha "works once" bug): the "Send Another" button (below) flips
+  // `submitted` back to false, remounting the form and a *brand new* empty
+  // `<div ref={recaptchaRef} />` DOM node. The old guard —
+  // `if (widgetIdRef.current === null) render()` — never re-entered the
+  // render() branch on that second mount, because widgetIdRef still held
+  // the id from the first (now-unmounted) widget. So the new div stayed
+  // empty until a full page refresh. Now: always render() fresh into
+  // whatever container exists right now, and null the ref out in the
+  // effect cleanup (which runs when `submitted` flips true and the form —
+  // and its div — disappears), so the next mount always takes the render()
+  // path instead of silently doing nothing.
   useEffect(() => {
     if (!RECAPTCHA_SITE_KEY || submitted) return;
     let cancelled = false;
@@ -281,11 +293,13 @@ export default function Contact() {
         return;
       }
       try {
-        if (widgetIdRef.current === null) {
-          widgetIdRef.current = grecaptcha.render(recaptchaRef.current, {
-            sitekey: RECAPTCHA_SITE_KEY,
-          });
-        }
+        widgetIdRef.current = grecaptcha.render(recaptchaRef.current, {
+          sitekey: RECAPTCHA_SITE_KEY,
+          "expired-callback": () => {
+            setCaptchaError("Verification expired — please complete it again.");
+          },
+          callback: () => setCaptchaError(""),
+        });
         setCaptchaUnavailable(false);
       } catch (err) {
         console.error(
@@ -300,6 +314,7 @@ export default function Contact() {
     tryRender();
     return () => {
       cancelled = true;
+      widgetIdRef.current = null;
     };
   }, [submitted]);
 
