@@ -420,7 +420,7 @@ export default function Footer({ onInquiryOpen, categories = [] }) {
                     margin: 0,
                   }}
                 >
-                  Plot No. 51/1/6, Site-4,
+                  Plot No. B 45/8, Site-4,
                   <br />
                   Industrial Area, Sahibabad,
                   <br />
