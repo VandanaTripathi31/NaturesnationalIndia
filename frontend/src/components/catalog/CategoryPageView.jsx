@@ -172,7 +172,8 @@ export default function CategoryPageView({
     if (page > 1) params.set("page", String(page));
     // Only carry a non-default page size in the URL so the plain category
     // URL stays canonical/clean at the default size.
-    if (limit && limit !== DEFAULT_PAGE_SIZE) params.set("limit", String(limit));
+    if (limit && limit !== DEFAULT_PAGE_SIZE)
+      params.set("limit", String(limit));
     const query = params.toString();
     return query
       ? `${categoryHref(category.slug)}?${query}`
@@ -190,35 +191,30 @@ export default function CategoryPageView({
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen w-full"
       style={{ background: "var(--color-cream-white)" }}
     >
       {/* ── Hero ─────────────────────────────────────────────── */}
       {/*
-        FIX (round 2 — hero content position): the previous pass made the
-        box's *geometry* match the 1200×624 source (aspect-[1200/624]),
-        which is correct for the image, but the content block was still
-        bottom-anchored (`flex items-end`) — a layout that only worked
-        when the hero was a modest fixed height. Once the box could be
-        ~1000px tall at wide viewports, bottom-anchoring pinned the title/
-        description/buttons to the very bottom of that tall box, often
-        below the fold — exactly the "title too low, feels oversized"
-        report.
+        FIX (round 3 — hero half-width bug): the section previously had no
+        explicit width class. A <section> is a block element, so it should
+        stretch to 100% of its parent automatically — but the <Image fill>
+        inside it is position:absolute and contributes ZERO intrinsic width
+        to the section. If this component is ever rendered inside a flex
+        (or similar) parent upstream without `flex-1`/`w-full` on it, a
+        block child with no intrinsic content width shrinks to fit-content
+        instead of stretching to fill the row — which is exactly the
+        "image only fills the left half, blank space on the right" bug
+        reported from the screenshot (the stats row below rendered full
+        width fine because it sits in its own explicitly-padded div, not
+        relying on the section's own box for width).
 
-        Two changes, not one:
-        1. The height is still driven by the 1200:624 ratio, but now
-           capped at a sane banner height (`sm:max-h-[440px]`) instead of
-           letting it grow toward ~1000px — a professional category
-           banner, not a nearly-full-viewport image. object-position stays
-           centered so the crop this introduces at wide viewports only
-           trims image margin, not the subject.
-        2. Content (breadcrumb → title → description → buttons) is now one
-           flex column, vertically centered in the hero via `justify-center`
-           on a full-height wrapper — no absolute positioning, no negative
-           margins — so it's centered regardless of the exact resolved
-           height instead of pinned to an edge.
+        Fix: force `w-full` on the section itself so its width can never
+        depend on flex/grid sizing behavior in a parent we don't control
+        here, and make the Image explicitly h-full/w-full as a second
+        safety net alongside `fill`.
       */}
-      <section className="relative overflow-hidden aspect-[3/2] sm:aspect-[1200/624] sm:max-h-[440px]">
+      <section className="relative w-full overflow-hidden aspect-[3/2] sm:aspect-[1200/624] sm:max-h-[440px]">
         {/* Background image */}
         {heroImageUrl ? (
           <Image
@@ -226,7 +222,7 @@ export default function CategoryPageView({
             alt={category.name}
             fill
             priority
-            className="object-cover object-center"
+            className="absolute inset-0 h-full w-full object-cover object-center"
             sizes="100vw"
           />
         ) : (
@@ -454,7 +450,10 @@ export default function CategoryPageView({
                       </span>
                       –
                       <span className="font-semibold text-[var(--color-text-primary)]">
-                        {Math.min(pagination.page * pagination.limit, pagination.total)}
+                        {Math.min(
+                          pagination.page * pagination.limit,
+                          pagination.total,
+                        )}
                       </span>{" "}
                       of{" "}
                       <span className="font-semibold text-[var(--color-text-primary)]">
@@ -481,7 +480,10 @@ export default function CategoryPageView({
                   </div>
 
                   {pagination.totalPages > 1 && (
-                    <nav className="flex flex-wrap items-center justify-center gap-1.5" aria-label="Pagination">
+                    <nav
+                      className="flex flex-wrap items-center justify-center gap-1.5"
+                      aria-label="Pagination"
+                    >
                       {/* Previous */}
                       {pagination.page > 1 ? (
                         <Link

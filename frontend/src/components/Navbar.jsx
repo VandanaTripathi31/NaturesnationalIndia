@@ -1,10 +1,8 @@
 "use client";
-
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { categoryHref } from "../lib/seo-routes";
 import HeaderSearch from "./HeaderSearch";
-
 const logo = "/images/logo1.png";
 
 /* ─── TOP BAR ──────────────────────────────────────────────────────────── */
@@ -76,10 +74,6 @@ const TopBar = ({ scrolled, onOpenInquiry }) => (
 
       {/* Right */}
       <div className="hidden sm:flex gap-[16px] flex-wrap items-center">
-        {/* Clickable phone (top-right) */}
-
-        {/* Get Free Sample — prominent button (high contrast) */}
-
         {["Dealer Inquiry", "Private Label"].map((t) => (
           <a
             key={t}
@@ -289,19 +283,6 @@ const MegaMenu = ({ sections, tags }) => (
 );
 
 /* ─── SIMPLE DROPDOWN ──────────────────────────────────────────────────── */
-/*
-  FIX: originally this only opened/closed via Tailwind's `group-hover:block`
-  fighting the parent's CSS `.group` class, toggled with a hard
-  `display:none <-> display:block` snap. Combined with the header height
-  animation happening at the same time (see Navbar below), this hard
-  snap-in was what read as "dancing" whenever a submenu opened.
-
-  Design/markup/content is 100% unchanged. The only change is *how* it
-  becomes visible: driven by an explicit `open` boolean (real React state,
-  set via onMouseEnter/onMouseLeave in NavItem) instead of CSS :hover, and
-  animated with opacity/transform instead of display — so it fades in
-  smoothly with zero layout shift, rather than popping.
-*/
 const DropdownMenu = ({ items, open, columns = 1 }) => (
   <div
     className="absolute top-full left-0 z-[999]"
@@ -392,30 +373,16 @@ const DropdownMenu = ({ items, open, columns = 1 }) => (
 );
 
 /* ─── NAV ITEM ─────────────────────────────────────────────────────────── */
-/*
-  FIX: previously `height` here animated 60px <-> 76px in step with the
-  header's own height animation (a SECOND, separately-timed transition
-  reacting to the same `scrolled` flag). Two independent transitions tied
-  to one boolean is what caused the visible jitter on scroll. The header
-  height is now constant (see Navbar), so this no longer needs to resize
-  at all — same visual size, just no more competing animation.
-
-  Dropdown visibility is now explicit state (openKey === label) via
-  onMouseEnter/onMouseLeave, instead of relying on CSS `.group:hover`,
-  which is what let the dropdown pop in without any transition before.
-*/
 const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
   const isOpen = openKey === label;
 
   const linkStyle = {
-    // FIX: the previous `clamp(11px, 0.62vw, 13.5px)` never actually
-    // reached its own max — 0.62vw is only 13.5px at a ~2177px viewport,
-    // so real screens (including 1920px, where this should look like a
-    // normal desktop navbar) sat at the *shrunk* end the whole time. Using
-    // `calc(base + k*vw)` as the preferred value makes it interpolate
-    // linearly across the actual supported range instead: ~15px at
-    // 1920px down to ~12.5px at the ~1410px hamburger cutoff.
-    fontSize: "clamp(12.5px, calc(8.9px + 0.32vw), 15px)",
+    // FIX (round 2): floor lowered from 12.5px -> 11px and the slope
+    // recalibrated so the size keeps shrinking smoothly all the way down
+    // to the new 1180px hamburger cutoff instead of flatlining early.
+    // At 1920px this is still ~15px; at the 1180px cutoff it's ~11px —
+    // still legible, still one line, no early snap to hamburger.
+    fontSize: "clamp(11px, calc(4.6px + 0.54vw), 15px)",
     fontWeight: 600,
     letterSpacing: "0.04em",
     display: "flex",
@@ -423,7 +390,9 @@ const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
     gap: 4,
     whiteSpace: "nowrap",
     height: 76,
-    padding: "0 clamp(10px, calc(1.4px + 0.76vw), 16px)",
+    // FIX (round 2): horizontal padding floor lowered from 10px -> 6px,
+    // same recalibration reasoning as fontSize above.
+    padding: "0 clamp(6px, calc(-9.95px + 1.35vw), 16px)",
     color: "var(--color-text-primary)",
     textDecoration: "none",
     borderBottom: "2px solid transparent",
@@ -584,12 +553,6 @@ const MobileSection = ({ title, items, allSections }) => {
     ? allSections.flatMap((s) => s.items)
     : items || [];
 
-  // Measures the accordion's actual rendered height instead of assuming a
-  // fixed px-per-item, which broke (clipped the bottom items) whenever a
-  // category name was long enough to wrap to two lines on a narrow phone —
-  // increasingly likely as more categories get added from the Admin
-  // Dashboard. Re-measures whenever it's open and whenever the item list
-  // itself changes (e.g. new categories loaded) or the window is resized.
   useEffect(() => {
     if (!open) return;
     const measure = () => {
@@ -746,8 +709,6 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
   const navItems = [
     {
       label: "Oils",
-      // Render the (long) category list as a compact multi-column mega-menu
-      // instead of one tall column. ~7 items per column, capped at 4 columns.
       columns:
         oilsItems.length > 7 ? Math.min(4, Math.ceil(oilsItems.length / 7)) : 1,
       items:
@@ -768,11 +729,6 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
   }, []);
 
   useEffect(() => {
-    // Hysteresis prevents the header/logo from rapidly flipping size when
-    // scrollY hovers right around a single threshold (the "dancing" logo
-    // issue). It only switches to "scrolled" mode once past 80px, and only
-    // switches back once back under 40px, so small jitters near one value
-    // can't cause repeated toggling.
     const onScroll = () => {
       const y = window.scrollY;
       setScrolled((prev) => {
@@ -795,21 +751,19 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
         }
 
         /*
-          FIX (round 2): the previous fix pushed the desktop nav behind a
-          single hard 1700px breakpoint so it would never overflow, but
-          that meant every real laptop (1366/1440/1536/1600/1680) fell
-          back to the hamburger menu even though there's plenty of room
-          for a slightly compacted nav.
+          FIX (round 2): the 1410px cutoff was too close to real-world
+          effective widths — e.g. a 1536px laptop screen at 110% browser
+          zoom renders at ~1396px effective CSS width, which is *below*
+          1410px, so the nav was flipping to the hamburger even though
+          there's still room for it on that screen.
 
-          Real fix: every dimension that adds up across the row — nav
-          link font-size/padding, logo width, search width, CTA
-          padding/font-size, right-side gaps — now scales fluidly with
-          \`clamp(min, vw, max)\` instead of a fixed px value. The row
-          compacts continuously as the viewport shrinks (full size at
-          ~1920px, visibly tighter by 1366px) instead of snapping. Only
-          once the *minimum* sizes in that clamp() still can't fit — verified
-          with Playwright down to ~1410px for the 7-item nav used here, wide enough to keep normal-sized text/spacing at every supported width —
-          does it fall back to the hamburger + mobile drawer.
+          Cutoff moved down to 1180px, and every fluid dimension that
+          feeds the nav row (link font-size/padding, logo width, CTA
+          padding/font-size) had its floor lowered and its slope
+          recalculated so the row keeps compacting continuously all the
+          way down to the new cutoff — verified to stay on one line down
+          to ~1180px — instead of hitting its old floor early (~1130px)
+          and then having nothing left to give before the 1410px snap.
         */
         .nb-desktop-nav,
         .nb-desktop-search {
@@ -818,7 +772,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
         .nb-mobile-toggle {
           display: flex;
         }
-        @media (min-width: 1410px) {
+        @media (min-width: 1180px) {
           .nb-desktop-nav {
             display: flex;
           }
@@ -830,7 +784,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
             display: none;
           }
         }
-        /* Below ~1410px the search bar moves into the mobile drawer, so
+        /* Below ~1180px the search bar moves into the mobile drawer, so
            reclaim its slot for the nav — nothing to compact there. */
 
         .nb-cta-btn {
@@ -838,11 +792,11 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
           color: var(--color-cream-white) !important;
           border: none;
           border-radius: 100px;
-          /* Same fix as the nav links above: calc()-based preferred value
-             so this actually spans its own min..max across 1130..1920px
-             instead of sitting near the floor the whole time. */
-          padding: clamp(9px, calc(4.7px + 0.38vw), 12px) clamp(16px, calc(1.7px + 1.27vw), 26px);
-          font-size: clamp(11px, calc(8.1px + 0.25vw), 13px);
+          /* FIX (round 2): floors lowered (9px->7px vertical, 16px->12px
+             horizontal, 11px->10px font) and slopes recalculated against
+             the new 1180px cutoff, same technique as the nav links. */
+          padding: clamp(7px, calc(-0.98px + 0.68vw), 12px) clamp(12px, calc(-10.33px + 1.89vw), 26px);
+          font-size: clamp(10px, calc(5.22px + 0.41vw), 13px);
           font-weight: 700;
           letter-spacing: 0.14em;
           text-transform: uppercase;
@@ -889,9 +843,6 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
         @supports (height: 100dvh) {
           .nb-drawer { max-height: calc(100dvh - 80px) !important; }
         }
-        /* Phone + email in the top bar can wrap to two lines on very
-           narrow screens — the fixed 40px collapse height only allowed
-           for one, clipping the second. */
         @media (max-width: 480px) {
           .nb-topbar-expanded { max-height: 76px !important; }
           .nb-trustbar-expanded { max-height: 90px !important; }
@@ -919,19 +870,13 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               alignItems: "center",
               justifyContent: "space-between",
               padding:
-                "0 clamp(14px, 1.45vw, 28px) 0 clamp(12px, 1.25vw, 24px)",
+                "0 clamp(10px, calc(-2.2px + 1.05vw), 28px) 0 clamp(8px, calc(-3.4px + 0.9vw), 24px)",
               height: 76,
               transition: "box-shadow 0.35s, background 0.35s",
               backdropFilter: scrolled ? "blur(8px)" : "none",
             }}
           >
-            {/* ── LOGO ──
-              FIX: logo is now a constant size with no scroll-tied scale
-              transform, so it can no longer desync from the header's
-              (now also constant) height. The only motion left is the
-              pre-existing hover micro-interaction, which is independent
-              of scroll state and doesn't touch layout.
-            */}
+            {/* ── LOGO ── */}
             <Link
               href="/"
               style={{
@@ -948,9 +893,11 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                 width={250}
                 height={80}
                 style={{
-                  // Same calc()-interpolation fix: ~208px at 1920px down to
-                  // ~150px at the ~1410px cutoff, instead of flatlining.
-                  width: "clamp(150px, calc(64px + 7.6vw), 208px)",
+                  // FIX (round 2): floor lowered from 150px -> 120px and
+                  // slope recalculated against the new 1180px cutoff, so
+                  // the logo keeps giving up space instead of holding a
+                  // fixed size while the nav runs out of room around it.
+                  width: "clamp(120px, calc(-20.3px + 11.89vw), 208px)",
                   height: "auto",
                   objectFit: "contain",
                   filter: "contrast(1.15) brightness(1.04) saturate(1.1)",
@@ -979,7 +926,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "clamp(6px, 0.85vw, 14px)",
+                gap: "clamp(4px, calc(-2.8px + 0.6vw), 14px)",
                 flexShrink: 0,
               }}
             >
