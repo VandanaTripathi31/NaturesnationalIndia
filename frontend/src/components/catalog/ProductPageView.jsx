@@ -81,7 +81,7 @@ export default function ProductPageView({
 }) {
   const [activeImage, setActiveImage] = useState(0);
   const images = (product.images ?? [])
-    .map(resolveImageObject)
+    .map((image, i) => resolveImageObject(image, `${product.name} [${i}]`))
     .filter(Boolean);
 
   const prev = () =>

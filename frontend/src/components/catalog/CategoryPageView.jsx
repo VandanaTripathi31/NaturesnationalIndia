@@ -55,7 +55,7 @@ const stagger = {
 
 /* ─── Product Card ─────────────────────────────────────────── */
 function ProductCard({ product, index, categorySlug }) {
-  const imageUrl = resolveImageUrl(product.images?.[0]?.url);
+  const imageUrl = resolveImageUrl(product.images?.[0]?.url, `card:${product.name}`);
 
   return (
     <motion.article

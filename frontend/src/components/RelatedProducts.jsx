@@ -20,7 +20,7 @@ const stagger = {
 };
 
 function RelatedCard({ product, index, categorySlug }) {
-  const imageUrl = resolveImageUrl(product.images?.[0]?.url);
+  const imageUrl = resolveImageUrl(product.images?.[0]?.url, `related:${product.name}`);
   return (
     <motion.div variants={fadeUp} custom={index}>
       <Link

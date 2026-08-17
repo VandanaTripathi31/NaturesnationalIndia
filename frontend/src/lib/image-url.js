@@ -40,26 +40,64 @@ function safeEncode(url) {
   }
 }
 
-export function resolveImageUrl(value) {
+// Dev-only diagnostic: prints raw stored value -> final resolved URL so a
+// real broken image is provable from the browser console instead of
+// guessed at. This is the one thing genuinely impossible to verify from
+// this repo alone — resolveImageUrl can only be *proven* correct/incorrect
+// against the actual stored value and a live fetch, neither of which this
+// sandbox can reach (production DB, Cloudinary, and the legacy site are
+// all unreachable from here). `label` lets the caller identify which
+// image (product name + gallery index, search result, etc.) this is.
+function logResolution(raw, resolved, label) {
+  if (process.env.NODE_ENV === "production") return;
+  if (typeof window === "undefined") return;
+  // eslint-disable-next-line no-console
+  console.debug(
+    `[image-url]${label ? ` ${label}:` : ""} "${raw}" -> "${resolved}"`,
+  );
+}
+
+export function resolveImageUrl(value, label) {
   const url = typeof value === "string" ? value.trim() : "";
   if (!url) return null;
 
+  let resolved;
+
   // Already absolute (Cloudinary, unsplash, the legacy site directly, or
   // any other fully-qualified URL) — nothing to do but encode.
-  if (/^https?:\/\//i.test(url)) return safeEncode(url);
+  if (/^https?:\/\//i.test(url)) {
+    resolved = safeEncode(url);
+  } else if (url.startsWith("//")) {
+    // Protocol-relative ("//host/path") — just needs a scheme.
+    resolved = safeEncode(`https:${url}`);
+  } else {
+    // Bare relative path left over from a MAGENTO_MEDIA_BASE-less
+    // migration — resolve it against the legacy media host so it
+    // actually loads.
+    const path = url.startsWith("/") ? url : `/${url}`;
 
-  // Protocol-relative ("//host/path") — just needs a scheme.
-  if (url.startsWith("//")) return safeEncode(`https:${url}`);
+    // Defensive: if the bare path already contains the legacy host's own
+    // hostname (e.g. a value like "www.naturesnaturalindia.com/f/e/x.jpg"
+    // saved without a scheme — a plausible artifact of inconsistent
+    // migration batches/manual edits), prefixing LEGACY_MEDIA_BASE again
+    // would double it into a dead URL. Strip a duplicate occurrence
+    // before prefixing rather than assuming every bare path is a clean
+    // filesystem-style path.
+    const hostname = new URL(LEGACY_MEDIA_BASE).hostname;
+    const dedupedPath = path.startsWith(`/${hostname}`)
+      ? path.slice(hostname.length + 1)
+      : path;
 
-  // Bare relative path left over from a MAGENTO_MEDIA_BASE-less migration —
-  // resolve it against the legacy media host so it actually loads.
-  const path = url.startsWith("/") ? url : `/${url}`;
-  return safeEncode(`${LEGACY_MEDIA_BASE}${path}`);
+    resolved = safeEncode(`${LEGACY_MEDIA_BASE}${dedupedPath}`);
+  }
+
+  logResolution(value, resolved, label);
+  return resolved;
 }
 
 /** Same resolution, applied to a Cloudinary-style `{ url, public_id }` object. */
-export function resolveImageObject(image) {
+export function resolveImageObject(image, label) {
   if (!image) return null;
-  const url = resolveImageUrl(image.url);
+  const url = resolveImageUrl(image.url, label);
   return url ? { ...image, url } : null;
 }
