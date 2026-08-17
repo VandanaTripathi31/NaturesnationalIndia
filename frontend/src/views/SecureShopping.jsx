@@ -43,7 +43,7 @@ export default function SecureShopping() {
       eyebrow="Private Label"
       title="Secure Shopping"
       subtitle="Every order is backed by encrypted payments, verified certifications, and a clear, fair returns policy — so you can order with confidence."
-      heroImage="/images/certifications.jpg"
+      heroImage="/images/Secure Shopping.jpeg"
       breadcrumb="Secure Shopping"
       intro={{
         heading: "Order With Confidence",

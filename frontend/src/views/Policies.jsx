@@ -93,7 +93,7 @@ export default function Policies() {
       eyebrow="Transparency First"
       title="Policies"
       subtitle="Our privacy, terms, and returns policies — written in plain language so you always know where you stand."
-      heroImage="/images/certifications.jpg"
+      heroImage="/images/Privacy Policies.jpeg"
       breadcrumb="Policies"
       cta={{
         eyebrow: "Questions?",
