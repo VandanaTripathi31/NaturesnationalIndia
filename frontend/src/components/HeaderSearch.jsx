@@ -252,7 +252,7 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
             </div>
           ) : (
             results.map((product, i) => {
-              const imageUrl = resolveImageUrl(product.image);
+              const imageUrl = resolveImageUrl(product.image, `search:${product.name}`);
               return (
               <Link
                 key={product.id}
