@@ -57,9 +57,20 @@ function logResolution(raw, resolved, label) {
   );
 }
 
+// Magento's literal placeholder for "no image was ever assigned to this
+// product" — not a real filename. Building a URL from it
+// (`${MAGENTO_MEDIA_BASE}/media/catalog/product/no_selection`) points at a
+// path that was never a real file on the legacy host either, so every
+// request for it hangs until the upstream fetch times out (see the
+// `upstream image response timed out` errors in the Next.js image
+// optimizer logs) instead of failing fast with a 404. Treating it as "no
+// image" up front avoids that dead round-trip entirely and lets the caller
+// fall straight through to the fallback image.
+const NO_SELECTION_RE = /(^|\/)no_selection\/?$/i;
+
 export function resolveImageUrl(value, label) {
   const url = typeof value === "string" ? value.trim() : "";
-  if (!url) return null;
+  if (!url || NO_SELECTION_RE.test(url)) return null;
 
   let resolved;
 

@@ -8,6 +8,7 @@ import { Search, Loader2, X } from "lucide-react";
 import { searchProducts } from "../services/productService";
 import { productHref } from "../lib/seo-routes";
 import { resolveImageUrl } from "../lib/image-url";
+import { DEFAULT_FALLBACK_IMAGE } from "./ui/SafeImage";
 
 /*
   Header product search with live suggestions.
@@ -274,36 +275,29 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
                   transition: "background 0.12s",
                 }}
               >
-                {imageUrl && !failedImages.has(imageUrl) ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={imageUrl}
-                    alt=""
-                    width={40}
-                    height={40}
-                    onError={() =>
-                      setFailedImages((prev) => new Set(prev).add(imageUrl))
-                    }
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 8,
-                      objectFit: "cover",
-                      flexShrink: 0,
-                      background: "#f2ece0",
-                    }}
-                  />
-                ) : (
-                  <span
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 8,
-                      flexShrink: 0,
-                      background: "#f2ece0",
-                    }}
-                  />
-                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={
+                    imageUrl && !failedImages.has(imageUrl)
+                      ? imageUrl
+                      : DEFAULT_FALLBACK_IMAGE
+                  }
+                  alt=""
+                  width={40}
+                  height={40}
+                  onError={() =>
+                    imageUrl &&
+                    setFailedImages((prev) => new Set(prev).add(imageUrl))
+                  }
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 8,
+                    objectFit: "cover",
+                    flexShrink: 0,
+                    background: "#f2ece0",
+                  }}
+                />
                 <span style={{ minWidth: 0 }}>
                   <span
                     style={{
