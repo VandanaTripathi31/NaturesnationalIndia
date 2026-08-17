@@ -3,9 +3,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { categoryHref } from "../lib/seo-routes";
 import HeaderSearch from "./HeaderSearch";
+
 const logo = "/images/logo1.png";
 
 /* ─── TOP BAR ──────────────────────────────────────────────────────────── */
+
 const TopBar = ({ scrolled, onOpenInquiry }) => (
   <div
     className={scrolled ? "nb-topbar" : "nb-topbar nb-topbar-expanded"}
@@ -19,6 +21,7 @@ const TopBar = ({ scrolled, onOpenInquiry }) => (
   >
     <div className="flex justify-between items-center flex-wrap gap-[6px] px-4 sm:px-6 lg:px-10 py-[9px]">
       {/* Left */}
+
       <div className="flex gap-[18px] sm:gap-[26px] flex-wrap items-center">
         {[
           { icon: "📞", text: "+91 9711003901", href: "tel:+919711003901" },
@@ -73,6 +76,7 @@ const TopBar = ({ scrolled, onOpenInquiry }) => (
       </div>
 
       {/* Right */}
+
       <div className="hidden sm:flex gap-[16px] flex-wrap items-center">
         {["Dealer Inquiry", "Private Label"].map((t) => (
           <a
@@ -107,7 +111,9 @@ const TopBar = ({ scrolled, onOpenInquiry }) => (
             {t}
           </a>
         ))}
+
         {/* Divider */}
+
         <span
           style={{
             width: 1,
@@ -116,6 +122,7 @@ const TopBar = ({ scrolled, onOpenInquiry }) => (
             display: "inline-block",
           }}
         />
+
         <a
           href="tel:+919711003901"
           className="items-center gap-[5px] hidden md:flex"
@@ -129,6 +136,7 @@ const TopBar = ({ scrolled, onOpenInquiry }) => (
         >
           <span aria-hidden="true">📞</span> +91 9711003901
         </a>
+
         <a
           href="#"
           onClick={(e) => {
@@ -164,6 +172,7 @@ const TopBar = ({ scrolled, onOpenInquiry }) => (
 );
 
 /* ─── MEGA MENU (kept as-is / unused, same as original file) ───────────── */
+
 const MegaMenu = ({ sections, tags }) => (
   <div
     className="hidden group-hover:block absolute top-full left-1/2 z-[999]"
@@ -179,6 +188,7 @@ const MegaMenu = ({ sections, tags }) => (
     }}
   >
     <style>{`.group:hover .mega-show { display: flex !important; }`}</style>
+
     <div
       className="mega-show"
       style={{ gap: 32, flexWrap: "wrap", display: "none" }}
@@ -199,6 +209,7 @@ const MegaMenu = ({ sections, tags }) => (
           >
             {sec.title}
           </div>
+
           {sec.items.map((item, i) => (
             <a
               key={i}
@@ -234,12 +245,14 @@ const MegaMenu = ({ sections, tags }) => (
                   opacity: 0.7,
                 }}
               />
+
               {item}
             </a>
           ))}
         </div>
       ))}
     </div>
+
     {tags && (
       <div
         style={{
@@ -283,6 +296,7 @@ const MegaMenu = ({ sections, tags }) => (
 );
 
 /* ─── SIMPLE DROPDOWN ──────────────────────────────────────────────────── */
+
 const DropdownMenu = ({ items, open, columns = 1 }) => (
   <div
     className="absolute top-full left-0 z-[999]"
@@ -296,6 +310,7 @@ const DropdownMenu = ({ items, open, columns = 1 }) => (
       border: "1px solid rgba(196,168,130,0.22)",
       borderTop: "3px solid var(--color-brown-light)",
       boxShadow: "0 16px 40px rgba(62,43,30,0.12)",
+
       ...(columns > 1
         ? {
             display: "grid",
@@ -322,6 +337,7 @@ const DropdownMenu = ({ items, open, columns = 1 }) => (
             : i < items.length - 1
               ? "1px solid rgba(196,168,130,0.15)"
               : "none",
+
         textDecoration: "none",
         fontWeight: 400,
         transition: "background 0.15s, color 0.15s, padding-left 0.18s",
@@ -373,15 +389,10 @@ const DropdownMenu = ({ items, open, columns = 1 }) => (
 );
 
 /* ─── NAV ITEM ─────────────────────────────────────────────────────────── */
+
 const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
   const isOpen = openKey === label;
-
   const linkStyle = {
-    // FIX (round 2): floor lowered from 12.5px -> 11px and the slope
-    // recalibrated so the size keeps shrinking smoothly all the way down
-    // to the new 1180px hamburger cutoff instead of flatlining early.
-    // At 1920px this is still ~15px; at the 1180px cutoff it's ~11px —
-    // still legible, still one line, no early snap to hamburger.
     fontSize: "clamp(11px, calc(4.6px + 0.54vw), 15px)",
     fontWeight: 600,
     letterSpacing: "0.04em",
@@ -390,8 +401,6 @@ const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
     gap: 4,
     whiteSpace: "nowrap",
     height: 76,
-    // FIX (round 2): horizontal padding floor lowered from 10px -> 6px,
-    // same recalibration reasoning as fontSize above.
     padding: "0 clamp(6px, calc(-9.95px + 1.35vw), 16px)",
     color: "var(--color-text-primary)",
     textDecoration: "none",
@@ -403,6 +412,7 @@ const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
   const labelContent = (
     <>
       {label}
+
       {items?.length > 0 && (
         <svg
           width="9"
@@ -430,7 +440,9 @@ const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
           href={href}
           style={{
             ...linkStyle,
+
             color: isOpen ? "var(--color-dark-brown)" : linkStyle.color,
+
             borderBottomColor: isOpen
               ? "var(--color-brown-light)"
               : "transparent",
@@ -443,7 +455,9 @@ const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
           href={href || "#"}
           style={{
             ...linkStyle,
+
             color: isOpen ? "var(--color-dark-brown)" : linkStyle.color,
+
             borderBottomColor: isOpen
               ? "var(--color-brown-light)"
               : "transparent",
@@ -452,6 +466,7 @@ const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
           {labelContent}
         </a>
       )}
+
       {(items || []).length > 0 && items && (
         <DropdownMenu items={items} open={isOpen} columns={columns} />
       )}
@@ -459,50 +474,6 @@ const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
   );
 };
 
-/* ─── DATA: Menu Items from NavbarA ────────────────────────────────────── */
-const OilsMegaSections = [
-  {
-    title: "Core Range",
-    items: [
-      "Essential Oils",
-      "Carrier Oils",
-      "Fragrance Oils",
-      "Ayurvedic Herbal Oil",
-      "Hydrosols / Floral Water",
-      "Diffuser Oil",
-    ],
-  },
-  {
-    title: "Organic & Pure",
-    items: [
-      "Organic Essential Oil",
-      "Organic Carrier Oil",
-      "Certified Organic Oils",
-      "Absolute Oils",
-      "CO2 Oils",
-      "Oleoresins Oils",
-    ],
-  },
-  {
-    title: "Specialty",
-    items: [
-      "Indian Attars",
-      "Synergy Blends",
-      "Seven Chakra Blends",
-      "3% Exotic Dilution",
-      "Spice Oils",
-      "Aromatic Chemicals",
-    ],
-  },
-  {
-    title: "Extracts & More",
-    items: [
-      "Liquid Herbal Extracts",
-      "Peppermint Products",
-      "Cosmetic Butters",
-    ],
-  },
-];
 
 const staticNavItems = [
   {
@@ -515,6 +486,7 @@ const staticNavItems = [
       { label: "Contact Us", href: "/contact-us" },
     ],
   },
+
   {
     label: "Distillation",
     items: [
@@ -523,6 +495,7 @@ const staticNavItems = [
       { label: "Solvent Extraction", href: "/solvent-extraction" },
     ],
   },
+
   {
     label: "Private Label",
     items: [
@@ -533,6 +506,7 @@ const staticNavItems = [
       { label: "Secure Shopping", href: "/secure-shopping" },
     ],
   },
+
   {
     label: "Packaging",
     items: [
@@ -545,6 +519,7 @@ const staticNavItems = [
 ];
 
 /* ─── MOBILE SECTION ───────────────────────────────────────────────────── */
+
 const MobileSection = ({ title, items, allSections }) => {
   const [open, setOpen] = useState(false);
   const contentRef = useRef(null);
@@ -586,6 +561,7 @@ const MobileSection = ({ title, items, allSections }) => {
         }}
       >
         {title}
+
         <span
           style={{
             color: "var(--color-brown-muted)",
@@ -657,6 +633,7 @@ const MobileSection = ({ title, items, allSections }) => {
 };
 
 /* ─── TRUST BADGES ─────────────────────────────────────────────────────── */
+
 const TrustBadges = ({ scrolled }) => (
   <div
     className={scrolled ? "nb-trustbar" : "nb-trustbar nb-trustbar-expanded"}
@@ -695,17 +672,16 @@ const TrustBadges = ({ scrolled }) => (
 );
 
 /* ─── MAIN NAVBAR ──────────────────────────────────────────────────────── */
+
 const Navbar = ({ onOpenInquiry, categories = [] }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openKey, setOpenKey] = useState(null);
   const closeTimer = useRef(null);
-
   const oilsItems = categories.map((category) => ({
     label: category.name,
     href: categoryHref(category.slug),
   }));
-
   const navItems = [
     {
       label: "Oils",
@@ -729,12 +705,30 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
   }, []);
 
   useEffect(() => {
+    let ticking = false;
+    let lastToggleAt = 0;
+    const COOLDOWN_MS = 150;
+    const EXPAND_BELOW = 20;
+    const COLLAPSE_ABOVE = 100;
     const onScroll = () => {
-      const y = window.scrollY;
-      setScrolled((prev) => {
-        if (!prev && y > 80) return true;
-        if (prev && y < 40) return false;
-        return prev;
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const now = Date.now();
+        setScrolled((prev) => {
+          if (now - lastToggleAt < COOLDOWN_MS) return prev;
+          if (!prev && y > COLLAPSE_ABOVE) {
+            lastToggleAt = now;
+            return true;
+          }
+          if (prev && y < EXPAND_BELOW) {
+            lastToggleAt = now;
+            return false;
+          }
+          return prev;
+        });
+        ticking = false;
       });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -745,26 +739,10 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
-
         .group:hover .group-hover\\:block {
           display: block !important;
+
         }
-
-        /*
-          FIX (round 2): the 1410px cutoff was too close to real-world
-          effective widths — e.g. a 1536px laptop screen at 110% browser
-          zoom renders at ~1396px effective CSS width, which is *below*
-          1410px, so the nav was flipping to the hamburger even though
-          there's still room for it on that screen.
-
-          Cutoff moved down to 1180px, and every fluid dimension that
-          feeds the nav row (link font-size/padding, logo width, CTA
-          padding/font-size) had its floor lowered and its slope
-          recalculated so the row keeps compacting continuously all the
-          way down to the new cutoff — verified to stay on one line down
-          to ~1180px — instead of hitting its old floor early (~1130px)
-          and then having nothing left to give before the 1410px snap.
-        */
         .nb-desktop-nav,
         .nb-desktop-search {
           display: none;
@@ -782,19 +760,15 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
           .nb-mobile-toggle,
           .nb-mobile-drawer {
             display: none;
+
           }
         }
-        /* Below ~1180px the search bar moves into the mobile drawer, so
-           reclaim its slot for the nav — nothing to compact there. */
 
         .nb-cta-btn {
           background: var(--gradient-btn, linear-gradient(135deg, #5C3D2E 0%, #8B6344 100%));
           color: var(--color-cream-white) !important;
           border: none;
           border-radius: 100px;
-          /* FIX (round 2): floors lowered (9px->7px vertical, 16px->12px
-             horizontal, 11px->10px font) and slopes recalculated against
-             the new 1180px cutoff, same technique as the nav links. */
           padding: clamp(7px, calc(-0.98px + 0.68vw), 12px) clamp(12px, calc(-10.33px + 1.89vw), 26px);
           font-size: clamp(10px, calc(5.22px + 0.41vw), 13px);
           font-weight: 700;
@@ -823,38 +797,44 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
         .nb-cta-btn:hover svg {
           transform: translateX(3px);
         }
-
         .nb-logo-img {
           transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), filter 0.3s;
         }
+
         .nb-logo-img:hover {
           transform: scale(1.05);
           filter: contrast(1.2) brightness(1.08) !important;
         }
-
         /* Mobile drawer slide */
+
         @keyframes drawerIn {
           from { opacity: 0; transform: translateY(-8px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+
         .nb-mobile-drawer {
           animation: drawerIn 0.22s ease forwards;
         }
+
         @supports (height: 100dvh) {
           .nb-drawer { max-height: calc(100dvh - 80px) !important; }
         }
+
         @media (max-width: 480px) {
           .nb-topbar-expanded { max-height: 76px !important; }
           .nb-trustbar-expanded { max-height: 90px !important; }
         }
+
         @media (min-width: 481px) and (max-width: 640px) {
           .nb-trustbar-expanded { max-height: 60px !important; }
         }
+
       `}</style>
 
       <div style={{ position: "sticky", top: 0, zIndex: 1000 }}>
         <div style={{ position: "relative" }}>
           <TopBar scrolled={scrolled} onOpenInquiry={onOpenInquiry} />
+
           <TrustBadges scrolled={scrolled} />
 
           <header
@@ -877,6 +857,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
             }}
           >
             {/* ── LOGO ── */}
+
             <Link
               href="/"
               style={{
@@ -893,10 +874,6 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                 width={250}
                 height={80}
                 style={{
-                  // FIX (round 2): floor lowered from 150px -> 120px and
-                  // slope recalculated against the new 1180px cutoff, so
-                  // the logo keeps giving up space instead of holding a
-                  // fixed size while the nav runs out of room around it.
                   width: "clamp(120px, calc(-20.3px + 11.89vw), 208px)",
                   height: "auto",
                   objectFit: "contain",
@@ -906,6 +883,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
             </Link>
 
             {/* ── DESKTOP NAV (centered) ── */}
+
             <nav
               className="nb-desktop-nav items-center h-full"
               style={{ flex: 1, justifyContent: "center" }}
@@ -922,6 +900,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
             </nav>
 
             {/* ── RIGHT: CTA + hamburger ── */}
+
             <div
               style={{
                 display: "flex",
@@ -931,15 +910,18 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               }}
             >
               {/* Product search (desktop / tablet) */}
+
               <div className="nb-desktop-search">
                 <HeaderSearch />
               </div>
 
               {/* CTA */}
+
               <a
                 href="#"
                 onClick={(e) => {
                   e.preventDefault();
+
                   onOpenInquiry?.();
                 }}
                 className="hidden sm:inline-flex nb-cta-btn"
@@ -958,6 +940,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               </a>
 
               {/* Hamburger */}
+
               <button
                 onClick={() => setMenuOpen((p) => !p)}
                 className="nb-mobile-toggle flex-col"
@@ -988,6 +971,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                           : menuOpen && i === 2
                             ? "rotate(-45deg) translateY(-7px)"
                             : "none",
+
                       opacity: menuOpen && i === 1 ? 0 : 1,
                     }}
                   />
@@ -997,6 +981,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
           </header>
 
           {/* ── MOBILE DRAWER ── */}
+
           {menuOpen && (
             <div
               className="nb-mobile-drawer nb-drawer"
@@ -1015,6 +1000,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               }}
             >
               {/* Mobile product search */}
+
               <div
                 style={{
                   padding: "14px 20px",
@@ -1028,6 +1014,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               </div>
 
               {/* Mobile trust strip */}
+
               <div
                 style={{
                   background: "#faf8f5",
@@ -1044,7 +1031,9 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               </div>
 
               {/* Mobile Accordion Sections */}
+
               <MobileSection title="Oils" items={oilsItems} />
+
               <MobileSection
                 title="About Us"
                 items={[
@@ -1054,6 +1043,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                   { label: "Contact Us", href: "/contact-us" },
                 ]}
               />
+
               <MobileSection
                 title="Distillation"
                 items={[
@@ -1062,6 +1052,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                   { label: "Solvent Extraction", href: "/solvent-extraction" },
                 ]}
               />
+
               <MobileSection
                 title="Private Label"
                 items={[
@@ -1072,6 +1063,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                   { label: "Secure Shopping", href: "/secure-shopping" },
                 ]}
               />
+
               <MobileSection
                 title="Packaging"
                 items={[
@@ -1130,6 +1122,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               </div>
 
               {/* Mobile contact */}
+
               <div
                 style={{
                   padding: "12px 26px 20px",
@@ -1149,6 +1142,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                 >
                   📞 +91 9711003901
                 </a>
+
                 <a
                   href="mailto:info@naturesnaturalindia.com"
                   style={{
