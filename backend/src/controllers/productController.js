@@ -24,7 +24,17 @@ function normalizeImages(images = []) {
       public_id: image?.public_id ?? "",
       url: image?.url ?? image?.secure_url ?? "",
     }))
-    .filter((image) => image.public_id && image.url);
+    // `public_id` is only present for images uploaded/re-hosted through
+    // Cloudinary. Products brought in by the default (IMAGE_MODE=reference)
+    // migration store a valid `url` pointing at the legacy media host with
+    // an intentionally empty `public_id` (see migration/lib/images.js). The
+    // old `image.public_id && image.url` check dropped every one of those
+    // — i.e. every migrated product's image — leaving `images: []` in the
+    // API response and forcing the frontend to fall back to the
+    // no-image/no_selection placeholder. A usable image only requires a
+    // non-empty `url`; `public_id` is optional metadata used for
+    // Cloudinary asset management (deletion, etc.), not for display.
+    .filter((image) => image.url);
 }
 
 function formatProduct(product) {
