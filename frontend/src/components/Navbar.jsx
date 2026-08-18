@@ -516,6 +516,7 @@ const staticNavItems = [
   },
   { label: "Shipping", href: "/delivery-info" },
   { label: "Quality Assurance", href: "/quality-assurance" },
+  { label: "Blog", href: "/blog" },
 ];
 
 /* ─── MOBILE SECTION ───────────────────────────────────────────────────── */
@@ -1075,6 +1076,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
               {[
                 { label: "Shipping", href: "/delivery-info" },
                 { label: "Quality Assurance", href: "/quality-assurance" },
+                { label: "Blog", href: "/blog" },
               ].map(({ label, href }) => (
                 <Link
                   key={label}
