@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Calendar, Tag as TagIcon, User } from "lucide-react";
 import Breadcrumb from "../Breadcrumb";
 import BlogCard, { formatBlogDate } from "./BlogCard";
-import { resolveImageUrl } from "../../lib/image-url";
+import { resolveImageUrl, isLegacyMediaUrl } from "../../lib/image-url";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -57,6 +57,10 @@ export default function BlogDetailView({ blog, related = [] }) {
                 priority
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 768px"
+                // See SafeImage.jsx FIX comment: the legacy host 403s
+                // next/image's server-side optimizer fetch even though the
+                // same URL loads fine directly in a browser.
+                unoptimized={isLegacyMediaUrl(heroImageUrl)}
               />
             </div>
           )}

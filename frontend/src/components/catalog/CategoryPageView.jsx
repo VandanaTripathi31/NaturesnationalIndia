@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { categoryHref, productHref } from "../../lib/seo-routes";
-import { resolveImageUrl } from "../../lib/image-url";
+import { resolveImageUrl, isLegacyMediaUrl } from "../../lib/image-url";
 import SafeImage from "../ui/SafeImage";
 import CategoryContent from "./CategoryContent";
 import {
@@ -224,6 +224,10 @@ export default function CategoryPageView({
             priority
             className="absolute inset-0 h-full w-full object-cover object-center"
             sizes="100vw"
+            // See SafeImage.jsx FIX comment: the legacy host 403s
+            // next/image's server-side optimizer fetch even though the
+            // same URL loads fine directly in a browser.
+            unoptimized={isLegacyMediaUrl(heroImageUrl)}
           />
         ) : (
           <div
