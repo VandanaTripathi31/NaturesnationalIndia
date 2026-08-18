@@ -34,17 +34,33 @@ const sqlPath =
     : path.join(__dirname, "data", "blog-source.sql");
 
 // Blog images were embedded inline in `post_content` via Magento's WYSIWYG
-// media directive, e.g. {{media url="wysiwyg/foo.jpg"}} — never a plain
-// <img src="/media/..."> like product images. Resolve those against the
-// same legacy media host the (already-shipped) frontend image-url.js
-// fallback uses, so migrated posts render without any new image storage.
-const MEDIA_BASE =
-  process.env.MAGENTO_MEDIA_BASE || "https://www.naturesnaturalindia.com";
+// media directive, e.g. {{media url="wysiwyg/foo.jpg"}}, which resolves to
+// {site root}/media/wysiwyg/foo.jpg — never a plain <img src="/media/...">
+// like product images.
+//
+// FIX: this used to default to `process.env.MAGENTO_MEDIA_BASE`, the same
+// env var migrate-products.js/lib/transform.js's magentoImageUrl() uses.
+// That var is configured for PRODUCT paths, which on this store already
+// include their own "/media/catalog/product" prefix baked into the
+// attribute value (see migrate-products.js), so operators set
+// MAGENTO_MEDIA_BASE to e.g.
+// "https://www.naturesnaturalindia.com/media/catalog/product" — the site
+// root PLUS that path segment, not just the domain. Reusing it here
+// produced URLs like ".../media/catalog/product/media/wysiwyg/foo.jpeg"
+// (a real 403 in production — confirmed from the actual failing request),
+// because blog WYSIWYG images live at {site root}/media/wysiwyg/..., with
+// no "/catalog/product" segment at all. Blog media resolution needs the
+// bare site root, so it now reads its own env var (MAGENTO_SITE_URL) and
+// deliberately does NOT fall back to the product-scoped
+// MAGENTO_MEDIA_BASE — only to the same hardcoded legacy host the
+// frontend's image-url.js already uses as its own fallback.
+const SITE_BASE =
+  process.env.MAGENTO_SITE_URL || "https://www.naturesnaturalindia.com";
 
 function resolveMediaDirectives(html) {
   return html.replace(
     /\{\{media url=(["'])(.*?)\1\}\}/g,
-    (_m, _q, relPath) => `${MEDIA_BASE}/media/${relPath.replace(/^\/+/, "")}`,
+    (_m, _q, relPath) => `${SITE_BASE}/media/${relPath.replace(/^\/+/, "")}`,
   );
 }
 
