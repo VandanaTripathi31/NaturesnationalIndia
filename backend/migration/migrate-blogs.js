@@ -63,9 +63,25 @@ function sanitizeHtml(html) {
     .replace(/(src)\s*=\s*(["'])\s*data:text\/html[^"']*\2/gi, '$1=""');
 }
 
+// Some posts' WYSIWYG uploads used generic, auto-numbered filenames
+// (wysiwyg/1.jpg, wysiwyg/2_3_.jpg, ...) alongside — or instead of —
+// descriptive ones (wysiwyg/blog/lavender-essential-oil-img.jpg). The
+// numbered ones are far more likely to be stale editor thumbnails that
+// collide across posts or were never actually kept on the legacy media
+// host, so when a post has more than one embedded image, prefer the
+// first descriptive filename over a purely-numeric one rather than
+// blindly taking whichever `<img>` happens to come first in the markup.
+const GENERIC_FILENAME_RE = /^[0-9_.]+\.(jpe?g|png|gif|webp)$/i;
+
 function extractFirstImage(html) {
-  const match = html.match(/<img[^>]+src=(["'])(.*?)\1[^>]*>/i);
-  return match ? match[2] : null;
+  const matches = [...html.matchAll(/<img[^>]+src=(["'])(.*?)\1[^>]*>/gi)].map(
+    (m) => m[2],
+  );
+  if (matches.length === 0) return null;
+  const descriptive = matches.find(
+    (src) => !GENERIC_FILENAME_RE.test(src.split("/").pop() || ""),
+  );
+  return descriptive || matches[0];
 }
 
 function toDate(mysqlDatetime) {
