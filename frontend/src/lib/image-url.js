@@ -106,6 +106,32 @@ export function resolveImageUrl(value, label) {
   return resolved;
 }
 
+/**
+ * True for any resolved URL served directly off the legacy site
+ * (naturesnaturalindia.com / *.naturesnaturalindia.com), as opposed to
+ * Cloudinary or a local /public asset.
+ *
+ * Why this matters: next/image's built-in optimizer fetches the source
+ * image from *its own server* (via /_next/image), not the browser — and
+ * the legacy host's bot/hotlink protection 403s that server-side fetch
+ * (confirmed: opening the same URL directly in a browser tab loads fine,
+ * only the Next.js-proxied request fails with "upstream image response
+ * failed ... 403"). Callers use this to render those specific images with
+ * next/image's `unoptimized` prop, which makes the *browser* fetch the
+ * image directly — exactly the request that already works — instead of
+ * routing it through the blocked server-side proxy. Cloudinary and local
+ * assets are unaffected and keep using the optimizer normally.
+ */
+export function isLegacyMediaUrl(url) {
+  if (typeof url !== "string") return false;
+  try {
+    const hostname = new URL(url).hostname;
+    return hostname === "naturesnaturalindia.com" || hostname.endsWith(".naturesnaturalindia.com");
+  } catch {
+    return false;
+  }
+}
+
 /** Same resolution, applied to a Cloudinary-style `{ url, public_id }` object. */
 export function resolveImageObject(image, label) {
   if (!image) return null;

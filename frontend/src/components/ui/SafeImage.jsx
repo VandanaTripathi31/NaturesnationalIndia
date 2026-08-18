@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { isLegacyMediaUrl } from "../../lib/image-url";
 
 // Site-wide default product image. Used whenever a product has no usable
 // image at all — no image on record, a Magento `no_selection` placeholder,
@@ -27,6 +28,17 @@ export const DEFAULT_FALLBACK_IMAGE = "/images/fragrances_oil_1_18.webp";
  * and swaps to the site's default product image — the same one used when
  * there's no image URL at all — so a real fetch failure degrades to a real
  * picture instead of the browser's broken-image icon.
+ *
+ * FIX (legacy-host images silently falling back even when the URL is
+ * correct): next/image's optimizer fetches the source *server-side* (via
+ * /_next/image). The legacy site's bot/hotlink protection 403s that
+ * server-side request specifically — confirmed by the same URL loading
+ * fine when opened directly in a browser tab — which onError below then
+ * quietly swaps for the fallback, masking a real infrastructure block as
+ * "no image". Legacy-host images now render `unoptimized`, so the
+ * *browser* fetches them directly (the request that already works)
+ * instead of routing through the blocked server-side proxy. This affects
+ * every legacy-host image (blog, product, category), not just blog.
  */
 export default function SafeImage({
   src,
@@ -54,6 +66,7 @@ export default function SafeImage({
       src={resolvedSrc}
       alt={alt}
       onError={() => setFailed(true)}
+      unoptimized={isLegacyMediaUrl(resolvedSrc)}
       {...imageProps}
     />
   );
