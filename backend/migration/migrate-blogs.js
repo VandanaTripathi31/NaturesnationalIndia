@@ -110,6 +110,56 @@ function extractFirstImage(html) {
   return descriptive || matches[0];
 }
 
+// The legacy media host blocks every programmatic fetch of these images —
+// confirmed both from Next.js's own server-side image proxy (403) and a
+// browser request with the Referer stripped (still 403) — while a real
+// browser tab navigation succeeds. That's consistent with bot/WAF
+// protection keyed on browser fingerprint, not just the Referer header,
+// which no request header we can set from here can get past. The only
+// durable fix is to stop depending on the legacy host at request time:
+// have Cloudinary's own servers fetch a copy once, during migration, and
+// store that as the image going forward (same IMAGE_MODE=cloudinary
+// concept migrate-products.js already uses via lib/images.js). If
+// Cloudinary's fetch is *also* blocked, this fails closed to the
+// already-correct legacy URL (unchanged behavior — SafeImage's fallback
+// still applies on the frontend), so a bad host never regresses anything.
+let cloudinaryClient = null;
+async function getCloudinaryClient() {
+  if (cloudinaryClient) return cloudinaryClient;
+  const mod = await import("cloudinary");
+  cloudinaryClient = mod.v2;
+  cloudinaryClient.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  return cloudinaryClient;
+}
+
+async function rehostOnCloudinary(sourceUrl, legacyId) {
+  if (!sourceUrl) return null;
+  if (!process.env.CLOUDINARY_CLOUD_NAME) {
+    // No Cloudinary credentials configured — keep the legacy URL as-is.
+    return { public_id: "", url: sourceUrl };
+  }
+  try {
+    const cld = await getCloudinaryClient();
+    const res = await cld.uploader.upload(sourceUrl, {
+      folder: "naturesnational/blog",
+      public_id: `post-${legacyId}`,
+      use_filename: false,
+      unique_filename: false,
+      overwrite: false,
+    });
+    return { public_id: res.public_id, url: res.secure_url };
+  } catch (err) {
+    logger.warn(
+      `Cloudinary re-host failed for post_id=${legacyId} (${sourceUrl}): ${err.message}`,
+    );
+    return { public_id: "", url: sourceUrl };
+  }
+}
+
 function toDate(mysqlDatetime) {
   if (!mysqlDatetime) return null;
   const d = new Date(String(mysqlDatetime).replace(" ", "T") + "Z");
@@ -146,7 +196,16 @@ function splitTags(tagsStr) {
 export async function migrateBlogs({ dryRun: dry = false } = {}) {
   const stats = {
     categories: { total: 0, created: 0, updated: 0 },
-    blogs: { total: 0, published: 0, created: 0, updated: 0, skipped: 0, failed: 0 },
+    blogs: {
+      total: 0,
+      published: 0,
+      created: 0,
+      updated: 0,
+      skipped: 0,
+      failed: 0,
+      imagesRehostedOnCloudinary: 0,
+      imagesKeptAsLegacyUrl: 0,
+    },
   };
 
   if (!fs.existsSync(sqlPath)) {
@@ -225,7 +284,14 @@ export async function migrateBlogs({ dryRun: dry = false } = {}) {
         truncate(stripHtml(row.post_content || ""), 500);
 
       const imageSrc = extractFirstImage(shortContent) || extractFirstImage(content);
-      const image = imageSrc ? { public_id: "", url: imageSrc } : undefined;
+      let image;
+      if (imageSrc) {
+        image = dry
+          ? { public_id: "", url: imageSrc }
+          : await rehostOnCloudinary(imageSrc, legacyId);
+        if (image?.public_id) stats.blogs.imagesRehostedOnCloudinary++;
+        else stats.blogs.imagesKeptAsLegacyUrl++;
+      }
 
       const categoryObjectIds = (postIdToCatIds.get(row.post_id) || [])
         .map((catId) => catIdToObjectId.get(catId))
