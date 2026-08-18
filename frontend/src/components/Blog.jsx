@@ -1,13 +1,26 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { getBlogs } from "../services/blogService";
+import { resolveImageUrl } from "../lib/image-url";
+import SafeImage from "./ui/SafeImage";
+
 const ayurvedicOilImg = "/images/Brahmi-Ayurvedic-Hair-Oil-Ps.jpg";
 const essentialOilImg = "/images/essential-oil.jpg";
 const carrierOilImg = "/images/castor oil.jpeg";
-const posts = [
+
+// Static fallback — shown until the real posts load, and kept as a safety
+// net if the API call fails/returns nothing, so this section never goes
+// blank on the homepage.
+const FALLBACK_POSTS = [
   {
     title: "Top 10 Essential Oils for B2B Cosmetic Formulations in 2026",
     category: "Essential Oils Guide",
     text: "A manufacturer's guide to the most in-demand oils for skincare, haircare and wellness formulations globally.",
     action: "Read article",
     image: essentialOilImg,
+    href: "/blog",
   },
   {
     title: "Castor Oil: Quality Grades & What Importers Must Know",
@@ -15,6 +28,7 @@ const posts = [
     text: "Everything importers need to know about quality grades, sourcing regions and certification requirements.",
     action: "Read article",
     image: carrierOilImg,
+    href: "/blog",
   },
   {
     title: "Understanding Ayurvedic Oils: A Guide for International Buyers",
@@ -22,10 +36,45 @@ const posts = [
     text: "From Bhringraj to Brahmi — the growing global demand for authentic Ayurvedic oils.",
     action: "Read article",
     image: ayurvedicOilImg,
+    href: "/blog",
   },
 ];
 
-const Blog = () => (
+// Real migrated posts → same card shape as FALLBACK_POSTS.
+function toCardPost(blog) {
+  return {
+    title: blog.title,
+    category: blog.categories?.[0]?.title || "Natures Natural India",
+    text: blog.excerpt || "",
+    action: "Read article",
+    image: resolveImageUrl(blog.image, `home-blog:${blog.title}`),
+    href: `/blog/${blog.slug}`,
+  };
+}
+
+const Blog = () => {
+  const [posts, setPosts] = useState(FALLBACK_POSTS);
+
+  useEffect(() => {
+    let cancelled = false;
+    getBlogs({ page: 1, limit: 3 })
+      .then(({ blogs }) => {
+        if (!cancelled && blogs.length > 0) {
+          setPosts(blogs.map(toCardPost));
+        }
+      })
+      .catch(() => {
+        // Keep the static fallback — see FALLBACK_POSTS comment above.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return renderBlog(posts);
+};
+
+const renderBlog = (posts) => (
   <section
     id="blog-sec"
     style={{ backgroundColor: "var(--color-cream-white)" }}
@@ -106,9 +155,13 @@ const Blog = () => (
       {/* Cards */}
       <div className="mt-12 grid gap-6 lg:grid-cols-3">
         {posts.map((post) => (
-          <article
+          <Link
+            href={post.href}
             key={post.title}
             style={{
+              display: "block",
+              textDecoration: "none",
+              color: "inherit",
               overflow: "hidden",
               borderRadius: 4,
               border: "1px solid var(--color-warm-gray)",
@@ -134,27 +187,21 @@ const Blog = () => (
             {/* Image */}
             <div
               style={{
+                position: "relative",
                 height: 200,
                 overflow: "hidden",
               }}
             >
-              <img
+              <SafeImage
                 src={post.image}
                 alt={post.title}
+                fill
+                sizes="(max-width: 1024px) 100vw, 33vw"
                 style={{
-                  width: "100%",
-                  height: "100%",
                   objectFit: "cover",
                   objectPosition: "center",
-                  display: "block",
                   transition: "transform 0.5s ease",
                 }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.transform = "scale(1.05)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.transform = "scale(1)")
-                }
               />
             </div>
 
@@ -221,8 +268,31 @@ const Blog = () => (
                 <span style={{ fontSize: 13 }}>→</span>
               </div>
             </div>
-          </article>
+          </Link>
         ))}
+      </div>
+
+      <div style={{ textAlign: "center", marginTop: 40 }}>
+        <Link
+          href="/blog"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: 12,
+            textTransform: "uppercase",
+            letterSpacing: "0.18em",
+            color: "var(--color-cream-white)",
+            fontWeight: 700,
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            background: "var(--color-dark-brown)",
+            padding: "12px 28px",
+            borderRadius: 4,
+            textDecoration: "none",
+          }}
+        >
+          View All Articles <span style={{ fontSize: 14 }}>→</span>
+        </Link>
       </div>
     </div>
   </section>

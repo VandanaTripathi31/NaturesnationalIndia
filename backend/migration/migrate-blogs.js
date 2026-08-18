@@ -16,7 +16,7 @@
 
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 import dotenv from "dotenv";
 
 import { parseInserts } from "./lib/sql-dump.js";
@@ -227,7 +227,17 @@ export async function migrateBlogs({ dryRun: dry = false } = {}) {
 
 // Only run standalone when invoked directly (`node migrate-blogs.js`), not
 // when imported by another script/test.
-if (import.meta.url === `file://${process.argv[1]}`) {
+//
+// FIX: the naive `import.meta.url === \`file://${process.argv[1]}\`` check
+// never matches on Windows — process.argv[1] is a plain filesystem path
+// like `C:\Users\...\migrate-blogs.js` while import.meta.url is a proper
+// file:// URL like `file:///C:/Users/.../migrate-blogs.js` (forward
+// slashes, percent-encoding). String-templating a backslash path onto
+// "file://" doesn't produce that, so the guard was always false on
+// Windows and `node migrate-blogs.js` silently did nothing — no output
+// past the dotenv banner, no error, no writes. pathToFileURL() builds the
+// same kind of URL Node itself uses for import.meta.url on every platform.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { connectMongo, disconnectMongo } = await import("./db/mongo.js");
 
   (async () => {
