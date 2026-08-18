@@ -57,10 +57,12 @@ export default function BlogDetailView({ blog, related = [] }) {
                 priority
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 768px"
-                // See SafeImage.jsx FIX comment: the legacy host 403s
-                // next/image's server-side optimizer fetch even though the
-                // same URL loads fine directly in a browser.
+                // See SafeImage.jsx FIX comment: the legacy host's
+                // hotlink protection 403s any request carrying a
+                // cross-origin Referer, which every embedded <img> sends
+                // by default.
                 unoptimized={isLegacyMediaUrl(heroImageUrl)}
+                referrerPolicy={isLegacyMediaUrl(heroImageUrl) ? "no-referrer" : undefined}
               />
             </div>
           )}

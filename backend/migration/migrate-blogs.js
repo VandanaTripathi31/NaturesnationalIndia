@@ -70,13 +70,23 @@ function resolveMediaDirectives(html) {
 // content is rendered with dangerouslySetInnerHTML (same trusted-HTML
 // pattern the site already uses for Category.content), so this is applied
 // once here rather than trusting the dump blindly.
+//
+// Also stamps every <img> with referrerpolicy="no-referrer" (see
+// components/ui/SafeImage.jsx FIX comment on the frontend side): the
+// legacy media host's hotlink protection 403s any image request that
+// carries a cross-origin Referer header, which every <img> embedded in
+// this HTML sends by default. This only applies to images *inside* the
+// article body — the extracted card/hero image (Blog.image) is a plain
+// URL string handled by SafeImage/next-image on the frontend, not by
+// this attribute.
 function sanitizeHtml(html) {
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
     .replace(/\son\w+\s*=\s*(".*?"|'.*?'|[^\s>]+)/gi, "")
     .replace(/(href|src)\s*=\s*(["'])\s*javascript:[^"']*\2/gi, '$1="#"')
-    .replace(/(src)\s*=\s*(["'])\s*data:text\/html[^"']*\2/gi, '$1=""');
+    .replace(/(src)\s*=\s*(["'])\s*data:text\/html[^"']*\2/gi, '$1=""')
+    .replace(/<img(?![^>]*\breferrerpolicy=)([^>]*)>/gi, '<img$1 referrerpolicy="no-referrer">');
 }
 
 // Some posts' WYSIWYG uploads used generic, auto-numbered filenames

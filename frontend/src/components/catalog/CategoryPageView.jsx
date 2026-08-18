@@ -224,10 +224,11 @@ export default function CategoryPageView({
             priority
             className="absolute inset-0 h-full w-full object-cover object-center"
             sizes="100vw"
-            // See SafeImage.jsx FIX comment: the legacy host 403s
-            // next/image's server-side optimizer fetch even though the
-            // same URL loads fine directly in a browser.
+            // See SafeImage.jsx FIX comment: the legacy host's hotlink
+            // protection 403s any request carrying a cross-origin
+            // Referer, which every embedded <img> sends by default.
             unoptimized={isLegacyMediaUrl(heroImageUrl)}
+            referrerPolicy={isLegacyMediaUrl(heroImageUrl) ? "no-referrer" : undefined}
           />
         ) : (
           <div

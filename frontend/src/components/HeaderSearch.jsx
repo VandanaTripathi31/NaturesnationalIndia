@@ -285,6 +285,10 @@ export default function HeaderSearch({ variant = "desktop", onNavigate }) {
                   alt=""
                   width={40}
                   height={40}
+                  // See SafeImage.jsx FIX comment: the legacy host's
+                  // hotlink protection 403s any request carrying a
+                  // cross-origin Referer.
+                  referrerPolicy="no-referrer"
                   onError={() =>
                     imageUrl &&
                     setFailedImages((prev) => new Set(prev).add(imageUrl))
