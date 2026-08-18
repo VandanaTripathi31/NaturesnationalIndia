@@ -13,6 +13,18 @@
 //
 // Usage:
 //   node migration/migrate-blogs.js [--dry-run] [--file path/to/dump.sql]
+//                                    [--local-images path/to/folder]
+//
+// --local-images: the legacy media host's bot protection 403s every
+// programmatic fetch of these images — confirmed from Next.js's
+// server-side proxy, a browser request with no Referer, AND Cloudinary's
+// own remote-fetch upload, all against the exact same URLs a real browser
+// tab loads fine. There is no request-header trick left to try; the only
+// way to get a real copy of a given image is a real browser (or a direct
+// download from the host's own filesystem, e.g. via FTP/cPanel). Point
+// this flag at a local folder of manually-downloaded images (original
+// filenames preserved, subfolders OK) and matching files upload straight
+// to Cloudinary from disk instead of attempting the blocked remote fetch.
 
 import fs from "fs";
 import path from "path";
@@ -32,6 +44,32 @@ const sqlPath =
   fileArgIdx !== -1 && process.argv[fileArgIdx + 1]
     ? path.resolve(process.argv[fileArgIdx + 1])
     : path.join(__dirname, "data", "blog-source.sql");
+
+const localImagesArgIdx = process.argv.indexOf("--local-images");
+const localImagesDir =
+  localImagesArgIdx !== -1 && process.argv[localImagesArgIdx + 1]
+    ? path.resolve(process.argv[localImagesArgIdx + 1])
+    : null;
+
+// Basename (lowercased) -> full path, built once from --local-images.
+function buildLocalImageIndex(dir) {
+  const index = new Map();
+  if (!dir) return index;
+  if (!fs.existsSync(dir)) {
+    logger.warn(`--local-images folder not found: ${dir}`);
+    return index;
+  }
+  const walk = (d) => {
+    for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
+      const full = path.join(d, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else index.set(entry.name.toLowerCase(), full);
+    }
+  };
+  walk(dir);
+  logger.info(`--local-images: indexed ${index.size} file(s) from ${dir}`);
+  return index;
+}
 
 // Blog images were embedded inline in `post_content` via Magento's WYSIWYG
 // media directive, e.g. {{media url="wysiwyg/foo.jpg"}}, which resolves to
@@ -136,15 +174,23 @@ async function getCloudinaryClient() {
   return cloudinaryClient;
 }
 
-async function rehostOnCloudinary(sourceUrl, legacyId) {
+async function rehostOnCloudinary(sourceUrl, legacyId, localImageIndex) {
   if (!sourceUrl) return null;
   if (!process.env.CLOUDINARY_CLOUD_NAME) {
     // No Cloudinary credentials configured — keep the legacy URL as-is.
     return { public_id: "", url: sourceUrl };
   }
+
+  // Prefer a manually-downloaded local file (see --local-images) over the
+  // remote fetch, which is confirmed blocked for every URL on this host —
+  // uploading from disk needs no network access to the legacy host at all.
+  const basename = sourceUrl.split("/").pop()?.toLowerCase();
+  const localPath = basename ? localImageIndex?.get(basename) : undefined;
+  const uploadSource = localPath || sourceUrl;
+
   try {
     const cld = await getCloudinaryClient();
-    const res = await cld.uploader.upload(sourceUrl, {
+    const res = await cld.uploader.upload(uploadSource, {
       folder: "naturesnational/blog",
       public_id: `post-${legacyId}`,
       use_filename: false,
@@ -154,7 +200,7 @@ async function rehostOnCloudinary(sourceUrl, legacyId) {
     return { public_id: res.public_id, url: res.secure_url };
   } catch (err) {
     logger.warn(
-      `Cloudinary re-host failed for post_id=${legacyId} (${sourceUrl}): ${err.message}`,
+      `Cloudinary re-host failed for post_id=${legacyId} (${uploadSource}): ${err.message}`,
     );
     return { public_id: "", url: sourceUrl };
   }
@@ -194,6 +240,7 @@ function splitTags(tagsStr) {
 }
 
 export async function migrateBlogs({ dryRun: dry = false } = {}) {
+  const localImageIndex = buildLocalImageIndex(localImagesDir);
   const stats = {
     categories: { total: 0, created: 0, updated: 0 },
     blogs: {
@@ -288,7 +335,7 @@ export async function migrateBlogs({ dryRun: dry = false } = {}) {
       if (imageSrc) {
         image = dry
           ? { public_id: "", url: imageSrc }
-          : await rehostOnCloudinary(imageSrc, legacyId);
+          : await rehostOnCloudinary(imageSrc, legacyId, localImageIndex);
         if (image?.public_id) stats.blogs.imagesRehostedOnCloudinary++;
         else stats.blogs.imagesKeptAsLegacyUrl++;
       }
