@@ -5,42 +5,9 @@ import Link from "next/link";
 import { getBlogs } from "../services/blogService";
 import { resolveImageUrl } from "../lib/image-url";
 import SafeImage from "./ui/SafeImage";
+import Skeleton from "./ui/Skeleton";
 
-const ayurvedicOilImg = "/images/Brahmi-Ayurvedic-Hair-Oil-Ps.jpg";
-const essentialOilImg = "/images/essential-oil.jpg";
-const carrierOilImg = "/images/castor oil.jpeg";
-
-// Static fallback — shown until the real posts load, and kept as a safety
-// net if the API call fails/returns nothing, so this section never goes
-// blank on the homepage.
-const FALLBACK_POSTS = [
-  {
-    title: "Top 10 Essential Oils for B2B Cosmetic Formulations in 2026",
-    category: "Essential Oils Guide",
-    text: "A manufacturer's guide to the most in-demand oils for skincare, haircare and wellness formulations globally.",
-    action: "Read article",
-    image: essentialOilImg,
-    href: "/blog",
-  },
-  {
-    title: "Castor Oil: Quality Grades & What Importers Must Know",
-    category: "Carrier Oils",
-    text: "Everything importers need to know about quality grades, sourcing regions and certification requirements.",
-    action: "Read article",
-    image: carrierOilImg,
-    href: "/blog",
-  },
-  {
-    title: "Understanding Ayurvedic Oils: A Guide for International Buyers",
-    category: "Ayurveda",
-    text: "From Bhringraj to Brahmi — the growing global demand for authentic Ayurvedic oils.",
-    action: "Read article",
-    image: ayurvedicOilImg,
-    href: "/blog",
-  },
-];
-
-// Real migrated posts → same card shape as FALLBACK_POSTS.
+// API blog summary → the shape the homepage cards render.
 function toCardPost(blog) {
   return {
     title: blog.title,
@@ -53,26 +20,60 @@ function toCardPost(blog) {
 }
 
 const Blog = () => {
-  const [posts, setPosts] = useState(FALLBACK_POSTS);
+  const [posts, setPosts] = useState(null); // null = still loading
 
   useEffect(() => {
     let cancelled = false;
     getBlogs({ page: 1, limit: 3 })
       .then(({ blogs }) => {
-        if (!cancelled && blogs.length > 0) {
+        if (!cancelled) {
           setPosts(blogs.map(toCardPost));
         }
       })
       .catch(() => {
-        // Keep the static fallback — see FALLBACK_POSTS comment above.
+        if (!cancelled) {
+          setPosts([]);
+        }
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  // API failed or returned no published posts — hide the section entirely
+  // rather than showing placeholder content.
+  if (posts && posts.length === 0) {
+    return null;
+  }
+
   return renderBlog(posts);
 };
+
+// Card-shaped placeholders matching the real card dimensions (200px image
+// + text body) so the layout doesn't shift when posts arrive.
+const renderSkeletonCards = () =>
+  Array.from({ length: 3 }).map((_, index) => (
+    <div
+      key={index}
+      style={{
+        overflow: "hidden",
+        borderRadius: 4,
+        border: "1px solid var(--color-warm-gray)",
+        backgroundColor: "var(--color-off-white)",
+        boxShadow: "0 2px 10px rgba(92,64,51,0.06)",
+      }}
+    >
+      <Skeleton className="h-[200px] w-full rounded-none" />
+      <div style={{ padding: "22px 22px 20px" }}>
+        <Skeleton className="mb-3 h-3 w-28" />
+        <Skeleton className="mb-2 h-5 w-full" />
+        <Skeleton className="mb-4 h-5 w-3/4" />
+        <Skeleton className="mb-2 h-3 w-full" />
+        <Skeleton className="mb-5 h-3 w-5/6" />
+        <Skeleton className="h-3 w-24" />
+      </div>
+    </div>
+  ));
 
 const renderBlog = (posts) => (
   <section
@@ -154,7 +155,8 @@ const renderBlog = (posts) => (
 
       {/* Cards */}
       <div className="mt-12 grid gap-6 lg:grid-cols-3">
-        {posts.map((post) => (
+        {posts === null && renderSkeletonCards()}
+        {(posts ?? []).map((post) => (
           <Link
             href={post.href}
             key={post.title}
