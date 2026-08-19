@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { isLegacyMediaUrl } from "../../lib/image-url";
 
 // Site-wide default product image. Used whenever a product has no usable
 // image at all — no image on record, a Magento `no_selection` placeholder,
@@ -28,24 +27,6 @@ export const DEFAULT_FALLBACK_IMAGE = "/images/fragrances_oil_1_18.webp";
  * and swaps to the site's default product image — the same one used when
  * there's no image URL at all — so a real fetch failure degrades to a real
  * picture instead of the browser's broken-image icon.
- *
- * FIX (legacy-host images silently falling back even when the URL is
- * correct): the legacy site has referrer-based hotlink protection — a
- * request for the same image URL succeeds with no Referer (typing it
- * directly into a new tab) but 403s the moment it carries one from a
- * different origin (confirmed: DevTools Network tab showed the request
- * itself, not next/image's proxy, getting 403 with
- * `Referrer Policy: strict-origin-when-cross-origin`, i.e. sending our
- * origin as the referrer). Every <img> the browser loads on this site
- * sends that referrer by default, which the legacy host rejects. onError
- * below then quietly swapped the image for the fallback, masking a real
- * infrastructure block as "no image". Legacy-host images now render with
- * `referrerPolicy="no-referrer"` (strips the Referer header entirely, so
- * the request looks like the direct-navigation one that already works)
- * and `unoptimized` (so the *browser* makes that request directly instead
- * of next/image's server-side proxy re-fetching and re-hitting the same
- * protection). This affects every legacy-host image (blog, product,
- * category), not just blog.
  */
 export default function SafeImage({
   src,
@@ -73,8 +54,6 @@ export default function SafeImage({
       src={resolvedSrc}
       alt={alt}
       onError={() => setFailed(true)}
-      unoptimized={isLegacyMediaUrl(resolvedSrc)}
-      referrerPolicy={isLegacyMediaUrl(resolvedSrc) ? "no-referrer" : undefined}
       {...imageProps}
     />
   );

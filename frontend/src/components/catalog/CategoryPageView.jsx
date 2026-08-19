@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { categoryHref, productHref } from "../../lib/seo-routes";
-import { resolveImageUrl, isLegacyMediaUrl } from "../../lib/image-url";
+import { resolveImageUrl } from "../../lib/image-url";
 import SafeImage from "../ui/SafeImage";
 import CategoryContent from "./CategoryContent";
 import {
@@ -55,7 +55,10 @@ const stagger = {
 
 /* ─── Product Card ─────────────────────────────────────────── */
 function ProductCard({ product, index, categorySlug }) {
-  const imageUrl = resolveImageUrl(product.images?.[0]?.url, `card:${product.name}`);
+  const imageUrl = resolveImageUrl(
+    product.images?.[0]?.url,
+    `card:${product.name}`,
+  );
 
   return (
     <motion.article
@@ -224,11 +227,6 @@ export default function CategoryPageView({
             priority
             className="absolute inset-0 h-full w-full object-cover object-center"
             sizes="100vw"
-            // See SafeImage.jsx FIX comment: the legacy host's hotlink
-            // protection 403s any request carrying a cross-origin
-            // Referer, which every embedded <img> sends by default.
-            unoptimized={isLegacyMediaUrl(heroImageUrl)}
-            referrerPolicy={isLegacyMediaUrl(heroImageUrl) ? "no-referrer" : undefined}
           />
         ) : (
           <div
