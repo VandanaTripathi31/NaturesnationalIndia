@@ -37,7 +37,15 @@ dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 const OUT_DIR = path.join(__dirname, "..", "media-backup");
 const FAILURE_REPORT = path.join(__dirname, "backups", "download-failures.json");
-const CONCURRENCY = 4;
+// Wayback rate-limits aggressively (HTTP 429) — one request at a time with
+// a polite gap between requests is the only reliable way through ~2400
+// images. Slow (roughly an hour for a full run) but fully unattended, and
+// re-runs skip everything already downloaded.
+const CONCURRENCY = 1;
+const DELAY_MS = 600;
+const MAX_RETRIES = 5;
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Headers that make the request indistinguishable from a normal Chrome
 // page-load — no Referer (the old hotlink rule), a real UA, and the image
@@ -58,7 +66,15 @@ function basenameOf(url) {
 }
 
 async function fetchBytes(url, headers = {}) {
-  const res = await fetch(url, { headers, redirect: "follow" });
+  let res;
+  for (let attempt = 0; ; attempt++) {
+    res = await fetch(url, { headers, redirect: "follow" });
+    if (res.status !== 429 || attempt >= MAX_RETRIES) break;
+    // Rate-limited — back off and retry (2s, 4s, 8s, 16s, 32s), honoring
+    // Retry-After when the server sends one.
+    const retryAfter = Number(res.headers.get("retry-after")) * 1000;
+    await sleep(Math.max(retryAfter || 0, 2000 * 2 ** attempt));
+  }
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const type = res.headers.get("content-type") || "";
   const buf = Buffer.from(await res.arrayBuffer());
@@ -75,24 +91,14 @@ async function fromLegacyHost(url) {
 }
 
 async function fromWayback(url) {
-  // Ask the availability API for the closest snapshot, then request it with
-  // the `id_` flag, which returns the original archived bytes (no Wayback
-  // banner/rewriting).
-  const api = `https://archive.org/wayback/available?url=${encodeURIComponent(url)}`;
-  const res = await fetch(api, { headers: { "User-Agent": BROWSER_HEADERS["User-Agent"] } });
-  if (!res.ok) throw new Error(`availability API HTTP ${res.status}`);
-  const data = await res.json();
-  const snap = data?.archived_snapshots?.closest;
-  if (!snap?.url) {
-    // No indexed snapshot — still worth trying the generic redirect form,
-    // which sometimes finds captures the availability API misses.
-    return fetchBytes(
-      `https://web.archive.org/web/2id_/${encodeURI(url)}`,
-      { "User-Agent": BROWSER_HEADERS["User-Agent"] },
-    );
-  }
-  const snapUrl = snap.url.replace(/\/(\d{14})\//, "/$1id_/");
-  return fetchBytes(snapUrl, { "User-Agent": BROWSER_HEADERS["User-Agent"] });
+  // Single request per image: web.archive.org/web/2id_/<url> redirects
+  // straight to the closest capture and the `id_` flag returns the original
+  // archived bytes (no Wayback banner/rewriting). Avoids the separate
+  // availability-API call, which doubled requests and tripped the rate
+  // limiter on the first run.
+  return fetchBytes(`https://web.archive.org/web/2id_/${encodeURI(url)}`, {
+    "User-Agent": BROWSER_HEADERS["User-Agent"],
+  });
 }
 
 async function downloadOne(url, stats, failures) {
@@ -161,6 +167,7 @@ async function main() {
     while (queue.length) {
       const url = queue.pop();
       await downloadOne(url, stats, failures);
+      await sleep(DELAY_MS);
     }
   });
   await Promise.all(workers);
