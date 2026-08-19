@@ -14,6 +14,8 @@
     "migrate:rollback": "node migration/rollback.js",
     "migrate:slugs:dry": "node migration/align-slugs.js",
     "migrate:slugs": "node migration/align-slugs.js --commit",
+    "rehost:images:dry": "node migration/rehost-product-images.js",
+    "rehost:images": "node migration/rehost-product-images.js --commit",
     "test": "echo \"Error: no test specified\" && exit 1",
     "verify:data": "node migration/verify.js"
   },

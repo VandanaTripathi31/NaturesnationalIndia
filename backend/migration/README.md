@@ -67,6 +67,38 @@ npm run migrate:validate   # 4. compare source/dest counts + integrity checks
 Images: `IMAGE_MODE=reference` (default) keeps the existing Magento image
 URLs; set `IMAGE_MODE=cloudinary` (+ Cloudinary creds) to re-host copies.
 
+## Re-hosting already-migrated images (legacy host 403)
+
+The legacy Magento host now returns 403 for its media URLs, so any
+Product/Category image still stored in `reference` mode shows the site's
+fallback image. `rehost-product-images.js` moves those images to
+Cloudinary in place (idempotent — Cloudinary URLs are skipped):
+
+```bash
+npm run rehost:images:dry    # report what would change, write nothing
+npm run rehost:images        # upload to Cloudinary + update MongoDB
+# the host blocks Cloudinary's remote fetch too — supply originals
+# downloaded via FTP/cPanel/browser (filenames preserved):
+node migration/rehost-product-images.js --commit --local-images ./media-backup
+```
+
+A JSON backup of every image field is written to `migration/backups/`
+before the first write; failures leave the stored value untouched, so the
+script can simply be re-run.
+
+## Aligning category/product slugs with the live site
+
+`align-slugs.js` (see `data/sitemap-slugs.js` for the authoritative
+mapping) renames MongoDB slugs to the live site's URLs, e.g.
+`essential-oils` → `pure-and-natural-essential-oils`. Old slugs are kept
+in `previousSlugs`, which the public API matches and the frontend 301s to
+the canonical URL:
+
+```bash
+npm run migrate:slugs:dry    # show every rename, write nothing
+npm run migrate:slugs        # apply (backup written first)
+```
+
 ## Rollback
 
 ```bash
