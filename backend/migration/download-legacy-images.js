@@ -90,15 +90,49 @@ async function fromLegacyHost(url) {
   return fetchBytes(encodeURI(url), BROWSER_HEADERS);
 }
 
-async function fromWayback(url) {
-  // Single request per image: web.archive.org/web/2id_/<url> redirects
-  // straight to the closest capture and the `id_` flag returns the original
-  // archived bytes (no Wayback banner/rewriting). Avoids the separate
-  // availability-API call, which doubled requests and tripped the rate
-  // limiter on the first run.
-  return fetchBytes(`https://web.archive.org/web/2id_/${encodeURI(url)}`, {
-    "User-Agent": BROWSER_HEADERS["User-Agent"],
+// One CDX-index query up front for EVERY archived image on the legacy
+// domain (any scheme, with or without www), keyed by filename. Per-image
+// wayback lookups kept 404ing because captures live under URL variants the
+// exact-URL form can't guess; the index sidesteps that entirely, and files
+// absent from it were simply never archived — no point requesting them.
+let waybackIndex = null;
+async function getWaybackIndex() {
+  if (waybackIndex) return waybackIndex;
+  waybackIndex = new Map();
+  const api =
+    "https://web.archive.org/cdx/search/cdx" +
+    "?url=naturesnaturalindia.com&matchType=domain" +
+    "&filter=statuscode:200&filter=mimetype:image.*" +
+    "&collapse=urlkey&fl=timestamp,original&output=json";
+  const res = await fetch(api, {
+    headers: { "User-Agent": BROWSER_HEADERS["User-Agent"] },
   });
+  if (!res.ok) {
+    logger.warn(`Wayback CDX index unavailable (HTTP ${res.status})`);
+    return waybackIndex;
+  }
+  const rows = await res.json(); // [["timestamp","original"], ...] with header row
+  for (const [timestamp, original] of rows.slice(1)) {
+    const name = basenameOf(original);
+    // Keep the newest capture per filename.
+    const prev = waybackIndex.get(name);
+    if (!prev || timestamp > prev.timestamp) {
+      waybackIndex.set(name, { timestamp, original });
+    }
+  }
+  logger.info(`Wayback index: ${waybackIndex.size} archived image file(s) found`);
+  return waybackIndex;
+}
+
+async function fromWayback(url) {
+  const index = await getWaybackIndex();
+  const hit = index.get(basenameOf(url));
+  if (!hit) throw new Error("not in Wayback archive");
+  // `id_` returns the original archived bytes (no banner/rewriting).
+  return fetchBytes(
+    `https://web.archive.org/web/${hit.timestamp}id_/${encodeURI(hit.original)}`,
+    { "User-Agent": BROWSER_HEADERS["User-Agent"] },
+  );
 }
 
 async function downloadOne(url, stats, failures) {
