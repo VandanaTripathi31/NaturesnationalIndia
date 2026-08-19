@@ -1,7 +1,3 @@
-// IMPORTANT: files must sit at  public/images/<filename>  exactly, with
-// matching case (linux hosting is case-sensitive — "Drum.jpg" !== "drum.jpg").
-// If a tab still shows a "Image not found" placeholder after this change,
-// the filename below doesn't match a real file in that folder.
 const IMG = "/images";
 
 export const COMPANY_INFO_TABS = [

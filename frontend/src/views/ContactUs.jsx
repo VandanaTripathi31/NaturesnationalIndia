@@ -2,9 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import apiClient from "../lib/api-client";
 
-// Same reCAPTCHA v2 site key + graceful-degrade behaviour used by the
-// global inquiry widget (FloatingInquiry.jsx): when unset, the captcha
-// step is skipped client-side and the backend applies the same rule.
 const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
 const faqs = [
@@ -283,9 +280,7 @@ export default function Contact() {
       if (!grecaptcha?.render || !recaptchaRef.current) {
         elapsed += POLL_MS;
         if (elapsed >= TIMEOUT_MS) {
-          console.error(
-            "[reCAPTCHA] Widget never became available after 8s.",
-          );
+          console.error("[reCAPTCHA] Widget never became available after 8s.");
           setCaptchaUnavailable(true);
           return;
         }

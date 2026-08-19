@@ -6,8 +6,7 @@ const isoImg = "/images/certifiacte4.png";
 // WhyChooseUs.jsx
 import { useState } from "react";
 import { Award, X, Download, ExternalLink } from "lucide-react";
-const CERT_PDF = "../../public/images/2025 NNIOPL Certificates (1).pdf"; // ← update this path
-
+const CERT_PDF = encodeURI("/images/2025 NNIOPL Certificates (1).pdf");
 const certs = [
   {
     img: whoGmpImg,
