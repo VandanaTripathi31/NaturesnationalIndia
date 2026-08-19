@@ -513,7 +513,7 @@ export default function Footer({ onInquiryOpen, categories = [] }) {
             {[
               { label: "Privacy Policy", href: "/policies" },
               { label: "Terms", href: "/policies" },
-              { label: "Sitemap", href: "/" },
+              // { label: "Sitemap", href: "/" },
             ].map(({ label: link, href }, i) => (
               <span key={link}>
                 {i > 0 && (
