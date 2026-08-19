@@ -1,34 +1,15 @@
-/**
- * Company-wide product-page content — the SINGLE source of truth for the tabs
- * that are identical across every product on the live site (Order Processing,
- * Packaging, Private Labelling, Shipping Preferences, Payment Method).
- *
- * Editing the copy here updates it for ALL products at once (instead of on 817
- * individual product records). The "Overview" and "Additional Information"
- * tabs are NOT here — they are product-specific and come from MongoDB
- * (product.description and product.specifications respectively).
- *
- * Text mirrors the live reference product page
- * (naturesnaturalindia.com — e.g. aniseed-oil.html). If the client wants to
- * edit these from the Admin Dashboard later, this module can be promoted to a
- * database-backed `SiteContent` collection without touching the UI component —
- * it only consumes the exported shape below.
- */
-
-// Theme image assets, served locally. These used to point at the legacy
-// Magento host (…naturesnaturalindia.com/skin/frontend/rwd/default/images),
-// but that host now returns 403 for every request, so all five tab images
-// broke site-wide. Local copies of the originals go in
-// frontend/public/images/product-tabs/ (same filenames); until a file is
-// present the tab renders without that image instead of a broken icon.
-const IMG = "/images/product-tabs";
+const IMG = "/images";
 
 export const COMPANY_INFO_TABS = [
   {
     id: "order-processing",
     label: "Order Processing",
     blocks: [
-      { type: "image", src: `${IMG}/oil-processing.png`, alt: "Order processing steps" },
+      {
+        type: "image",
+        src: `${IMG}/oil-processing.png`,
+        alt: "Order processing steps",
+      },
       {
         type: "paragraph",
         text: "Natures Natural India acknowledges the reputation that its clients bear in the market and our well-trained workforce have dedicated itself to sustain it with a mode of service that is centered on the requirements of our clients. The sole urge to serve our clients in the best possible way, along with our years-long experience, made us the first choice of many leading companies across the globe to whom we have successfully delivered essential oils and fragrances.",
@@ -76,7 +57,11 @@ export const COMPANY_INFO_TABS = [
     id: "private-labelling",
     label: "Private Labelling",
     blocks: [
-      { type: "image", src: `${IMG}/labelling-img1.png`, alt: "Private labelling bottles" },
+      {
+        type: "image",
+        src: `${IMG}/labelling-img1.png`,
+        alt: "Private labelling bottles",
+      },
       {
         type: "paragraph",
         text: "It is a universally accepted fact that a 'Brand' is the medium of connecting a product with its target consumers and hence an integral part of the Sales & Marketing strategy for every enterprise. We understand how important it is for you to project the image of your esteemed brand with every sale and with each of your marketing campaigns.",
@@ -91,7 +76,11 @@ export const COMPANY_INFO_TABS = [
     id: "shipping-preferences",
     label: "Shipping Preferences",
     blocks: [
-      { type: "image", src: `${IMG}/shipping.png`, alt: "Shipping partners: FedEx, UPS, DHL, EMS" },
+      {
+        type: "image",
+        src: `${IMG}/shipping.png`,
+        alt: "Shipping partners: FedEx, UPS, DHL, EMS",
+      },
       {
         type: "paragraph",
         text: "We have partnered with major freight and shipping stalwarts like DHL, FedEx and UPS to meet our delivery-time standards. As per the client's requirement, we dispatch consignments either by sea or by air.",
@@ -106,7 +95,11 @@ export const COMPANY_INFO_TABS = [
     id: "payment-method",
     label: "Payment Method",
     blocks: [
-      { type: "image", src: `${IMG}/payment.png`, alt: "Accepted payment methods" },
+      {
+        type: "image",
+        src: `${IMG}/payment.png`,
+        alt: "Accepted payment methods",
+      },
       {
         type: "paragraph",
         text: "Naturesnaturalindia.com is a popular and reputable e-commerce store from where you can purchase organic essential and natural oils at your convenience. Customers can make payments through debit / credit card, PayPal and wire transfer.",
