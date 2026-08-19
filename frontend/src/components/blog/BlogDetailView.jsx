@@ -1,23 +1,59 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Calendar, Tag as TagIcon, User } from "lucide-react";
 import Breadcrumb from "../Breadcrumb";
 import BlogCard, { formatBlogDate } from "./BlogCard";
-import { resolveImageUrl, isLegacyMediaUrl } from "../../lib/image-url";
+import { resolveImageUrl } from "../../lib/image-url";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+  },
 };
 
 export default function BlogDetailView({ blog, related = [] }) {
   const heroImageUrl = resolveImageUrl(blog.image, `blog-detail:${blog.title}`);
   const category = blog.categories?.[0];
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    const container = contentRef.current;
+    if (!container) return;
+
+    const images = container.querySelectorAll("img");
+
+    images.forEach((img) => {
+      // If it has no src at all, hide it immediately
+      if (!img.getAttribute("src")) {
+        img.style.display = "none";
+        return;
+      }
+
+      // If it's already broken (cached failure), hide it now
+      if (img.complete && img.naturalWidth === 0) {
+        img.style.display = "none";
+        return;
+      }
+
+      // Otherwise, watch for a future load failure
+      const handleError = () => {
+        img.style.display = "none";
+      };
+      img.addEventListener("error", handleError);
+    });
+  }, [blog.content]);
 
   return (
-    <div className="min-h-screen w-full" style={{ background: "var(--color-cream-white)" }}>
+    <div
+      className="min-h-screen w-full"
+      style={{ background: "var(--color-cream-white)" }}
+    >
       <article className="px-6 py-10 sm:px-10 lg:px-16">
         <div className="mx-auto max-w-3xl">
           <Breadcrumb
@@ -57,20 +93,12 @@ export default function BlogDetailView({ blog, related = [] }) {
                 priority
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, 768px"
-                // See SafeImage.jsx FIX comment: the legacy host's
-                // hotlink protection 403s any request carrying a
-                // cross-origin Referer, which every embedded <img> sends
-                // by default.
-                unoptimized={isLegacyMediaUrl(heroImageUrl)}
-                referrerPolicy={isLegacyMediaUrl(heroImageUrl) ? "no-referrer" : undefined}
               />
             </div>
           )}
 
-          {/* Article body — sanitized HTML at migration time (see
-              backend/migration/migrate-blogs.js), same trusted-HTML render
-              pattern already used for Category.content. */}
           <div
+            ref={contentRef}
             className="blog-content prose mt-10 max-w-none text-[15px] leading-relaxed text-[var(--color-text-primary)] [&_h1]:font-playfair [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:font-playfair [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:mt-6 [&_h3]:font-playfair [&_h3]:text-xl [&_h3]:font-semibold [&_p]:my-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[var(--color-dark-brown)] [&_a]:underline [&_img]:rounded-xl [&_img]:my-6"
             dangerouslySetInnerHTML={{ __html: blog.content }}
           />
