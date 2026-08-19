@@ -193,6 +193,39 @@ async function rehostImageList(images, folder, localImageIndex, label) {
   return changed ? out : null;
 }
 
+// Category `content` is raw HTML (rendered with dangerouslySetInnerHTML on
+// category pages) and may embed <img src="..."> tags that still point at the
+// legacy host — those break identically to the image fields. Re-host each
+// such src and rewrite it inside the HTML. Returns the new HTML, or null
+// when nothing needed changing.
+async function rehostHtmlImages(html, folder, localImageIndex, label) {
+  if (!html || typeof html !== "string") return null;
+  const srcRe = /(<img\b[^>]*?\bsrc=["'])([^"']+)(["'])/gi;
+  const matches = [...html.matchAll(srcRe)];
+  let out = html;
+  let changed = false;
+  for (const m of matches) {
+    const legacyUrl = legacyUrlOf(m[2]);
+    if (!legacyUrl) continue;
+    stats.images_legacy++;
+    if (!COMMIT) {
+      logger.info(`DRY would re-host embedded ${label}: ${legacyUrl}`);
+      continue;
+    }
+    try {
+      const uploaded = await rehost(legacyUrl, folder, localImageIndex);
+      out = out.split(m[2]).join(uploaded.url);
+      changed = true;
+      stats.rehosted++;
+      logger.ok(`re-hosted embedded ${label}: ${legacyUrl} -> ${uploaded.url}`);
+    } catch (err) {
+      stats.failed++;
+      logger.warn(`FAILED embedded ${label}: ${legacyUrl} (${err.message})`);
+    }
+  }
+  return changed ? out : null;
+}
+
 async function main() {
   if (COMMIT && !process.env.CLOUDINARY_CLOUD_NAME) {
     throw new Error(
@@ -205,7 +238,9 @@ async function main() {
   logger.info(`Mode: ${COMMIT ? "COMMIT" : "DRY RUN"}`);
 
   const products = await Product.find({}).select("name slug images").lean();
-  const categories = await Category.find({}).select("name slug image").lean();
+  const categories = await Category.find({})
+    .select("name slug image content")
+    .lean();
 
   // Backup of the image fields we may touch, before any write.
   if (COMMIT) {
@@ -220,7 +255,12 @@ async function main() {
       JSON.stringify(
         {
           products: products.map((p) => ({ _id: p._id, slug: p.slug, images: p.images })),
-          categories: categories.map((c) => ({ _id: c._id, slug: c.slug, image: c.image })),
+          categories: categories.map((c) => ({
+            _id: c._id,
+            slug: c.slug,
+            image: c.image,
+            content: c.content,
+          })),
         },
         null,
         2,
@@ -251,8 +291,17 @@ async function main() {
       localImageIndex,
       `category ${category.slug}`,
     );
-    if (updated) {
-      await Category.updateOne({ _id: category._id }, { $set: { image: updated[0] } });
+    const updatedContent = await rehostHtmlImages(
+      category.content,
+      "naturesnational/categories",
+      localImageIndex,
+      `category-content ${category.slug}`,
+    );
+    if (updated || updatedContent) {
+      const $set = {};
+      if (updated) $set.image = updated[0];
+      if (updatedContent) $set.content = updatedContent;
+      await Category.updateOne({ _id: category._id }, { $set });
       stats.docs_updated++;
     }
   }

@@ -84,6 +84,10 @@ function Block({ block }) {
         className="my-4 h-auto max-w-full rounded-xl border border-[var(--color-warm-gray)]"
         style={{ objectFit: "contain" }}
         loading="lazy"
+        onError={(e) => {
+          // Missing/blocked asset → hide it rather than show a broken icon.
+          e.currentTarget.style.display = "none";
+        }}
       />
     );
   }
