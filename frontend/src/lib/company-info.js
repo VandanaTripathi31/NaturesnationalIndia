@@ -15,9 +15,13 @@
  * it only consumes the exported shape below.
  */
 
-// Live theme image assets (host allow-listed in next.config remotePatterns).
-// Swap this base to "/images/product-tabs" once local copies are added.
-const IMG = "https://www.naturesnaturalindia.com/skin/frontend/rwd/default/images";
+// Theme image assets, served locally. These used to point at the legacy
+// Magento host (…naturesnaturalindia.com/skin/frontend/rwd/default/images),
+// but that host now returns 403 for every request, so all five tab images
+// broke site-wide. Local copies of the originals go in
+// frontend/public/images/product-tabs/ (same filenames); until a file is
+// present the tab renders without that image instead of a broken icon.
+const IMG = "/images/product-tabs";
 
 export const COMPANY_INFO_TABS = [
   {
