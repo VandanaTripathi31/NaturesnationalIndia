@@ -1,3 +1,7 @@
+// IMPORTANT: files must sit at  public/images/<filename>  exactly, with
+// matching case (linux hosting is case-sensitive — "Drum.jpg" !== "drum.jpg").
+// If a tab still shows a "Image not found" placeholder after this change,
+// the filename below doesn't match a real file in that folder.
 const IMG = "/images";
 
 export const COMPANY_INFO_TABS = [
@@ -24,28 +28,80 @@ export const COMPANY_INFO_TABS = [
     id: "packaging",
     label: "Packaging",
     blocks: [
-      { type: "image", src: `${IMG}/range-img.png`, alt: "Bottle range" },
-      { type: "image", src: `${IMG}/drum.jpg`, alt: "Bulk packaging drums" },
+      {
+        type: "paragraph",
+        text: "Our packaging facilities are well-equipped, well-designed and automated, giving maximum flexibility to ensure not only the timely dispatch of consignments but also to accommodate last-minute orders. Our expertise in managing both large & bulk orders as well as small retail-based or individual orders in pinch-of-time makes us the preferred essential oils and allied products supplier across the globe.",
+      },
+      {
+        type: "image",
+        src: `${IMG}/labelling-img1.png`,
+        alt: "Our bottle packaging range",
+      },
       {
         type: "heading",
         text: "Bottles Packaging",
       },
       {
-        type: "list",
-        items: [
-          "5 ML — Essential Oil / Blend packed in a 5 ml Amber glass / Cobalt Blue bottle, with euro dropper and sealable cap, label of your design, complete labelling and filling.",
-          "10 ML — Packed in a 10 ml Amber glass / Cobalt Blue bottle, euro dropper and sealable cap, label of your design, 10 ml outer box of your design, complete labelling and filling.",
-          "15 ML — Packed in a 15 ml Amber glass / Cobalt Blue bottle, euro dropper and sealable cap, label of your design, 15 ml outer box of your design, complete labelling and filling.",
-          "30 ML — Packed in a 30 ml Amber glass / Cobalt Blue / Amber or Clear PET bottle, euro dropper and sealable / disk cap, label of your design, outer box of your design, complete labelling and filling.",
+        type: "imageText",
+        image: {
+          src: `${IMG}/labelling-img2.png`,
+          alt: "5 ml bottle packaging",
+        },
+        heading: "Essential Oils / Blends in 5 ML",
+        text: [
+          "Packed in a 5 ml Amber glass / Cobalt Blue bottle.",
+          "Euro dropper and sealable cap.",
+          "Label of your design, complete labelling and filling.",
         ],
       },
       {
-        type: "heading",
-        text: "Packaging Options",
+        type: "imageText",
+        image: {
+          src: `${IMG}/labelling-img3.png`,
+          alt: "10 ml bottle packaging",
+        },
+        heading: "Essential Oils / Blends in 10 ML",
+        text: [
+          "Packed in a 10 ml Amber glass / Cobalt Blue bottle.",
+          "Euro dropper and sealable cap.",
+          "Label of your design and 10 ml outer box of your design.",
+          "Complete labelling and filling.",
+        ],
+        reverse: true,
       },
       {
-        type: "paragraph",
-        text: "Our packaging facilities are well-equipped, well-designed and automated, giving maximum flexibility to ensure not only the timely dispatch of consignments but also to accommodate last-minute orders. Our expertise in managing both large & bulk orders as well as small retail-based or individual orders in pinch-of-time makes us the preferred essential oils and allied products supplier across the globe.",
+        type: "imageText",
+        image: {
+          src: `${IMG}/labelling-img4.png`,
+          alt: "15 ml bottle packaging",
+        },
+        heading: "Essential Oils / Blends in 15 ML",
+        text: [
+          "Packed in a 15 ml Amber glass / Cobalt Blue bottle.",
+          "Euro dropper and sealable cap.",
+          "Label of your design and 15 ml outer box of your design.",
+          "Complete labelling and filling.",
+        ],
+      },
+      {
+        type: "imageText",
+        image: {
+          src: `${IMG}/labelling-img5.png`,
+          alt: "30 ml bottle packaging",
+        },
+        heading: "Essential Oils / Blends in 30 ML",
+        text: [
+          "Packed in a 30 ml Amber glass / Cobalt Blue / Amber or Clear PET bottle.",
+          "Euro dropper and sealable / disk cap.",
+          "Label of your design and outer box of your design.",
+          "Complete labelling and filling.",
+        ],
+        reverse: true,
+      },
+      {
+        type: "image",
+        src: `${IMG}/drum.jpg`,
+        alt: "Bulk packaging drums",
       },
       {
         type: "paragraph",
@@ -58,17 +114,66 @@ export const COMPANY_INFO_TABS = [
     label: "Private Labelling",
     blocks: [
       {
-        type: "image",
-        src: `${IMG}/labelling-img1.png`,
-        alt: "Private labelling bottles",
+        type: "imageText",
+        image: {
+          src: `${IMG}/labelling-img1.png`,
+          alt: "Private labelling bottles",
+        },
+        text: [
+          "It is a universally accepted fact that a 'Brand' is the medium of connecting a product with its target consumers and hence an integral part of the Sales & Marketing strategy for every enterprise.",
+          "We understand how important it is for you to project the image of your esteemed brand with every sale and with each of your marketing campaigns.",
+          "You want to reach out to people and want them to remember you — and we help you do exactly that.",
+        ],
       },
       {
-        type: "paragraph",
-        text: "It is a universally accepted fact that a 'Brand' is the medium of connecting a product with its target consumers and hence an integral part of the Sales & Marketing strategy for every enterprise. We understand how important it is for you to project the image of your esteemed brand with every sale and with each of your marketing campaigns.",
+        type: "heading",
+        text: "Top 6 Essential Oil Gift Sets",
       },
       {
-        type: "paragraph",
-        text: "You want to reach out to people and want them to remember you — and we help you do exactly that. From custom bottles and labels of your design to complete branded outer packaging, our private-labelling service lets you sell our premium oils under your own brand identity.",
+        type: "imageText",
+        image: {
+          src: `${IMG}/labelling-img6.png`,
+          alt: "Top 6 essential oil gift set",
+        },
+        text: [
+          "1. Lavender Oil",
+          "2. Tea Tree Oil",
+          "3. Orange Oil",
+          "4. Peppermint Oil",
+          "5. Eucalyptus Oil",
+          "6. Lemongrass",
+        ],
+        reverse: true,
+      },
+      {
+        type: "grid",
+        items: [
+          {
+            image: {
+              src: `${IMG}/labelling-img6-2.jpg`,
+              alt: "Box packaging with foam insert",
+            },
+            heading: "Box Packaging with Foam Insert",
+            text: [
+              "Top 4 / 6 / 8 / 10 / 12 / 14 bottles of oil, 10 ml each.",
+              "Packed in 10 ml Amber glass bottles with euro dropper and sealable cap.",
+              "Label of your design, plain black or printed box, foam insert with printed wrist band.",
+            ],
+          },
+          {
+            image: {
+              src: `${IMG}/labelling-img7.png`,
+              alt: "Essential oil gift set",
+            },
+            heading:
+              "Essential Oil Gift Sets (4 / 6 / 8 / 10 / 12 / 14 pieces)",
+            text: [
+              "12 / 14 / 24 bottles of oil, 10 ml each.",
+              "Packed in 10 ml Amber glass bottles with euro dropper and sealable cap.",
+              "Label of your design, boxed as a kit, complete labelling and filling.",
+            ],
+          },
+        ],
       },
     ],
   },
@@ -77,17 +182,17 @@ export const COMPANY_INFO_TABS = [
     label: "Shipping Preferences",
     blocks: [
       {
-        type: "image",
-        src: `${IMG}/shipping.png`,
-        alt: "Shipping partners: FedEx, UPS, DHL, EMS",
-      },
-      {
         type: "paragraph",
         text: "We have partnered with major freight and shipping stalwarts like DHL, FedEx and UPS to meet our delivery-time standards. As per the client's requirement, we dispatch consignments either by sea or by air.",
       },
       {
         type: "paragraph",
         text: "From the moment we receive a patron's order, we are aligned to dispatch it within the next 24 hours and commit to 4–5 working days as the delivery TAT (turn-around time).",
+      },
+      {
+        type: "image",
+        src: `${IMG}/shipping.png`,
+        alt: "Shipping partners: FedEx, UPS, DHL, EMS",
       },
     ],
   },
@@ -96,17 +201,17 @@ export const COMPANY_INFO_TABS = [
     label: "Payment Method",
     blocks: [
       {
-        type: "image",
-        src: `${IMG}/payment.png`,
-        alt: "Accepted payment methods",
-      },
-      {
         type: "paragraph",
         text: "Naturesnaturalindia.com is a popular and reputable e-commerce store from where you can purchase organic essential and natural oils at your convenience. Customers can make payments through debit / credit card, PayPal and wire transfer.",
       },
       {
         type: "paragraph",
         text: "Manufacturers and wholesale suppliers can make a safe and secure payment for the desired products. Our shipping options are absolutely secure, ensuring both the safety and privacy of the contents in every consignment sent across the globe, within the promised turn-around time.",
+      },
+      {
+        type: "image",
+        src: `${IMG}/payment.png`,
+        alt: "Accepted payment methods",
       },
     ],
   },

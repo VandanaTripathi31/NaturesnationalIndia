@@ -1,17 +1,3 @@
-/**
- * Long-form SEO content shown beneath the product listing on category pages,
- * keyed by the category's canonical slug. This mirrors the live site, where
- * each category has editorial copy (headings, paragraphs, lists, FAQ) below
- * the grid.
- *
- * CategoryPageView renders CATEGORY_CONTENT[slug] when present; otherwise it
- * falls back to the plain `category.description` from MongoDB. To make this
- * dashboard-editable later, this map can be promoted to a database collection
- * without changing the renderer — it only consumes the block shape below.
- *
- * Block types: { type: "heading" | "subheading" | "paragraph" | "list" | "faq" }
- */
-
 export const CATEGORY_CONTENT = {
   "pure-and-natural-essential-oils": {
     title:
@@ -49,7 +35,10 @@ export const CATEGORY_CONTENT = {
         type: "paragraph",
         text: "Essential oils are integral to aromatherapy, harnessing the natural potency of plant extracts to enhance physical, emotional, and mental well-being. By diffusing essential oils like lavender and chamomile, individuals can create a calming atmosphere that alleviates stress and promotes relaxation. Oils such as peppermint and rosemary invigorate the senses, boosting mental clarity and concentration. Additionally, essential oils like eucalyptus and ginger provide relief from muscle tension and respiratory issues, while tea tree and geranium address skin concerns with their therapeutic properties. Through various methods like diffusion, topical application, and baths, aromatherapy utilizes these concentrated oils to offer a holistic approach to wellness, improving mood, alleviating pain, and supporting overall health.",
       },
-      { type: "heading", text: "Use of Essential oils in the Cosmetic industry" },
+      {
+        type: "heading",
+        text: "Use of Essential oils in the Cosmetic industry",
+      },
       {
         type: "paragraph",
         text: "Essential oils play a significant role in the cosmetic industry, offering a range of benefits and applications. Here's how they are used:",
@@ -323,7 +312,7 @@ export const CATEGORY_CONTENT = {
   },
 
   "organic-essential-oil": {
-    title: "What comes to your mind when you hear the word \"organic\"?",
+    title: 'What comes to your mind when you hear the word "organic"?',
     blocks: [
       { type: "heading", text: "Introduction" },
       {
@@ -489,7 +478,7 @@ export const CATEGORY_CONTENT = {
     blocks: [
       {
         type: "paragraph",
-        text: "Organic carrier oils are the base oils that \"dilute\" the essential oils intended for topical application on the skin. Essential oils are \"carried\" to the skin through organic carrier oils obtained from plants. Organic carrier oil suppliers supply excellent carrier oil with unique properties and characteristics that expand its medicinal benefits for people in many ways and for numerous reasons.",
+        text: 'Organic carrier oils are the base oils that "dilute" the essential oils intended for topical application on the skin. Essential oils are "carried" to the skin through organic carrier oils obtained from plants. Organic carrier oil suppliers supply excellent carrier oil with unique properties and characteristics that expand its medicinal benefits for people in many ways and for numerous reasons.',
       },
       {
         type: "paragraph",
@@ -508,7 +497,10 @@ export const CATEGORY_CONTENT = {
         type: "paragraph",
         text: "Although some are odorless, most carrier oils have a subtle scent that is sweet and nutty. Unlike essential oils, they do not evaporate.",
       },
-      { type: "heading", text: "Some important points of certified organic carrier oils" },
+      {
+        type: "heading",
+        text: "Some important points of certified organic carrier oils",
+      },
       {
         type: "list",
         items: [
@@ -620,7 +612,7 @@ export const CATEGORY_CONTENT = {
     blocks: [
       {
         type: "paragraph",
-        text: "These exotic and alluring dilutions are made under strictly regulated, organic, and religious circumstances to live up to their label of exotic. These dilutions are a rich and magnificent \"combo\" of organically and naturally distilled and extracted plant essences. As such, they are free of synthetic or natural analogs or other forms of adulteration. Skin reactions, irritations, or hypersensitivity are less likely at 3% exotic dilution.",
+        text: 'These exotic and alluring dilutions are made under strictly regulated, organic, and religious circumstances to live up to their label of exotic. These dilutions are a rich and magnificent "combo" of organically and naturally distilled and extracted plant essences. As such, they are free of synthetic or natural analogs or other forms of adulteration. Skin reactions, irritations, or hypersensitivity are less likely at 3% exotic dilution.',
       },
       {
         type: "paragraph",
@@ -854,7 +846,7 @@ export const CATEGORY_CONTENT = {
     blocks: [
       {
         type: "paragraph",
-        text: "The Sanskrit term \"chakra\" means \"wheel\" or \"disc.\" This phrase alludes to the energy wheels that run throughout the body in yoga, meditation, and Ayurveda. For the body to operate at its best, the seven chakras— the root (Muladhara), sacral (Swadhistana), solar plexus (Manipura), heart (Anahata), throat (Vishuddha), third eye (Ajna), and crown (Sahasrara)— need to be in harmony. One can experience greater levels of self-love, gratitude, groundedness, and confidence after using chakra blends provided by seven chakra blends manufacturers, which are an exquisite combination of natural components from green sources.",
+        text: 'The Sanskrit term "chakra" means "wheel" or "disc." This phrase alludes to the energy wheels that run throughout the body in yoga, meditation, and Ayurveda. For the body to operate at its best, the seven chakras— the root (Muladhara), sacral (Swadhistana), solar plexus (Manipura), heart (Anahata), throat (Vishuddha), third eye (Ajna), and crown (Sahasrara)— need to be in harmony. One can experience greater levels of self-love, gratitude, groundedness, and confidence after using chakra blends provided by seven chakra blends manufacturers, which are an exquisite combination of natural components from green sources.',
       },
       {
         type: "paragraph",
@@ -1265,7 +1257,7 @@ export const CATEGORY_CONTENT = {
       },
       {
         type: "paragraph",
-        text: "Choosing top-notch diffuser oils is crucial for a secure and pleasant aromatherapy session. Cold-pressed distillation, Steam-distilled extraction, supercritical or subcritical Co2 distillation technologies, and other \"clean\" distillation techniques are utilized to create diffuser oils that are ideal for diffusion. It's important to choose an essential oil with the label \"for aromatherapy use\" when putting one in the diffuser. Benefiting from aromatherapy may be simple and affordable with a vital oil diffuser. Aromatherapy is a traditional holistic treatment that has gained popularity in contemporary medicine. It involves breathing critical oils to promote health.",
+        text: 'Choosing top-notch diffuser oils is crucial for a secure and pleasant aromatherapy session. Cold-pressed distillation, Steam-distilled extraction, supercritical or subcritical Co2 distillation technologies, and other "clean" distillation techniques are utilized to create diffuser oils that are ideal for diffusion. It\'s important to choose an essential oil with the label "for aromatherapy use" when putting one in the diffuser. Benefiting from aromatherapy may be simple and affordable with a vital oil diffuser. Aromatherapy is a traditional holistic treatment that has gained popularity in contemporary medicine. It involves breathing critical oils to promote health.',
       },
       { type: "heading", text: "About the Major Element in Diffuser Oils" },
       {
@@ -1337,7 +1329,7 @@ export const CATEGORY_CONTENT = {
     ],
   },
 
-  "hydrosols": {
+  hydrosols: {
     title: "What is hydrosol or floral water?",
     blocks: [
       {
@@ -1448,7 +1440,7 @@ export const CATEGORY_CONTENT = {
     ],
   },
 
-  "oleoresins": {
+  oleoresins: {
     title: "The Essence of Oleoresin",
     blocks: [
       {
