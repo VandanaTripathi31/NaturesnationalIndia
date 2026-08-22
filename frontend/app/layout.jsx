@@ -2,17 +2,6 @@ import { getCategories } from "../src/services/categoryService";
 import "./globals.css";
 import SiteShell from "../src/components/SiteShell";
 
-// FIX (SEO): `title.template` used to append " | Natures National" to
-// EVERY page's title — Next.js's metadata resolution applies a parent
-// layout's title.template to any descendant page that returns a plain
-// string `title` (which is every page/category/product/blog route in this
-// app; see app/[slug]/page.jsx, app/product/[slug]/page.jsx,
-// app/category/[slug]/page.jsx, app/blog/[slug]/page.jsx). Since those
-// pages already return the exact original migrated meta title (or the
-// live site's), the template was silently corrupting every single one of
-// them relative to the live site by appending this suffix — not just a
-// handful of pages. Only `default` remains, used solely for routes that
-// don't set their own metadata at all.
 export const metadata = {
   title: {
     default: "Natures National",
@@ -46,7 +35,31 @@ export default async function RootLayout({ children }) {
 
   return (
     <html lang="en">
+      <head>
+        {/* Google Tag Manager */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-NRGQGPXN');`,
+          }}
+        />
+        {/* End Google Tag Manager */}
+      </head>
       <body>
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-NRGQGPXN"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
+        {/* End Google Tag Manager (noscript) */}
+
         <SiteShell categories={categories}>{children}</SiteShell>
       </body>
     </html>
