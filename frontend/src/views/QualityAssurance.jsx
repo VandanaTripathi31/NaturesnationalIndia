@@ -217,7 +217,7 @@ export default function QualityAssurance() {
               shipment.
             </p>
             <a
-              href="mailto:info@naturesnationalindia.com?subject=Product Documentation Request"
+              href="mailto:info@naturesnaturalindia.com?subject=Product Documentation Request"
               className="inline-flex items-center gap-3 bg-gradient-to-r from-[#c4a882] to-[#a8896c] text-[#1a0f0a] font-bold rounded-full px-8 py-4 text-sm hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200"
             >
               Request Product Documentation →
@@ -624,7 +624,7 @@ export default function QualityAssurance() {
               uncompromising standards — for every order, every time.
             </p>
             <a
-              href="mailto:info@naturesnationalindia.com?subject=Quality Team Enquiry"
+              href="mailto:info@naturesnaturalindia.com?subject=Quality Team Enquiry"
               className="inline-flex items-center gap-3 bg-gradient-to-r from-[#c4a882] to-[#a8896c] text-[#1a0f0a] font-bold rounded-full px-9 py-4 text-sm hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-200"
             >
               Contact Our Quality Team →

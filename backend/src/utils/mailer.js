@@ -34,7 +34,7 @@ export async function sendEnquiryEmail(enquiry) {
     const tx = getTransport();
     if (!tx) return false;
 
-    const to = process.env.ENQUIRY_TO || process.env.SMTP_USER;
+    const to = process.env.ENQUIRY_TO || "info@naturesnaturalindia.com";
     const from = process.env.ENQUIRY_FROM || process.env.SMTP_USER;
 
     const html = `

@@ -160,11 +160,26 @@ function StyledTextarea({ ...props }) {
   );
 }
 
+const EMPTY_FORM = {
+  name: "",
+  company: "",
+  email: "",
+  phone: "",
+  country: "",
+  category: "",
+  products: "",
+  quantity: "",
+  purpose: "",
+  message: "",
+};
+
 export default function InquiryWidget() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
   const [captchaError, setCaptchaError] = useState("");
   const [captchaUnavailable, setCaptchaUnavailable] = useState(false);
@@ -172,18 +187,7 @@ export default function InquiryWidget() {
   const recaptchaRef = useRef(null);
   const widgetIdRef = useRef(null);
 
-  const [form, setForm] = useState({
-    name: "",
-    company: "",
-    email: "",
-    phone: "",
-    country: "",
-    category: "",
-    products: "",
-    quantity: "",
-    purpose: "",
-    message: "",
-  });
+  const [form, setForm] = useState(EMPTY_FORM);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
@@ -192,6 +196,7 @@ export default function InquiryWidget() {
     setClosing(false);
     setSubmitted(false);
     setCaptchaError("");
+    setSubmitError("");
   };
 
   // Load the reCAPTCHA script once (only when a site key is configured).
@@ -358,7 +363,9 @@ export default function InquiryWidget() {
       }
     }
     setCaptchaError("");
-    setSubmitted(true);
+    setSubmitError("");
+    if (submitting) return;
+    setSubmitting(true);
 
     const params = new URLSearchParams();
     params.set("name", form.name);
@@ -367,8 +374,9 @@ export default function InquiryWidget() {
     if (form.category) params.set("category", form.category);
     if (form.quantity) params.set("quantity", form.quantity);
 
-    // Persist the enquiry to the backend. Failure here should not block the
-    // user's confirmation flow, so we log and still show the Thank You page.
+    // Persist the enquiry to the backend, then navigate to the Thank You
+    // page immediately once the backend confirms. On failure the entered
+    // data is preserved so the visitor can retry.
     try {
       await apiClient.post("/api/public/enquiries", {
         name: form.name,
@@ -383,13 +391,30 @@ export default function InquiryWidget() {
       });
     } catch (err) {
       console.error("Failed to save enquiry:", err);
+      setSubmitting(false);
+      // A used captcha token is rejected on retry — reset the widget.
+      try {
+        if (widgetIdRef.current !== null) {
+          window.grecaptcha?.reset(widgetIdRef.current);
+        }
+      } catch {
+        /* widget may already be gone */
+      }
+      setSubmitError(
+        "Sorry, your enquiry could not be sent. Please try again, or email " +
+          "us directly at info@naturesnaturalindia.com.",
+      );
+      return;
     }
 
-    // Brief pause so the in-modal "Inquiry Sent!" confirmation is visible
-    // before navigating through to the full Thank You page.
-    setTimeout(() => {
-      router.push(`/thank-you?${params.toString()}`);
-    }, 900);
+    setSubmitted(true);
+    setForm(EMPTY_FORM);
+    try {
+      sessionStorage.setItem("nn-enquiry-success", "1");
+    } catch {
+      /* storage unavailable (private mode) — query params still gate access */
+    }
+    router.push(`/thank-you?${params.toString()}`);
   };
 
   // Close on Escape
@@ -806,8 +831,24 @@ export default function InquiryWidget() {
                     </div>
                   )}
 
+                  {submitError && (
+                    <span
+                      style={{
+                        display: "block",
+                        marginBottom: "12px",
+                        fontSize: "12px",
+                        color: "#c0392b",
+                        fontFamily: "'Outfit', sans-serif",
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {submitError}
+                    </span>
+                  )}
+
                   <button
                     onClick={handleSubmit}
+                    disabled={submitting}
                     style={{
                       width: "100%",
                       padding: "13px",
@@ -817,7 +858,8 @@ export default function InquiryWidget() {
                       fontFamily: "'Outfit', sans-serif",
                       fontSize: "13px",
                       fontWeight: 700,
-                      cursor: "pointer",
+                      cursor: submitting ? "wait" : "pointer",
+                      opacity: submitting ? 0.7 : 1,
                       letterSpacing: "0.5px",
                       transition: "opacity 0.2s, transform 0.2s",
                       borderRadius: "3px",
@@ -831,7 +873,7 @@ export default function InquiryWidget() {
                       e.currentTarget.style.transform = "translateY(0)";
                     }}
                   >
-                    Send Inquiry → Get Free Quote
+                    {submitting ? "Sending…" : "Send Inquiry → Get Free Quote"}
                   </button>
                 </>
               )}
@@ -867,14 +909,14 @@ export default function InquiryWidget() {
                 <span>
                   ✉{" "}
                   <a
-                    href="mailto:info@naturesnaturaliindia.com"
+                    href="mailto:info@naturesnaturalindia.com"
                     style={{
                       color: "var(--color-brown-mid)",
                       textDecoration: "none",
                       fontWeight: 600,
                     }}
                   >
-                    info@naturesnaturaliindia.com
+                    info@naturesnaturalindia.com
                   </a>
                 </span>
               </div>

@@ -1,9 +1,9 @@
 "use client";
 
-// Floating WhatsApp contact button. The number is read from
-// NEXT_PUBLIC_WHATSAPP_NUMBER (digits only, incl. country code) so it can be
-// changed without a code edit; it renders nothing until a number is set.
-const NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+// Floating WhatsApp contact button. The number can be overridden via
+// NEXT_PUBLIC_WHATSAPP_NUMBER (digits only, incl. country code); it defaults
+// to the company WhatsApp number so the button always renders in production.
+const NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919289488582";
 const MESSAGE = "Hello, I have a question about your products.";
 
 export default function WhatsAppButton() {
