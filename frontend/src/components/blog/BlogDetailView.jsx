@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Calendar, Tag as TagIcon, User } from "lucide-react";
@@ -17,10 +17,24 @@ const fadeUp = {
   },
 };
 
+// TEMP: no automatic removal right now — we removed the wrong image last
+// time (guessed "always drop the first img", but the first one was
+// actually the good/full image and the second was the correct one to
+// keep). Passing content through unchanged until we can inspect the real
+// HTML and target the exact duplicate correctly.
+function dedupeContentImages(html) {
+  return html;
+}
+
 export default function BlogDetailView({ blog, related = [] }) {
   const heroImageUrl = resolveImageUrl(blog.image, `blog-detail:${blog.title}`);
   const category = blog.categories?.[0];
   const contentRef = useRef(null);
+
+  const dedupedContent = useMemo(
+    () => dedupeContentImages(blog.content),
+    [blog.content],
+  );
 
   useEffect(() => {
     const container = contentRef.current;
@@ -29,25 +43,22 @@ export default function BlogDetailView({ blog, related = [] }) {
     const images = container.querySelectorAll("img");
 
     images.forEach((img) => {
-      // If it has no src at all, hide it immediately
       if (!img.getAttribute("src")) {
         img.style.display = "none";
         return;
       }
 
-      // If it's already broken (cached failure), hide it now
       if (img.complete && img.naturalWidth === 0) {
         img.style.display = "none";
         return;
       }
 
-      // Otherwise, watch for a future load failure
       const handleError = () => {
         img.style.display = "none";
       };
       img.addEventListener("error", handleError);
     });
-  }, [blog.content]);
+  }, [dedupedContent]);
 
   return (
     <div
@@ -83,7 +94,7 @@ export default function BlogDetailView({ blog, related = [] }) {
               )}
             </div>
           </motion.div>
-
+          {/* 
           {heroImageUrl && (
             <div className="relative mt-8 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-white">
               <Image
@@ -95,12 +106,12 @@ export default function BlogDetailView({ blog, related = [] }) {
                 sizes="(max-width: 768px) 100vw, 768px"
               />
             </div>
-          )}
+          )} */}
 
           <div
             ref={contentRef}
             className="blog-content prose mt-10 max-w-none text-[15px] leading-relaxed text-[var(--color-text-primary)] [&_h1]:font-playfair [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:font-playfair [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-semibold [&_h3]:mt-6 [&_h3]:font-playfair [&_h3]:text-xl [&_h3]:font-semibold [&_p]:my-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[var(--color-dark-brown)] [&_a]:underline [&_img]:rounded-xl [&_img]:my-6"
-            dangerouslySetInnerHTML={{ __html: blog.content }}
+            dangerouslySetInnerHTML={{ __html: dedupedContent }}
           />
 
           {blog.tags?.length > 0 && (
