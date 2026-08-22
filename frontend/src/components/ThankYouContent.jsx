@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Phone, Mail, ArrowRight } from "lucide-react";
 import FadeIn from "./FadeIn";
 
@@ -39,6 +39,7 @@ function DetailRow({ label, value }) {
 }
 
 function ThankYouInner() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const name = searchParams.get("name");
   const email = searchParams.get("email");
@@ -47,6 +48,29 @@ function ThankYouInner() {
   const quantity = searchParams.get("quantity");
 
   const hasDetails = Boolean(name || email || phone || category || quantity);
+
+  // Only show this page after a real successful submission: both enquiry
+  // forms pass the submitted details as query params and set a
+  // sessionStorage flag before navigating here. A bare, direct open of
+  // /thank-you (no params, no flag) is bounced back to the homepage so a
+  // failed/abandoned submission can't register a conversion.
+  const [allowed, setAllowed] = useState(hasDetails);
+  useEffect(() => {
+    if (hasDetails) return;
+    let flag = null;
+    try {
+      flag = sessionStorage.getItem("nn-enquiry-success");
+    } catch {
+      /* storage unavailable — fall through to redirect */
+    }
+    if (flag) {
+      setAllowed(true);
+    } else {
+      router.replace("/");
+    }
+  }, [hasDetails, router]);
+
+  if (!allowed) return <ThankYouFallback />;
 
   return (
     <div

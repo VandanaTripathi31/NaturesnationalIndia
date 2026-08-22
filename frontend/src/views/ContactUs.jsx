@@ -219,6 +219,8 @@ export default function Contact() {
     agree: false,
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [captchaError, setCaptchaError] = useState("");
   const [captchaUnavailable, setCaptchaUnavailable] = useState(false);
 
@@ -335,7 +337,9 @@ export default function Contact() {
       }
     }
     setCaptchaError("");
-    setSubmitted(true);
+    setSubmitError("");
+    if (submitting) return;
+    setSubmitting(true);
 
     const params = new URLSearchParams();
     if (form.name) params.set("name", form.name);
@@ -344,7 +348,9 @@ export default function Contact() {
     if (form.subject) params.set("category", form.subject);
 
     // Persist the enquiry to the backend (same public endpoint used by the
-    // global inquiry widget). Failure never blocks the user's confirmation.
+    // global inquiry widget), then navigate to the Thank You page as soon
+    // as the backend confirms. On failure the entered data is preserved so
+    // the visitor can retry.
     try {
       await apiClient.post("/api/public/enquiries", {
         name: form.name,
@@ -357,13 +363,38 @@ export default function Contact() {
       });
     } catch (err) {
       console.error("Failed to save enquiry:", err);
+      setSubmitting(false);
+      // A used captcha token is rejected on retry — reset the widget.
+      try {
+        if (widgetIdRef.current !== null) {
+          window.grecaptcha?.reset(widgetIdRef.current);
+        }
+      } catch {
+        /* widget may already be gone */
+      }
+      setSubmitError(
+        "Sorry, your enquiry could not be sent. Please try again, or email " +
+          "us directly at info@naturesnaturalindia.com.",
+      );
+      return;
     }
 
-    // Brief pause so the in-form "Inquiry Received" confirmation is visible
-    // before navigating through to the full Thank You page.
-    setTimeout(() => {
-      router.push(`/thank-you?${params.toString()}`);
-    }, 900);
+    setSubmitted(true);
+    setForm({
+      name: "",
+      email: "",
+      phone: "",
+      company: "",
+      subject: "",
+      message: "",
+      agree: false,
+    });
+    try {
+      sessionStorage.setItem("nn-enquiry-success", "1");
+    } catch {
+      /* storage unavailable (private mode) — query params still gate access */
+    }
+    router.push(`/thank-you?${params.toString()}`);
   };
 
   return (
@@ -827,12 +858,31 @@ export default function Contact() {
                   </div>
                 )}
 
+                {submitError && (
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "0.84rem",
+                      color: "#b91c1c",
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    {submitError}
+                  </p>
+                )}
+
                 <button
                   type="submit"
                   className="btn-primary"
-                  style={{ marginTop: "0.5rem", fontSize: "0.97rem" }}
+                  disabled={submitting}
+                  style={{
+                    marginTop: "0.5rem",
+                    fontSize: "0.97rem",
+                    cursor: submitting ? "wait" : "pointer",
+                    opacity: submitting ? 0.7 : 1,
+                  }}
                 >
-                  Send Inquiry
+                  {submitting ? "Sending…" : "Send Inquiry"}
                   <svg
                     width="16"
                     height="16"

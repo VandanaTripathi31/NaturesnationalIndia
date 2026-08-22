@@ -184,10 +184,10 @@ export default function CategorySidebar({
             <Phone size={12} /> +91 9711003901
           </a>
           <a
-            href="mailto: info@naturesnationalIndia.com"
+            href="mailto:info@naturesnaturalindia.com"
             className="flex items-center gap-2 text-xs text-[var(--color-cream-white)] transition hover:opacity-80"
           >
-            <Mail size={12} /> info@naturesnationalIndia.com
+            <Mail size={12} /> info@naturesnaturalindia.com
           </a>
         </div>
         <Link
