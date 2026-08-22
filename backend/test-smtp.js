@@ -15,6 +15,27 @@ import nodemailer from "nodemailer";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env"), quiet: true });
 
+// When BREVO_API_KEY is set, test the Brevo HTTP path (what production
+// uses on hosts that block SMTP) instead of raw SMTP.
+if (process.env.BREVO_API_KEY) {
+  const { sendViaBrevo } = await import("./src/utils/mailer.js");
+  const to = process.env.ENQUIRY_TO || "info@naturesnaturalindia.com";
+  console.log("BREVO_API_KEY is set — testing the Brevo HTTP API path.");
+  console.log(`  Recipient (ENQUIRY_TO): ${to}`);
+  try {
+    await sendViaBrevo({
+      name: "SMTP Test",
+      email: "test@example.com",
+      message: "If you can read this, the Brevo email setup works.",
+    });
+    console.log("✓ Brevo accepted the email. Check the inbox (and Spam) of " + to);
+  } catch (err) {
+    console.error("✗ Brevo send failed:", err.message);
+    process.exit(1);
+  }
+  process.exit(0);
+}
+
 const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
 const to = process.env.ENQUIRY_TO || SMTP_USER;
 
