@@ -52,16 +52,28 @@ export async function sendEnquiryEmail(enquiry) {
       </table>
     `;
 
-    await tx.sendMail({
+    const info = await tx.sendMail({
       from: `"Natures Natural India" <${from}>`,
       to,
       replyTo: enquiry.email,
       subject: `New Enquiry — ${enquiry.name}`,
       html,
     });
+    console.log(
+      `[mailer] Enquiry email sent to ${to} (id: ${info.messageId}, response: ${info.response})`,
+    );
     return true;
   } catch (err) {
-    console.error("[mailer] Failed to send enquiry email:", err.message);
+    // Log the SMTP diagnostics (code/command/server response) — without
+    // these, "Connection timeout" vs "auth rejected" vs "sender refused"
+    // are indistinguishable in production logs. Never log credentials.
+    console.error("[mailer] Failed to send enquiry email:", {
+      message: err.message,
+      code: err.code,
+      command: err.command,
+      responseCode: err.responseCode,
+      response: err.response,
+    });
     return false;
   }
 }
