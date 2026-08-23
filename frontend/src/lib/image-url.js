@@ -17,6 +17,25 @@ function logResolution(raw, resolved, label) {
 
 const NO_SELECTION_RE = /(^|\/)no_selection\/?$/i;
 
+// True for URLs on the old Magento media host. These must NOT go through
+// the Vercel image optimizer: the optimizer fetches them server-side and
+// hangs until "upstream image response timed out" (several seconds) when
+// the legacy server is slow or the file is gone — only then can the client
+// fall back. Rendering them unoptimized lets the browser fetch directly,
+// which loads fast when the file exists and fails fast when it doesn't.
+export function isLegacyMediaUrl(value) {
+  if (typeof value !== "string") return false;
+  try {
+    const { hostname } = new URL(value);
+    return (
+      hostname === "naturesnaturalindia.com" ||
+      hostname.endsWith(".naturesnaturalindia.com")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function resolveImageUrl(value, label) {
   const url = typeof value === "string" ? value.trim() : "";
   if (!url || NO_SELECTION_RE.test(url)) return null;

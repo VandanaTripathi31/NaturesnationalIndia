@@ -43,6 +43,38 @@ function getTransport() {
   return transporter;
 }
 
+// Checks SMTP connectivity + login once at startup so a broken mail setup
+// is visible in the deploy logs immediately, instead of surfacing only when
+// the first enquiry silently fails. The error codes distinguish the causes:
+// ETIMEDOUT/ECONNECTION = host blocks outbound SMTP or wrong host/port,
+// EAUTH = wrong user/app password. Never throws and never logs credentials.
+export async function verifyMailer() {
+  const tx = getTransport();
+  if (!tx) return false;
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER } = process.env;
+  try {
+    await tx.verify();
+    console.log(
+      `[mailer] SMTP verified: ${SMTP_HOST}:${SMTP_PORT || 587} as ${SMTP_USER} — enquiry emails enabled.`,
+    );
+    return true;
+  } catch (err) {
+    console.error(
+      "[mailer] SMTP verification FAILED — enquiry emails will NOT be delivered:",
+      {
+        host: SMTP_HOST,
+        port: Number(SMTP_PORT || 587),
+        message: err.message,
+        code: err.code,
+        command: err.command,
+        responseCode: err.responseCode,
+        response: err.response,
+      },
+    );
+    return false;
+  }
+}
+
 const row = (label, value) =>
   value ? `<tr><td style="padding:4px 12px 4px 0;color:#6b5b4d;font-weight:600">${label}</td><td style="padding:4px 0">${value}</td></tr>` : "";
 
