@@ -19,12 +19,20 @@ export default function SafeImage({
     setFailed(false);
   }, [src]);
 
-  const resolvedSrc = !src || failed ? DEFAULT_FALLBACK_IMAGE : src;
+  const usingFallback = !src || failed;
+  const resolvedSrc = usingFallback ? DEFAULT_FALLBACK_IMAGE : src;
 
   return (
     <Image
       src={resolvedSrc}
       alt={alt}
+      // The fallback is a small pre-compressed webp shipped in /public.
+      // Serve it directly from the static CDN instead of routing it through
+      // the Vercel image optimizer (/_next/image): the optimizer adds a
+      // cold on-demand transform per rendered size, which is why the
+      // fallback appeared late in production after a broken src had
+      // already spent its own optimizer round trip failing.
+      unoptimized={usingFallback}
       onError={() => setFailed(true)}
       {...imageProps}
     />

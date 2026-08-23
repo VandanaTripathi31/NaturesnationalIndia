@@ -26,11 +26,6 @@ export function handleCategoryUpload(req, res, next) {
       });
     }
 
-    console.log("[Upload] req.file exists:", Boolean(req.file));
-    console.log("[Upload] req.file.buffer exists:", Boolean(req.file?.buffer));
-    console.log("[Upload] req.file.buffer size:", req.file?.buffer?.length ?? 0);
-    console.log("[Upload] req.file mimetype:", req.file?.mimetype ?? "n/a");
-
     return next();
   });
 }
@@ -51,16 +46,6 @@ export function handleProductUpload(req, res, next) {
         message: error.message || "Image upload failed",
       });
     }
-
-    console.log("[Upload] req.files count:", req.files?.length ?? 0);
-    req.files?.forEach((file, index) => {
-      console.log(`[Upload] file ${index + 1}:`, {
-        fieldname: file.fieldname,
-        mimetype: file.mimetype,
-        size: file.size,
-        bufferSize: file.buffer?.length ?? 0,
-      });
-    });
 
     return next();
   });
