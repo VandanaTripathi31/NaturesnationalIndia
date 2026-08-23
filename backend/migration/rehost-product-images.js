@@ -51,6 +51,10 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 const COMMIT = process.argv.includes("--commit");
+// Inventory the --local-images folder and exit. Needs neither Cloudinary
+// credentials nor a Mongo connection, so it can be run before a migration
+// to confirm what would be uploaded.
+const AUDIT_LOCAL = process.argv.includes("--audit-local");
 const localImagesArgIdx = process.argv.indexOf("--local-images");
 const localImagesDir =
   localImagesArgIdx !== -1 && process.argv[localImagesArgIdx + 1]
@@ -68,15 +72,46 @@ function buildLocalImageIndex(dir) {
     logger.warn(`--local-images folder not found: ${dir}`);
     return index;
   }
+  // Magento's media tree carries two directories that must NOT be indexed:
+  //   cache/     — pre-resized/watermarked derivatives that reuse the exact
+  //                basename of the original (2,178 of them collide in the
+  //                current export). Indexing them would silently overwrite
+  //                the canonical entry and permanently upload a small,
+  //                watermarked variant to Cloudinary in its place.
+  //   watermark/ — the watermark source images themselves, never product art.
+  const SKIP_DIRS = new Set(["cache", "watermark"]);
+  const collisions = [];
   const walk = (d) => {
     for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
       const full = path.join(d, entry.name);
-      if (entry.isDirectory()) walk(full);
-      else index.set(entry.name.toLowerCase(), full);
+      if (entry.isDirectory()) {
+        if (SKIP_DIRS.has(entry.name.toLowerCase())) continue;
+        walk(full);
+      } else {
+        const key = entry.name.toLowerCase();
+        // Basenames are the mapping key (legacy URL basename -> local file),
+        // so a genuine duplicate is ambiguous. Keep the first and report it
+        // rather than silently letting the last one win.
+        const existing = index.get(key);
+        if (existing) {
+          collisions.push(`${key}: kept ${existing}, ignored ${full}`);
+          continue;
+        }
+        index.set(key, full);
+      }
     }
   };
   walk(dir);
   logger.info(`--local-images: indexed ${index.size} file(s) from ${dir}`);
+  if (collisions.length) {
+    logger.warn(
+      `--local-images: ${collisions.length} duplicate basename(s) ignored:`,
+    );
+    for (const line of collisions.slice(0, 20)) logger.warn(`  ${line}`);
+    if (collisions.length > 20) {
+      logger.warn(`  ...and ${collisions.length - 20} more`);
+    }
+  }
   return index;
 }
 
@@ -120,6 +155,7 @@ const stats = {
   products_scanned: 0,
   categories_scanned: 0,
   images_legacy: 0,
+  skipped_already_hosted: 0,
   rehosted: 0,
   from_local_file: 0,
   from_remote_fetch: 0,
@@ -168,6 +204,9 @@ async function rehostImageList(images, folder, localImageIndex, label) {
   for (const img of images) {
     const legacyUrl = legacyUrlOf(img?.url);
     if (!legacyUrl) {
+      // Already on Cloudinary (or otherwise off the legacy host) — this is
+      // what makes a re-run a no-op instead of a duplicate upload.
+      if (img?.url) stats.skipped_already_hosted++;
       out.push(img);
       continue;
     }
@@ -227,6 +266,34 @@ async function rehostHtmlImages(html, folder, localImageIndex, label) {
 }
 
 async function main() {
+  if (AUDIT_LOCAL) {
+    if (!localImagesDir) {
+      throw new Error("--audit-local requires --local-images <dir>");
+    }
+    const index = buildLocalImageIndex(localImagesDir);
+    const byExt = new Map();
+    for (const file of index.values()) {
+      const ext = path.extname(file).toLowerCase() || "(none)";
+      byExt.set(ext, (byExt.get(ext) ?? 0) + 1);
+    }
+    logger.ok(
+      "Local image audit:",
+      JSON.stringify(
+        {
+          folder: localImagesDir,
+          uploadable_images: index.size,
+          by_extension: Object.fromEntries([...byExt].sort()),
+        },
+        null,
+        2,
+      ),
+    );
+    logger.info(
+      "These are the files a --commit run would upload, keyed by basename.",
+    );
+    return;
+  }
+
   if (COMMIT && !process.env.CLOUDINARY_CLOUD_NAME) {
     throw new Error(
       "Cloudinary credentials are not configured (CLOUDINARY_CLOUD_NAME etc.) — cannot re-host.",
@@ -273,7 +340,7 @@ async function main() {
     stats.products_scanned++;
     const updated = await rehostImageList(
       product.images ?? [],
-      "naturesnational/products",
+      "natures-national/products",
       localImageIndex,
       `product ${product.slug}`,
     );
@@ -287,13 +354,13 @@ async function main() {
     stats.categories_scanned++;
     const updated = await rehostImageList(
       category.image ? [category.image] : [],
-      "naturesnational/categories",
+      "natures-national/categories",
       localImageIndex,
       `category ${category.slug}`,
     );
     const updatedContent = await rehostHtmlImages(
       category.content,
-      "naturesnational/categories",
+      "natures-national/categories",
       localImageIndex,
       `category-content ${category.slug}`,
     );

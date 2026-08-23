@@ -72,19 +72,51 @@ URLs; set `IMAGE_MODE=cloudinary` (+ Cloudinary creds) to re-host copies.
 The legacy Magento host now returns 403 for its media URLs, so any
 Product/Category image still stored in `reference` mode shows the site's
 fallback image. `rehost-product-images.js` moves those images to
-Cloudinary in place (idempotent — Cloudinary URLs are skipped):
+Cloudinary in place (idempotent — Cloudinary URLs are skipped).
+
+The product media export now lives in the repo at
+`frontend/public/images/product/`, mirroring the Magento layout
+(`b/l/blueberry_butter_1.jpg`), so it can be passed straight to
+`--local-images`:
 
 ```bash
-npm run rehost:images:dry    # report what would change, write nothing
-npm run rehost:images        # upload to Cloudinary + update MongoDB
-# the host blocks Cloudinary's remote fetch too — supply originals
-# downloaded via FTP/cPanel/browser (filenames preserved):
-node migration/rehost-product-images.js --commit --local-images ./media-backup
+cd backend
+
+# 0. inventory the folder — needs no Cloudinary/Mongo credentials
+node migration/rehost-product-images.js --audit-local \
+  --local-images ../frontend/public/images/product
+
+# 1. dry run: report every image that would move, write nothing
+node migration/rehost-product-images.js \
+  --local-images ../frontend/public/images/product
+
+# 2. apply: upload to Cloudinary + update MongoDB
+node migration/rehost-product-images.js --commit \
+  --local-images ../frontend/public/images/product
 ```
+
+Mapping is by **basename**: the legacy URL
+`.../media/catalog/product/b/l/blueberry_butter_1.jpg` resolves to the local
+`b/l/blueberry_butter_1.jpg` and uploads with the deterministic
+`public_id` `blueberry_butter_1` under `natures-national/products`. The
+current export has 3,293 uploadable originals and zero duplicate basenames,
+so every product maps unambiguously.
+
+Magento's `cache/` and `watermark/` directories are skipped deliberately:
+`cache/` holds pre-resized, watermarked derivatives that reuse the exact
+basename of the original (2,178 collide), so indexing them would upload a
+small watermarked variant in place of the real product photo.
+
+Idempotency comes from two layers: images already on Cloudinary are skipped
+outright (`skipped_already_hosted`), and uploads use a fixed `public_id`
+with `overwrite: false`, so a re-run never creates a duplicate asset.
 
 A JSON backup of every image field is written to `migration/backups/`
 before the first write; failures leave the stored value untouched, so the
 script can simply be re-run.
+
+Requires `CLOUDINARY_*` (or `CLOUDINARY_URL`) and `MONGO_URI` in
+`backend/.env` — never commit that file.
 
 ## Aligning category/product slugs with the live site
 
