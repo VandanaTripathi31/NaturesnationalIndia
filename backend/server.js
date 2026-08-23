@@ -81,3 +81,7 @@ app.listen(PORT, () => {
 });
 
 dbConnection();
+
+// Surface SMTP problems in the deploy logs at boot (non-blocking).
+const { verifyMailer } = await import("./src/utils/mailer.js");
+verifyMailer();

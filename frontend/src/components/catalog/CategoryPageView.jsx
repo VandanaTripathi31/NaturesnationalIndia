@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { categoryHref, productHref } from "../../lib/seo-routes";
-import { resolveImageUrl } from "../../lib/image-url";
+import { isLegacyMediaUrl, resolveImageUrl } from "../../lib/image-url";
 import SafeImage from "../ui/SafeImage";
 import CategoryContent from "./CategoryContent";
 import {
@@ -225,6 +225,12 @@ export default function CategoryPageView({
             alt={category.name}
             fill
             priority
+            // Legacy Magento media URLs must skip the Vercel optimizer —
+            // see SafeImage.jsx / isLegacyMediaUrl for the rationale.
+            unoptimized={isLegacyMediaUrl(heroImageUrl)}
+            referrerPolicy={
+              isLegacyMediaUrl(heroImageUrl) ? "no-referrer" : undefined
+            }
             className="absolute inset-0 h-full w-full object-cover object-center"
             sizes="100vw"
           />
