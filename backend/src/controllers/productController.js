@@ -117,9 +117,6 @@ async function uploadProductImagesFromRequest(req) {
     .map((file) => file.buffer)
     .filter((buffer) => Buffer.isBuffer(buffer) && buffer.length > 0);
 
-  console.log("[Product Upload] files received:", req.files.length);
-  console.log("[Product Upload] valid buffers:", buffers.length);
-
   if (!buffers.length) {
     throw new Error("Uploaded image files are empty or invalid");
   }

@@ -106,15 +106,11 @@ export async function createCategory(req, res) {
       isActive = true,
     } = req.body;
 
-    console.log("Creating category:", { name, hasFile: !!req.file });
-
     const slug = await createUniqueSlug(Category, name);
     let image = null;
 
     if (req.file) {
-      console.log("Uploading image, size:", req.file.size, "bytes");
       image = await uploadImageBuffer(req.file.buffer);
-      console.log("Image uploaded:", image);
     }
 
     try {

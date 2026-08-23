@@ -1,16 +1,19 @@
 import nodemailer from "nodemailer";
 
-// Enquiry emails go out over one of two transports:
+// Enquiry emails are sent over plain SMTP via nodemailer, using the
+// company's Google Workspace mailbox:
 //
-//   1. Brevo HTTP API (preferred when BREVO_API_KEY is set) — sends over
-//      HTTPS/443, which works on hosts that block outbound SMTP ports
-//      (Render's free tier does). The sender address must be verified in
-//      the Brevo account.
-//   2. Plain SMTP via nodemailer (SMTP_HOST/SMTP_USER/SMTP_PASS) — used
-//      when no Brevo key is configured and the host allows SMTP.
+//   SMTP_HOST=smtp.gmail.com
+//   SMTP_PORT=465            (implicit TLS; 587 with STARTTLS also works)
+//   SMTP_USER=<workspace mailbox, e.g. info@naturesnaturalindia.com>
+//   SMTP_PASS=<16-char Google App Password — requires 2-Step Verification>
+//   ENQUIRY_TO  (optional)   recipient inbox, defaults to the company inbox
+//   ENQUIRY_FROM (optional)  must be the SMTP_USER mailbox or one of its
+//                            Gmail "Send mail as" aliases, otherwise Google
+//                            silently rewrites it to SMTP_USER
 //
-// Email is optional either way: if neither transport is configured,
-// sendEnquiryEmail becomes a no-op (logged) so enquiries still save.
+// Email is optional: if SMTP is not configured, sendEnquiryEmail becomes a
+// no-op (logged) so enquiries still save to the database/admin dashboard.
 
 // Lazily-built SMTP transport.
 let transporter = null;
@@ -31,6 +34,11 @@ function getTransport() {
     port: Number(SMTP_PORT || 587),
     secure: Number(SMTP_PORT) === 465,
     auth: { user: SMTP_USER, pass: SMTP_PASS },
+    // Fail fast with a loggable error instead of hanging for minutes when
+    // the host blocks outbound SMTP ports or the connection stalls.
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
   });
   return transporter;
 }
@@ -61,66 +69,24 @@ function buildMessage(enquiry) {
   return { to, from, html, subject: `New Enquiry — ${enquiry.name}` };
 }
 
-// Send through Brevo's transactional-email HTTP API (https, port 443).
-export async function sendViaBrevo(enquiry) {
-  const { to, from, html, subject } = buildMessage(enquiry);
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-    method: "POST",
-    headers: {
-      "api-key": process.env.BREVO_API_KEY,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
-      sender: { name: "Natures Natural India", email: from },
-      to: [{ email: to }],
-      replyTo: enquiry.email ? { email: enquiry.email } : undefined,
-      subject,
-      htmlContent: html,
-    }),
-  });
-  const body = await res.text();
-  if (!res.ok) {
-    // Brevo's error body says exactly what's wrong (unverified sender,
-    // bad key, etc.) and never contains the key itself — safe to log.
-    throw new Error(`Brevo API ${res.status}: ${body}`);
-  }
-  const messageId = (() => {
-    try {
-      return JSON.parse(body).messageId;
-    } catch {
-      return body;
-    }
-  })();
-  console.log(`[mailer] Enquiry email sent to ${to} via Brevo (id: ${messageId})`);
-  return true;
-}
-
-async function sendViaSmtp(enquiry) {
-  const tx = getTransport();
-  if (!tx) return false;
-  const { to, from, html, subject } = buildMessage(enquiry);
-  const info = await tx.sendMail({
-    from: `"Natures Natural India" <${from}>`,
-    to,
-    replyTo: enquiry.email,
-    subject,
-    html,
-  });
-  console.log(
-    `[mailer] Enquiry email sent to ${to} via SMTP (id: ${info.messageId}, response: ${info.response})`,
-  );
-  return true;
-}
-
 // Sends the enquiry notification to the company inbox. Returns true on
 // success, false if skipped/failed — never throws (caller stays resilient).
 export async function sendEnquiryEmail(enquiry) {
   try {
-    if (process.env.BREVO_API_KEY) {
-      return await sendViaBrevo(enquiry);
-    }
-    return await sendViaSmtp(enquiry);
+    const tx = getTransport();
+    if (!tx) return false;
+    const { to, from, html, subject } = buildMessage(enquiry);
+    const info = await tx.sendMail({
+      from: `"Natures Natural India" <${from}>`,
+      to,
+      replyTo: enquiry.email,
+      subject,
+      html,
+    });
+    console.log(
+      `[mailer] Enquiry email sent to ${to} via SMTP (id: ${info.messageId}, response: ${info.response})`,
+    );
+    return true;
   } catch (err) {
     // Log the transport diagnostics — without these, "Connection timeout"
     // vs "auth rejected" vs "sender refused" are indistinguishable in
