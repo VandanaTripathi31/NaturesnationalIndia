@@ -1,82 +1,63 @@
-import nodemailer from "nodemailer";
-
-// Enquiry emails are sent over plain SMTP via nodemailer, using the
-// company's Google Workspace mailbox:
+// mailer.js — sends enquiry emails via Brevo's transactional email API
+// (HTTPS) instead of raw SMTP. Raw SMTP to smtp.gmail.com was timing out
+// at the CONN step (host/network blocking outbound SMTP), not an auth
+// issue — switching to an HTTPS API sidesteps that entirely.
 //
-//   SMTP_HOST=smtp.gmail.com
-//   SMTP_PORT=465            (implicit TLS; 587 with STARTTLS also works)
-//   SMTP_USER=<workspace mailbox, e.g. info@naturesnaturalindia.com>
-//   SMTP_PASS=<16-char Google App Password — requires 2-Step Verification>
-//   ENQUIRY_TO  (optional)   recipient inbox, defaults to the company inbox
-//   ENQUIRY_FROM (optional)  must be the SMTP_USER mailbox or one of its
-//                            Gmail "Send mail as" aliases, otherwise Google
-//                            silently rewrites it to SMTP_USER
+// Required:
+//   BREVO_API_KEY   — from the Brevo dashboard (already in .env)
+// Optional:
+//   ENQUIRY_TO      — recipient inbox, defaults to the company inbox
+//   ENQUIRY_FROM    — sender address. IMPORTANT: this must be a "Verified
+//                     sender" in Brevo (Senders, Domains & Dedicated IPs →
+//                     Senders) or Brevo will reject the send. Defaults to
+//                     SMTP_USER or the company inbox.
 //
-// Email is optional: if SMTP is not configured, sendEnquiryEmail becomes a
-// no-op (logged) so enquiries still save to the database/admin dashboard.
+// Email is optional: if BREVO_API_KEY is not configured, sendEnquiryEmail
+// becomes a no-op (logged) so enquiries still save to the database/admin
+// dashboard.
 
-// Lazily-built SMTP transport.
-let transporter = null;
-let checked = false;
+const BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+const BREVO_ACCOUNT_URL = "https://api.brevo.com/v3/account";
 
-function getTransport() {
-  if (checked) return transporter;
-  checked = true;
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+function getApiKey() {
+  const key = process.env.BREVO_API_KEY;
+  if (!key) {
     console.warn(
-      "[mailer] SMTP not configured (SMTP_HOST/SMTP_USER/SMTP_PASS) — enquiry emails disabled.",
+      "[mailer] BREVO_API_KEY not configured — enquiry emails disabled.",
     );
     return null;
   }
-  transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: Number(SMTP_PORT || 587),
-    secure: Number(SMTP_PORT) === 465,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-    // Fail fast with a loggable error instead of hanging for minutes when
-    // the host blocks outbound SMTP ports or the connection stalls.
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 20_000,
-  });
-  return transporter;
+  return key;
 }
 
-// Checks SMTP connectivity + login once at startup so a broken mail setup
-// is visible in the deploy logs immediately, instead of surfacing only when
-// the first enquiry silently fails. The error codes distinguish the causes:
-// ETIMEDOUT/ECONNECTION = host blocks outbound SMTP or wrong host/port,
-// EAUTH = wrong user/app password. Never throws and never logs credentials.
+// Checks the API key is valid once at startup, so a broken mail setup is
+// visible in the deploy logs immediately, instead of surfacing only when
+// the first enquiry silently fails.
 export async function verifyMailer() {
-  const tx = getTransport();
-  if (!tx) return false;
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER } = process.env;
+  const key = getApiKey();
+  if (!key) return false;
   try {
-    await tx.verify();
-    console.log(
-      `[mailer] SMTP verified: ${SMTP_HOST}:${SMTP_PORT || 587} as ${SMTP_USER} — enquiry emails enabled.`,
-    );
+    const res = await fetch(BREVO_ACCOUNT_URL, {
+      headers: { "api-key": key },
+    });
+    if (!res.ok) {
+      console.error(
+        `[mailer] Brevo API key verification FAILED (HTTP ${res.status}) — enquiry emails will NOT be delivered.`,
+      );
+      return false;
+    }
+    console.log("[mailer] Brevo API key verified — enquiry emails enabled.");
     return true;
   } catch (err) {
-    console.error(
-      "[mailer] SMTP verification FAILED — enquiry emails will NOT be delivered:",
-      {
-        host: SMTP_HOST,
-        port: Number(SMTP_PORT || 587),
-        message: err.message,
-        code: err.code,
-        command: err.command,
-        responseCode: err.responseCode,
-        response: err.response,
-      },
-    );
+    console.error("[mailer] Brevo API unreachable:", err.message);
     return false;
   }
 }
 
 const row = (label, value) =>
-  value ? `<tr><td style="padding:4px 12px 4px 0;color:#6b5b4d;font-weight:600">${label}</td><td style="padding:4px 0">${value}</td></tr>` : "";
+  value
+    ? `<tr><td style="padding:4px 12px 4px 0;color:#6b5b4d;font-weight:600">${label}</td><td style="padding:4px 0">${value}</td></tr>`
+    : "";
 
 function buildMessage(enquiry) {
   const to = process.env.ENQUIRY_TO || "info@naturesnaturalindia.com";
@@ -101,35 +82,43 @@ function buildMessage(enquiry) {
   return { to, from, html, subject: `New Enquiry — ${enquiry.name}` };
 }
 
-// Sends the enquiry notification to the company inbox. Returns true on
-// success, false if skipped/failed — never throws (caller stays resilient).
+// Sends the enquiry notification to the company inbox via Brevo's HTTPS
+// API. Returns true on success, false if skipped/failed — never throws
+// (caller stays resilient).
 export async function sendEnquiryEmail(enquiry) {
+  const key = getApiKey();
+  if (!key) return false;
   try {
-    const tx = getTransport();
-    if (!tx) return false;
     const { to, from, html, subject } = buildMessage(enquiry);
-    const info = await tx.sendMail({
-      from: `"Natures Natural India" <${from}>`,
-      to,
-      replyTo: enquiry.email,
-      subject,
-      html,
+    const res = await fetch(BREVO_API_URL, {
+      method: "POST",
+      headers: {
+        "api-key": key,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: { email: from, name: "Natures Natural India" },
+        to: [{ email: to }],
+        replyTo: { email: enquiry.email },
+        subject,
+        htmlContent: html,
+      }),
     });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.error("[mailer] Failed to send enquiry email:", {
+        status: res.status,
+        response: data,
+      });
+      return false;
+    }
     console.log(
-      `[mailer] Enquiry email sent to ${to} via SMTP (id: ${info.messageId}, response: ${info.response})`,
+      `[mailer] Enquiry email sent to ${to} via Brevo (id: ${data.messageId})`,
     );
     return true;
   } catch (err) {
-    // Log the transport diagnostics — without these, "Connection timeout"
-    // vs "auth rejected" vs "sender refused" are indistinguishable in
-    // production logs. Never log credentials.
-    console.error("[mailer] Failed to send enquiry email:", {
-      message: err.message,
-      code: err.code,
-      command: err.command,
-      responseCode: err.responseCode,
-      response: err.response,
-    });
+    console.error("[mailer] Failed to send enquiry email:", err.message);
     return false;
   }
 }
