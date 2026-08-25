@@ -227,9 +227,22 @@ export default function Contact() {
   const recaptchaRef = useRef(null);
   const widgetIdRef = useRef(null);
 
+  const [fieldErrors, setFieldErrors] = useState({});
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+    const next = type === "checkbox" ? checked : value;
+    setForm((f) => ({ ...f, [name]: next }));
+    // Clear this field's error as soon as it holds a valid value.
+    const filled = type === "checkbox" ? next : String(next).trim();
+    if (filled) {
+      setFieldErrors((prev) => {
+        if (!prev[name]) return prev;
+        const rest = { ...prev };
+        delete rest[name];
+        return rest;
+      });
+    }
   };
 
   // Load the reCAPTCHA script once (only when a site key is configured).
@@ -315,8 +328,36 @@ export default function Contact() {
     };
   }, [submitted]);
 
+  // Per-field "this is mandatory" messages, keyed by field name. Populated
+  // on submit and cleared per field as soon as the visitor fills it in.
+  const REQUIRED_FIELDS = {
+    name: "Full Name",
+    email: "Email Address",
+    phone: "Phone Number",
+    company: "Company Name",
+    subject: "Subject",
+    message: "Message",
+    agree: "Consent",
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Flag every empty mandatory field at once, each under its own input.
+    const errors = {};
+    for (const key of Object.keys(REQUIRED_FIELDS)) {
+      const value = form[key];
+      const empty =
+        key === "agree" ? !value : !String(value ?? "").trim();
+      if (empty) {
+        errors[key] =
+          key === "agree"
+            ? "Please accept this to continue"
+            : "This is mandatory field";
+      }
+    }
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
 
     // Require a solved captcha when reCAPTCHA is configured.
     let captchaToken = "";
@@ -340,12 +381,6 @@ export default function Contact() {
     setSubmitError("");
     if (submitting) return;
     setSubmitting(true);
-
-    const params = new URLSearchParams();
-    if (form.name) params.set("name", form.name);
-    if (form.email) params.set("email", form.email);
-    if (form.phone) params.set("phone", form.phone);
-    if (form.subject) params.set("category", form.subject);
 
     // Persist the enquiry to the backend (same public endpoint used by the
     // global inquiry widget), then navigate to the Thank You page as soon
@@ -380,6 +415,13 @@ export default function Contact() {
     }
 
     setSubmitted(true);
+    // Snapshot before the reset below clears `form`.
+    const details = {
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      category: form.subject,
+    };
     setForm({
       name: "",
       email: "",
@@ -389,12 +431,17 @@ export default function Contact() {
       message: "",
       agree: false,
     });
+    // The submitted details travel in sessionStorage, not the URL, so the
+    // Thank You page stays exactly /thank-you with no personal data in the
+    // address bar (or in browser history / referrer headers).
     try {
       sessionStorage.setItem("nn-enquiry-success", "1");
+      sessionStorage.setItem("nn-enquiry-details", JSON.stringify(details));
     } catch {
-      /* storage unavailable (private mode) — query params still gate access */
+      /* storage unavailable (private mode) — the page still renders its
+         generic confirmation, just without the details summary */
     }
-    router.push(`/thank-you?${params.toString()}`);
+    router.push("/thank-you");
   };
 
   return (
@@ -619,6 +666,7 @@ export default function Contact() {
             ) : (
               <form
                 onSubmit={handleSubmit}
+                noValidate
                 style={{
                   display: "flex",
                   flexDirection: "column",
@@ -702,6 +750,18 @@ export default function Contact() {
                             "var(--color-warm-gray)")
                         }
                       />
+                      {fieldErrors[f.name] && (
+                        <span
+                          role="alert"
+                          style={{
+                            fontSize: "0.8rem",
+                            color: "#b91c1c",
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {fieldErrors[f.name]}
+                        </span>
+                      )}
                     </label>
                   ))}
                 </div>
@@ -759,6 +819,18 @@ export default function Contact() {
                     <option value="custom">Custom Formulation</option>
                     <option value="other">Other</option>
                   </select>
+                  {fieldErrors.subject && (
+                    <span
+                      role="alert"
+                      style={{
+                        fontSize: "0.8rem",
+                        color: "#b91c1c",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {fieldErrors.subject}
+                    </span>
+                  )}
                 </label>
 
                 <label
@@ -805,6 +877,18 @@ export default function Contact() {
                       (e.target.style.borderColor = "var(--color-warm-gray)")
                     }
                   />
+                  {fieldErrors.message && (
+                    <span
+                      role="alert"
+                      style={{
+                        fontSize: "0.8rem",
+                        color: "#b91c1c",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {fieldErrors.message}
+                    </span>
+                  )}
                 </label>
 
                 <label
@@ -840,6 +924,18 @@ export default function Contact() {
                     my inquiry and understand my data will be kept confidential.
                   </span>
                 </label>
+                {fieldErrors.agree && (
+                  <span
+                    role="alert"
+                    style={{
+                      fontSize: "0.8rem",
+                      color: "#b91c1c",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {fieldErrors.agree}
+                  </span>
+                )}
 
                 {RECAPTCHA_SITE_KEY && (
                   <div>

@@ -108,15 +108,18 @@ export default function ProductPageView({
           />
 
           <div className="mt-6 grid gap-8 lg:grid-cols-[300px_1fr]">
-            {/* Sidebar */}
+            {/* Sidebar — ordered after the product on mobile (single-column
+                stack) so the product itself is the first thing on screen
+                instead of the full category list. Desktop order unchanged. */}
             <CategorySidebar
+              className="order-2 lg:order-1"
               categories={categories}
               activeSlug={product.category?.slug}
               featuredProducts={featuredProducts}
             />
 
             {/* Main content */}
-            <section>
+            <section className="order-1 lg:order-2">
               <motion.div
                 initial="hidden"
                 animate="visible"
