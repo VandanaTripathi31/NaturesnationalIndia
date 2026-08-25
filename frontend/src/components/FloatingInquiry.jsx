@@ -77,11 +77,25 @@ const labelStyle = {
   textTransform: "uppercase",
 };
 
-function Field({ label, children }) {
+function Field({ label, children, error }) {
   return (
     <div style={{ marginBottom: "16px" }}>
       <label style={labelStyle}>{label}</label>
       {children}
+      {error ? (
+        <div
+          role="alert"
+          style={{
+            marginTop: "5px",
+            fontSize: "11px",
+            fontWeight: 500,
+            color: "#c0392b",
+            fontFamily: "'Outfit', sans-serif",
+          }}
+        >
+          {error}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -188,13 +202,28 @@ export default function InquiryWidget() {
   const widgetIdRef = useRef(null);
 
   const [form, setForm] = useState(EMPTY_FORM);
+  // Per-field "this is mandatory" messages, keyed by field name. Populated
+  // on submit and cleared per field as soon as the visitor fills it in.
+  const [fieldErrors, setFieldErrors] = useState({});
 
-  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  const set = (key) => (e) => {
+    const { value } = e.target;
+    setForm((f) => ({ ...f, [key]: value }));
+    if (value.trim()) {
+      setFieldErrors((prev) => {
+        if (!prev[key]) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
+  };
 
   const openModal = () => {
     setOpen(true);
     setClosing(false);
     setSubmitted(false);
+    setFieldErrors({});
     setCaptchaError("");
     setSubmitError("");
   };
@@ -336,8 +365,16 @@ export default function InquiryWidget() {
     }, 260);
   };
 
+  const REQUIRED_FIELDS = { name: "Full Name", email: "Email", country: "Country" };
+
   const handleSubmit = async () => {
-    if (!form.name || !form.email || !form.country) return;
+    // Flag every empty mandatory field at once, each under its own input.
+    const errors = {};
+    for (const key of Object.keys(REQUIRED_FIELDS)) {
+      if (!form[key]?.trim()) errors[key] = "This is mandatory field";
+    }
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
 
     // Require a solved captcha when reCAPTCHA is configured. The backend
     // (RECAPTCHA_SECRET_KEY) rejects a submission with no token, so we
@@ -366,13 +403,6 @@ export default function InquiryWidget() {
     setSubmitError("");
     if (submitting) return;
     setSubmitting(true);
-
-    const params = new URLSearchParams();
-    params.set("name", form.name);
-    if (form.email) params.set("email", form.email);
-    if (form.phone) params.set("phone", form.phone);
-    if (form.category) params.set("category", form.category);
-    if (form.quantity) params.set("quantity", form.quantity);
 
     // Persist the enquiry to the backend, then navigate to the Thank You
     // page immediately once the backend confirms. On failure the entered
@@ -408,13 +438,35 @@ export default function InquiryWidget() {
     }
 
     setSubmitted(true);
+    // Snapshot before the reset below clears `form`.
+    const details = {
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      category: form.category,
+      quantity: form.quantity,
+    };
     setForm(EMPTY_FORM);
+    // The submitted details travel in sessionStorage, not the URL, so the
+    // Thank You page stays exactly /thank-you with no personal data in the
+    // address bar (or in browser history / referrer headers).
     try {
       sessionStorage.setItem("nn-enquiry-success", "1");
+      sessionStorage.setItem(
+        "nn-enquiry-details",
+        JSON.stringify({
+          name: details.name,
+          email: details.email,
+          phone: details.phone,
+          category: details.category,
+          quantity: details.quantity,
+        }),
+      );
     } catch {
-      /* storage unavailable (private mode) — query params still gate access */
+      /* storage unavailable (private mode) — the page still renders its
+         generic confirmation, just without the details summary */
     }
-    router.push(`/thank-you?${params.toString()}`);
+    router.push("/thank-you");
   };
 
   // Close on Escape
@@ -684,7 +736,7 @@ export default function InquiryWidget() {
                       marginBottom: "0",
                     }}
                   >
-                    <Field label="Full Name *">
+                    <Field label="Full Name *" error={fieldErrors.name}>
                       <StyledInput
                         type="text"
                         placeholder="Your name"
@@ -711,7 +763,7 @@ export default function InquiryWidget() {
                       gap: "14px",
                     }}
                   >
-                    <Field label="Email *">
+                    <Field label="Email *" error={fieldErrors.email}>
                       <StyledInput
                         type="email"
                         placeholder="your@email.com"
@@ -738,7 +790,7 @@ export default function InquiryWidget() {
                       gap: "14px",
                     }}
                   >
-                    <Field label="Country *">
+                    <Field label="Country *" error={fieldErrors.country}>
                       <StyledSelect
                         value={form.country}
                         onChange={set("country")}

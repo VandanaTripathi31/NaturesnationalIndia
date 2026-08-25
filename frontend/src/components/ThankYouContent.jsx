@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, Phone, Mail, ArrowRight } from "lucide-react";
 import FadeIn from "./FadeIn";
 
@@ -13,8 +13,9 @@ import FadeIn from "./FadeIn";
   This page is reached after a successful "Send Enquiry" submission from
   either the site-wide floating InquiryWidget (src/components/FloatingInquiry.jsx)
   or the Contact Us form (src/views/ContactUs.jsx), both of which redirect
-  here via next/navigation's router.push() with the submitted details passed
-  as query params so we can show a real confirmation summary below.
+  here via next/navigation's router.push("/thank-you"). The submitted
+  details are passed through sessionStorage (never query params) so the URL
+  stays exactly /thank-you while we still show a real confirmation summary.
 
   IMPORTANT: This is a Next.js project, not React Router.
   - Use `next/link` instead of `react-router-dom`'s Link
@@ -40,35 +41,45 @@ function DetailRow({ label, value }) {
 
 function ThankYouInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const name = searchParams.get("name");
-  const email = searchParams.get("email");
-  const phone = searchParams.get("phone");
-  const category = searchParams.get("category");
-  const quantity = searchParams.get("quantity");
 
-  const hasDetails = Boolean(name || email || phone || category || quantity);
+  // Both enquiry forms stash the submitted details in sessionStorage and
+  // set a success flag before navigating here, so this page's URL stays
+  // exactly /thank-you — no personal data in the address bar, history or
+  // referrer. A bare, direct open of /thank-you (no flag) is bounced back
+  // to the homepage so a failed/abandoned submission can't register a
+  // conversion.
+  const [allowed, setAllowed] = useState(false);
+  const [details, setDetails] = useState(null);
 
-  // Only show this page after a real successful submission: both enquiry
-  // forms pass the submitted details as query params and set a
-  // sessionStorage flag before navigating here. A bare, direct open of
-  // /thank-you (no params, no flag) is bounced back to the homepage so a
-  // failed/abandoned submission can't register a conversion.
-  const [allowed, setAllowed] = useState(hasDetails);
   useEffect(() => {
-    if (hasDetails) return;
     let flag = null;
+    let stored = null;
     try {
       flag = sessionStorage.getItem("nn-enquiry-success");
+      stored = sessionStorage.getItem("nn-enquiry-details");
     } catch {
       /* storage unavailable — fall through to redirect */
     }
-    if (flag) {
-      setAllowed(true);
-    } else {
+    if (!flag) {
       router.replace("/");
+      return;
     }
-  }, [hasDetails, router]);
+    if (stored) {
+      try {
+        setDetails(JSON.parse(stored));
+      } catch {
+        /* malformed — show the generic confirmation instead */
+      }
+    }
+    setAllowed(true);
+  }, [router]);
+
+  const name = details?.name ?? null;
+  const email = details?.email ?? null;
+  const phone = details?.phone ?? null;
+  const category = details?.category ?? null;
+  const quantity = details?.quantity ?? null;
+  const hasDetails = Boolean(name || email || phone || category || quantity);
 
   if (!allowed) return <ThankYouFallback />;
 

@@ -94,7 +94,6 @@ export default function BlogDetailView({ blog, related = [] }) {
               )}
             </div>
           </motion.div>
-          {/* 
           {heroImageUrl && (
             <div className="relative mt-8 aspect-[16/9] w-full overflow-hidden rounded-2xl bg-white">
               <Image
@@ -106,7 +105,7 @@ export default function BlogDetailView({ blog, related = [] }) {
                 sizes="(max-width: 768px) 100vw, 768px"
               />
             </div>
-          )} */}
+          )}
 
           <div
             ref={contentRef}

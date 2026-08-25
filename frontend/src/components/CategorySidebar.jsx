@@ -12,6 +12,7 @@ export default function CategorySidebar({
   activeSlug = "",
   featuredProducts = [],
   showSearch = false,
+  className = "",
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -38,7 +39,9 @@ export default function CategorySidebar({
   }
 
   return (
-    <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+    <aside
+      className={`space-y-4 lg:sticky lg:top-6 lg:self-start ${className}`.trim()}
+    >
       {/* ── Categories ─────────────────────────────────────── */}
       <div className="rounded-2xl border border-[var(--color-warm-gray)] bg-white p-5 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
