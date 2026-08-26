@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import apiClient from "../lib/api-client";
@@ -1075,10 +1077,6 @@ export default function Contact() {
                 },
                 { label: "Phone", value: "+91 9711-003-901" },
                 { label: "Email", value: "info@naturesnaturalindia.com" },
-                {
-                  label: "Export Support",
-                  value: "documents@naturesnatural.in",
-                },
               ].map(({ label, value }) => (
                 <div
                   key={label}
