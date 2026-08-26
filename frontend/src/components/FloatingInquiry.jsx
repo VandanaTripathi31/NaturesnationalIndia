@@ -437,7 +437,10 @@ export default function InquiryWidget() {
       return;
     }
 
-    setSubmitted(true);
+    // Close the modal and go straight to /thank-you. `submitted` is
+    // deliberately left false so the interim "Inquiry Sent!" panel never
+    // flashes up before the redirect.
+    setOpen(false);
     // Snapshot before the reset below clears `form`.
     const details = {
       name: form.name,

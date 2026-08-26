@@ -569,7 +569,7 @@ const MobileSection = ({ title, items, allSections }) => {
             display: "inline-block",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 0.28s cubic-bezier(0.4,0,0.2,1)",
-            fontSize: 11,
+            fontSize: 15,
           }}
         >
           ▾
@@ -612,9 +612,12 @@ const MobileSection = ({ title, items, allSections }) => {
             />
           );
 
+          // target="_self" is explicit so these always navigate in the
+          // current tab, even where a host/webview default would otherwise
+          // open a new one.
           if (href && href.startsWith("/")) {
             return (
-              <Link key={i} href={href} style={style}>
+              <Link key={i} href={href} target="_self" style={style}>
                 {dot}
                 {label}
               </Link>
@@ -622,7 +625,7 @@ const MobileSection = ({ title, items, allSections }) => {
           }
 
           return (
-            <a key={i} href={href || "#"} style={style}>
+            <a key={i} href={href || "#"} target="_self" style={style}>
               {dot}
               {label}
             </a>
