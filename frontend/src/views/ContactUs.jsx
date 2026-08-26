@@ -349,8 +349,7 @@ export default function Contact() {
     const errors = {};
     for (const key of Object.keys(REQUIRED_FIELDS)) {
       const value = form[key];
-      const empty =
-        key === "agree" ? !value : !String(value ?? "").trim();
+      const empty = key === "agree" ? !value : !String(value ?? "").trim();
       if (empty) {
         errors[key] =
           key === "agree"
@@ -1225,8 +1224,11 @@ export default function Contact() {
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
           />
-          {/* Overlay card */}
-          <div
+          {/* Overlay card — now a clickable link to Google Maps */}
+          <a
+            href="https://www.google.com/maps/search/?api=1&query=Plot+No.+B+45%2F8%2C+Site-4%2C+Industrial+Area%2C+Sahibabad%2C+Ghaziabad-201010+UP+India"
+            target="_blank"
+            rel="noopener noreferrer"
             style={{
               position: "absolute",
               top: 24,
@@ -1238,6 +1240,20 @@ export default function Contact() {
               boxShadow: "0 6px 24px rgba(92,64,51,0.14)",
               border: "1px solid var(--color-warm-gray)",
               maxWidth: 260,
+              textDecoration: "none",
+              cursor: "pointer",
+              display: "block",
+              transition: "transform 0.2s ease, box-shadow 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow =
+                "0 10px 32px rgba(92,64,51,0.2)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow =
+                "0 6px 24px rgba(92,64,51,0.14)";
             }}
           >
             <p
@@ -1254,7 +1270,7 @@ export default function Contact() {
             </p>
             <p
               style={{
-                margin: 0,
+                margin: "0 0 0.6rem",
                 fontSize: "0.88rem",
                 color: "var(--color-text-primary)",
                 fontWeight: 500,
@@ -1265,7 +1281,28 @@ export default function Contact() {
               <br />
               Sahibabad, Ghaziabad-201010 (UP) India
             </p>
-          </div>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: "0.78rem",
+                fontWeight: 600,
+                color: "var(--color-coffee-brown)",
+              }}
+            >
+              Get Directions
+              <svg width="12" height="12" fill="none" viewBox="0 0 12 12">
+                <path
+                  d="M2 6h8M6 2l4 4-4 4"
+                  stroke="var(--color-coffee-brown)"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+          </a>
         </div>
       </section>
     </div>
