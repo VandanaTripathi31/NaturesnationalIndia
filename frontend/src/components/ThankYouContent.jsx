@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CheckCircle2, Phone, Mail, ArrowRight } from "lucide-react";
 import FadeIn from "./FadeIn";
 
@@ -40,29 +39,22 @@ function DetailRow({ label, value }) {
 }
 
 function ThankYouInner() {
-  const router = useRouter();
-
-  // Both enquiry forms stash the submitted details in sessionStorage and
-  // set a success flag before navigating here, so this page's URL stays
-  // exactly /thank-you — no personal data in the address bar, history or
-  // referrer. A bare, direct open of /thank-you (no flag) is bounced back
-  // to the homepage so a failed/abandoned submission can't register a
-  // conversion.
-  const [allowed, setAllowed] = useState(false);
+  // Both enquiry forms stash the submitted details in sessionStorage before
+  // navigating here, so this page's URL stays exactly /thank-you — no
+  // personal data in the address bar, history or referrer.
+  //
+  // /thank-you is a normal, directly-openable page: opening it without
+  // having submitted the form shows the same confirmation, just without the
+  // per-enquiry details summary. (It previously redirected to the homepage
+  // in that case, which is the bug being fixed here.)
   const [details, setDetails] = useState(null);
 
   useEffect(() => {
-    let flag = null;
     let stored = null;
     try {
-      flag = sessionStorage.getItem("nn-enquiry-success");
       stored = sessionStorage.getItem("nn-enquiry-details");
     } catch {
-      /* storage unavailable — fall through to redirect */
-    }
-    if (!flag) {
-      router.replace("/");
-      return;
+      /* storage unavailable — render the generic confirmation */
     }
     if (stored) {
       try {
@@ -71,8 +63,7 @@ function ThankYouInner() {
         /* malformed — show the generic confirmation instead */
       }
     }
-    setAllowed(true);
-  }, [router]);
+  }, []);
 
   const name = details?.name ?? null;
   const email = details?.email ?? null;
@@ -80,8 +71,6 @@ function ThankYouInner() {
   const category = details?.category ?? null;
   const quantity = details?.quantity ?? null;
   const hasDetails = Boolean(name || email || phone || category || quantity);
-
-  if (!allowed) return <ThankYouFallback />;
 
   return (
     <div

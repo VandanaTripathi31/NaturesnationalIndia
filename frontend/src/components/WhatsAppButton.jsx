@@ -1,9 +1,14 @@
 "use client";
 
-// Floating WhatsApp contact button. The number can be overridden via
-// NEXT_PUBLIC_WHATSAPP_NUMBER (digits only, incl. country code); it defaults
-// to the company WhatsApp number so the button always renders in production.
-const NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919289488582";
+// Floating WhatsApp contact button.
+//
+// The number is a hard-coded constant on purpose. It used to come from
+// NEXT_PUBLIC_WHATSAPP_NUMBER with this value as a fallback, which caused a
+// hydration mismatch: the client bundle inlines that variable at build time
+// while the server reads process.env at request time, so when the two
+// differed React rendered one number on the server and another on the
+// client. A constant is identical in both renders by construction.
+const NUMBER = "919289488582"; // +91 92894 88582
 const MESSAGE = "Hello, I have a question about your products.";
 
 export default function WhatsAppButton() {

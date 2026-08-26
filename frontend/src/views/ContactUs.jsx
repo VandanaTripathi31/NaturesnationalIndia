@@ -414,7 +414,7 @@ export default function Contact() {
       return;
     }
 
-    setSubmitted(true);
+    // Go straight to /thank-you — no interim success panel.
     // Snapshot before the reset below clears `form`.
     const details = {
       name: form.name,
@@ -1071,10 +1071,10 @@ export default function Contact() {
                 {
                   label: "Address",
                   value:
-                    "14-A Industrial Area, Phase II, Kannauj, UP 209726, India",
+                    "Plot No. B 45/8, Site-4, Industrial Area, Sahibabad, Ghaziabad-201010 (UP) India",
                 },
-                { label: "Phone", value: "+91 98765 43210 · +91 11 2345 6789" },
-                { label: "Email", value: "exports@naturesnatural.in" },
+                { label: "Phone", value: "+91 9711-003-901" },
+                { label: "Email", value: "info@naturesnaturalindia.com" },
                 {
                   label: "Export Support",
                   value: "documents@naturesnatural.in",
@@ -1263,9 +1263,9 @@ export default function Contact() {
                 lineHeight: 1.5,
               }}
             >
-              14-A Industrial Area, Phase II
+              Plot No. B 45/8, Site-4, Industrial Area
               <br />
-              Kannauj, Uttar Pradesh 209726
+              Sahibabad, Ghaziabad-201010 (UP) India
             </p>
           </div>
         </div>
