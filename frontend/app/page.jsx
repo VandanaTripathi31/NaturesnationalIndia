@@ -29,7 +29,7 @@ const organizationSchema = {
   address: {
     "@type": "PostalAddress",
     streetAddress:
-      "Plot No. B 45/8, Sahibabad Industrial Area, Site 4, Sahibabad",
+      "Plot No. B 45/7, Sahibabad Industrial Area, Site 4, Sahibabad",
     addressLocality: "Ghaziabad",
     addressRegion: "Uttar Pradesh",
     postalCode: "201010",

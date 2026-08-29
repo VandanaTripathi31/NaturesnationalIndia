@@ -1072,7 +1072,7 @@ export default function Contact() {
                 {
                   label: "Address",
                   value:
-                    "Plot No. B 45/8, Site-4, Industrial Area, Sahibabad, Ghaziabad-201010 (UP) India",
+                    "Plot No. B 45/7, Site-4, Industrial Area, Sahibabad, Ghaziabad-201010 (UP) India",
                 },
                 { label: "Phone", value: "+91 9711-003-901" },
                 { label: "Email", value: "info@naturesnaturalindia.com" },
@@ -1277,7 +1277,7 @@ export default function Contact() {
                 lineHeight: 1.5,
               }}
             >
-              Plot No. B 45/8, Site-4, Industrial Area
+              Plot No. B 45/7, Site-4, Industrial Area
               <br />
               Sahibabad, Ghaziabad-201010 (UP) India
             </p>

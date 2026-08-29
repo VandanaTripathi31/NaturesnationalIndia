@@ -8,7 +8,7 @@ const offices = [
   {
     label: "Head Office & Manufacturing Unit",
     address:
-      "Plot No. B 45/8, Site-4, Industrial Area, Sahibabad, Ghaziabad-201010 (UP) India",
+      "Plot No. B 45/7, Site-4, Industrial Area, Sahibabad, Ghaziabad-201010 (UP) India",
     mapHref: "https://goo.gl/maps/UujTpfZP7xWNYTAb7",
     phone: "+91 9711003901",
     email: "info@naturesnaturalindia.com",
