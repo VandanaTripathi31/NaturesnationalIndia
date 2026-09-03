@@ -1226,7 +1226,7 @@ export default function Contact() {
           />
           {/* Overlay card — now a clickable link to Google Maps */}
           <a
-            href="https://www.google.com/maps/search/?api=1&query=Plot+No.+B+45%2F8%2C+Site-4%2C+Industrial+Area%2C+Sahibabad%2C+Ghaziabad-201010+UP+India"
+            href="https://www.google.com/maps/search/?api=1&query=Plot+No.+B+45%2F7%2C+Site-4%2C+Industrial+Area%2C+Sahibabad%2C+Ghaziabad-201010+UP+India"
             target="_blank"
             rel="noopener noreferrer"
             style={{
