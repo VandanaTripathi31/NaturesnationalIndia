@@ -1987,7 +1987,7 @@ export default function ShippingPage() {
                 Request a Shipping Quote
               </a>
               <a
-                href="https://wa.me/919289488582"
+                href="https://wa.me/919711003901"
                 style={{
                   background: "rgba(255,255,255,0.12)",
                   color: "#fff",
