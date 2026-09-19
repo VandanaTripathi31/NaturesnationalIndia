@@ -833,14 +833,12 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
           .nb-trustbar-expanded { max-height: 60px !important; }
         }
 
-        /* Mobile: keep the phone/email contact bar visible while scrolling
-           instead of collapsing to 0 height (desktop behavior unchanged). */
-        @media (max-width: 1179px) {
-          .nb-topbar,
-          .nb-topbar-expanded {
-            max-height: none !important;
-            overflow: visible !important;
-          }
+        /* Keep the phone/email contact bar visible while scrolling instead
+           of collapsing to 0 height, on every screen size. */
+        .nb-topbar,
+        .nb-topbar-expanded {
+          max-height: none !important;
+          overflow: visible !important;
         }
 
       `}</style>
