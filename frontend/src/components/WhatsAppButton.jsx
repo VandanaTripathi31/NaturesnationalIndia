@@ -101,7 +101,7 @@ export default function WhatsAppButton() {
             opacity: 0.95,
           }}
         >
-          Click to Chat
+          Chat to Expert
         </span>
       </span>
     </a>
