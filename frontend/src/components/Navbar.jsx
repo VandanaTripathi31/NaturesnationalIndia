@@ -938,17 +938,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                 }}
                 className="hidden sm:inline-flex nb-cta-btn"
               >
-                Get Free Quote
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                >
-                  <path d="M2 6h8M6 2l4 4-4 4" />
-                </svg>
+                Enquire Now!
               </a>
 
               {/* Hamburger */}
@@ -1130,7 +1120,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                     width: "100%",
                   }}
                 >
-                  Get Free Quote →
+                  Enquire Now!
                 </a>
               </div>
 

@@ -497,33 +497,32 @@ export default function InquiryWidget() {
           e.currentTarget.style.transform = "scale(1)";
           e.currentTarget.style.boxShadow = "0 8px 28px rgba(92, 64, 51, 0.35)";
         }}
-        title="Get Free Quote"
+        title="Enquire Now"
         style={{
           position: "fixed",
           bottom: "28px",
           right: "28px",
           zIndex: 2000,
-          width: "58px",
-          height: "58px",
-          borderRadius: "50%",
-          backgroundColor: "var(--color-dark-brown)",
+          borderRadius: "100px",
+          padding: "14px 26px",
+          background:
+            "var(--gradient-btn, linear-gradient(135deg, #5C3D2E 0%, #8B6344 100%))",
+          color: "#fff",
+          fontSize: "15px",
+          fontWeight: 700,
+          fontFamily: "'Outfit', sans-serif",
           boxShadow: "0 8px 28px rgba(92, 64, 51, 0.35)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           cursor: "pointer",
           border: "none",
+          whiteSpace: "nowrap",
           transition: "transform 0.3s, box-shadow 0.3s",
           animation: "inquiryPulse 2.5s ease-in-out infinite",
         }}
       >
-        <svg
-          viewBox="0 0 24 24"
-          style={{ width: "26px", height: "26px", fill: "#fff" }}
-        >
-          <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
-        </svg>
-
+        Enquire Now!
         {/* Tooltip */}
         {showTooltip && (
           <div
@@ -543,7 +542,7 @@ export default function InquiryWidget() {
               borderRadius: "2px",
             }}
           >
-            Get Free Quote
+            Enquire Now!
             <span
               style={{
                 position: "absolute",
