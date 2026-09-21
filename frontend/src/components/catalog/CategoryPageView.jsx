@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { categoryHref, productHref } from "../../lib/seo-routes";
-import { isLegacyMediaUrl, resolveImageUrl } from "../../lib/image-url";
+import {
+  isLegacyMediaUrl,
+  resolveImageUrl,
+  shouldSkipOptimizer,
+} from "../../lib/image-url";
 import SafeImage from "../ui/SafeImage";
 import CategoryContent from "./CategoryContent";
 import {
@@ -191,6 +196,10 @@ export default function CategoryPageView({
   };
 
   const heroImageUrl = resolveImageUrl(category.image?.url);
+  const [heroImageFailed, setHeroImageFailed] = useState(false);
+  useEffect(() => {
+    setHeroImageFailed(false);
+  }, [heroImageUrl]);
 
   return (
     <div
@@ -219,18 +228,20 @@ export default function CategoryPageView({
       */}
       <section className="relative w-full overflow-hidden aspect-[3/2] sm:aspect-[1200/624] sm:max-h-[440px]">
         {/* Background image */}
-        {heroImageUrl ? (
+        {heroImageUrl && !heroImageFailed ? (
           <Image
             src={heroImageUrl}
             alt={category.name}
             fill
             priority
-            // Legacy Magento media URLs must skip the Vercel optimizer —
-            // see SafeImage.jsx / isLegacyMediaUrl for the rationale.
-            unoptimized={isLegacyMediaUrl(heroImageUrl)}
+            // Legacy Magento media URLs and Cloudinary URLs both skip the
+            // Vercel image optimizer — see SafeImage.jsx / shouldSkipOptimizer
+            // for the rationale (redundant/failure-prone extra fetch hop).
+            unoptimized={shouldSkipOptimizer(heroImageUrl)}
             referrerPolicy={
               isLegacyMediaUrl(heroImageUrl) ? "no-referrer" : undefined
             }
+            onError={() => setHeroImageFailed(true)}
             className="absolute inset-0 h-full w-full object-cover object-center"
             sizes="100vw"
           />
