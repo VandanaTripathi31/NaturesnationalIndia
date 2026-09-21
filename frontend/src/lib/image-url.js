@@ -36,6 +36,21 @@ export function isLegacyMediaUrl(value) {
   }
 }
 
+// True for URLs whose host already serves a fully-optimized, CDN-cached
+// image (Cloudinary), in addition to the legacy Magento host. Running these
+// through the Next.js image optimizer too adds a redundant server-side fetch
+// hop that can fail/time out (same failure mode documented above for legacy
+// URLs), with no benefit since Cloudinary already does the optimization.
+export function shouldSkipOptimizer(value) {
+  if (typeof value !== "string") return false;
+  if (isLegacyMediaUrl(value)) return true;
+  try {
+    return new URL(value).hostname === "res.cloudinary.com";
+  } catch {
+    return false;
+  }
+}
+
 export function resolveImageUrl(value, label) {
   const url = typeof value === "string" ? value.trim() : "";
   if (!url || NO_SELECTION_RE.test(url)) return null;
