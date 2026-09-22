@@ -194,7 +194,6 @@ export default function InquiryWidget() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [showTooltip, setShowTooltip] = useState(false);
   const [captchaError, setCaptchaError] = useState("");
   const [captchaUnavailable, setCaptchaUnavailable] = useState(false);
 
@@ -484,85 +483,51 @@ export default function InquiryWidget() {
   return (
     <>
       {/* ── Floating Button ── */}
-      <button
-        onClick={openModal}
-        onMouseEnter={(e) => {
-          setShowTooltip(true);
-          e.currentTarget.style.transform = "scale(1.1)";
-          e.currentTarget.style.boxShadow =
-            "0 12px 40px rgba(92, 64, 51, 0.45)";
-        }}
-        onMouseLeave={(e) => {
-          setShowTooltip(false);
-          e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.boxShadow = "0 8px 28px rgba(92, 64, 51, 0.35)";
-        }}
-        title="Enquire Now"
-        style={{
-          position: "fixed",
-          bottom: "28px",
-          right: "28px",
-          zIndex: 2000,
-          borderRadius: "100px",
-          padding: "14px 26px",
-          background:
-            "var(--gradient-btn, linear-gradient(135deg, #5C3D2E 0%, #8B6344 100%))",
-          color: "#fff",
-          fontSize: "15px",
-          fontWeight: 700,
-          fontFamily: "'Outfit', sans-serif",
-          boxShadow: "0 8px 28px rgba(92, 64, 51, 0.35)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          border: "none",
-          whiteSpace: "nowrap",
-          transition: "transform 0.3s, box-shadow 0.3s",
-          animation: "inquiryPulse 2.5s ease-in-out infinite",
-        }}
-      >
-        Enquire Now!
-        {/* Tooltip */}
-        {showTooltip && (
-          <div
-            style={{
-              position: "absolute",
-              right: "68px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              backgroundColor: "var(--color-brown-deep)",
-              color: "#fff",
-              fontSize: "12px",
-              fontWeight: 600,
-              fontFamily: "'Outfit', sans-serif",
-              padding: "8px 14px",
-              whiteSpace: "nowrap",
-              pointerEvents: "none",
-              borderRadius: "2px",
-            }}
-          >
-            Enquire Now!
-            <span
-              style={{
-                position: "absolute",
-                left: "100%",
-                top: "50%",
-                transform: "translateY(-50%)",
-                borderWidth: "5px",
-                borderStyle: "solid",
-                borderColor: `transparent transparent transparent var(--color-brown-deep)`,
-              }}
-            />
-          </div>
-        )}
-      </button>
+      {!open && (
+        <button
+          onClick={openModal}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.1)";
+            e.currentTarget.style.boxShadow =
+              "0 12px 40px rgba(37, 179, 80, 0.45)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.boxShadow =
+              "0 8px 28px rgba(37, 179, 80, 0.35)";
+          }}
+          style={{
+            position: "fixed",
+            bottom: "28px",
+            right: "28px",
+            zIndex: 2000,
+            borderRadius: "100px",
+            padding: "14px 26px",
+            background: "linear-gradient(135deg, #2fce5a 0%, #25b350 100%)",
+            color: "#fff",
+            fontSize: "15px",
+            fontWeight: 700,
+            fontFamily: "'Outfit', sans-serif",
+            boxShadow: "0 8px 28px rgba(37, 179, 80, 0.35)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            border: "none",
+            whiteSpace: "nowrap",
+            transition: "transform 0.3s, box-shadow 0.3s",
+            animation: "inquiryPulse 2.5s ease-in-out infinite",
+          }}
+        >
+          Enquire Now!
+        </button>
+      )}
 
       {/* Pulse animation */}
       <style>{`
         @keyframes inquiryPulse {
-          0%,100% { box-shadow: 0 8px 28px rgba(92,64,51,0.35), 0 0 0 0 rgba(92,64,51,0.25); }
-          50% { box-shadow: 0 8px 28px rgba(92,64,51,0.35), 0 0 0 12px rgba(92,64,51,0); }
+          0%,100% { box-shadow: 0 8px 28px rgba(37,179,80,0.35), 0 0 0 0 rgba(37,179,80,0.25); }
+          50% { box-shadow: 0 8px 28px rgba(37,179,80,0.35), 0 0 0 12px rgba(37,179,80,0); }
         }
         @keyframes inquirySlideIn {
           from { opacity: 0; transform: translateX(40px) scale(0.97); }
@@ -927,7 +892,7 @@ export default function InquiryWidget() {
                       e.currentTarget.style.transform = "translateY(0)";
                     }}
                   >
-                    {submitting ? "Sending…" : "Send Inquiry → Get Free Quote"}
+                    {submitting ? "Submitting…" : "Submit"}
                   </button>
                 </>
               )}
