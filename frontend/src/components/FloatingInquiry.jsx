@@ -519,7 +519,7 @@ export default function InquiryWidget() {
             animation: "inquiryPulse 2.5s ease-in-out infinite",
           }}
         >
-          Enquire Now!
+          Get Bulk Quote!
         </button>
       )}
 

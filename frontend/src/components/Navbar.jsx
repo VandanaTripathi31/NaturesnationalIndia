@@ -474,7 +474,6 @@ const NavItem = ({ label, items, href, columns, openKey, onOpen, onClose }) => {
   );
 };
 
-
 const staticNavItems = [
   {
     label: "About Us",
@@ -938,7 +937,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                 }}
                 className="hidden sm:inline-flex nb-cta-btn"
               >
-                Enquire Now!
+                Get Bulk Quote!
               </a>
 
               {/* Hamburger */}
@@ -1120,7 +1119,7 @@ const Navbar = ({ onOpenInquiry, categories = [] }) => {
                     width: "100%",
                   }}
                 >
-                  Enquire Now!
+                  Get Bulk Quote!
                 </a>
               </div>
 
