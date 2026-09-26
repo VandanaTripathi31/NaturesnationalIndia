@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 /*
   Floating "back to top" button, bottom-right corner.
 
-  NOTE: InquiryWidget.jsx already places its floating "Get Free Quote"
-  button at bottom: 28px / right: 28px (58px circle). To avoid the two
-  overlapping, this one sits directly above it (bottom: 98px).
+  Stacking order (bottom-right corner, closest to the edge first):
+  BackToTop (bottom: 28px) < InquiryWidget "Get Bulk Quote" (bottom: 98px)
+  < WhatsAppButton (bottom: 168px) — this one sits lowest, underneath the
+  other two floating buttons.
   Drop <BackToTop /> once near the root layout, alongside <Navbar /> /
   <InquiryWidget /> / <Footer />.
 */
@@ -35,7 +36,7 @@ export default function BackToTop() {
       title="Back to top"
       style={{
         position: "fixed",
-        bottom: "98px",
+        bottom: "28px",
         right: "28px",
         zIndex: 1900,
         width: "44px",

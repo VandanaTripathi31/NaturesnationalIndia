@@ -15,8 +15,8 @@ export default function WhatsAppButton() {
       rel="noopener noreferrer"
       aria-label="Chat on WhatsApp"
       style={{
-        // Bottom-right corner, stacked above the inquiry (bottom:28) and
-        // back-to-top (bottom:98) buttons so none overlap.
+        // Bottom-right corner, stacked above "Get Bulk Quote" (bottom:98)
+        // and back-to-top (bottom:28) so none overlap.
         position: "fixed",
         right: "28px",
         bottom: "168px",

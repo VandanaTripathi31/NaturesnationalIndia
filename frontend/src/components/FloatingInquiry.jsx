@@ -489,26 +489,29 @@ export default function InquiryWidget() {
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = "scale(1.1)";
             e.currentTarget.style.boxShadow =
-              "0 12px 40px rgba(37, 179, 80, 0.45)";
+              "0 12px 40px rgba(92, 64, 51, 0.45)";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = "scale(1)";
             e.currentTarget.style.boxShadow =
-              "0 8px 28px rgba(37, 179, 80, 0.35)";
+              "0 8px 28px rgba(92, 64, 51, 0.35)";
           }}
           style={{
             position: "fixed",
-            bottom: "28px",
+            // Stacked above WhatsApp (28) and back-to-top (168 -> now 28,
+            // see BackToTop.jsx); this one sits in the middle.
+            bottom: "98px",
             right: "28px",
             zIndex: 2000,
             borderRadius: "100px",
             padding: "14px 26px",
-            background: "linear-gradient(135deg, #2fce5a 0%, #25b350 100%)",
+            background:
+              "var(--gradient-btn, linear-gradient(135deg, #5C3D2E 0%, #8B6344 100%))",
             color: "#fff",
             fontSize: "15px",
             fontWeight: 700,
             fontFamily: "'Outfit', sans-serif",
-            boxShadow: "0 8px 28px rgba(37, 179, 80, 0.35)",
+            boxShadow: "0 8px 28px rgba(92, 64, 51, 0.35)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -519,15 +522,15 @@ export default function InquiryWidget() {
             animation: "inquiryPulse 2.5s ease-in-out infinite",
           }}
         >
-          Enquire Now!
+          Get Bulk Quote
         </button>
       )}
 
       {/* Pulse animation */}
       <style>{`
         @keyframes inquiryPulse {
-          0%,100% { box-shadow: 0 8px 28px rgba(37,179,80,0.35), 0 0 0 0 rgba(37,179,80,0.25); }
-          50% { box-shadow: 0 8px 28px rgba(37,179,80,0.35), 0 0 0 12px rgba(37,179,80,0); }
+          0%,100% { box-shadow: 0 8px 28px rgba(92,64,51,0.35), 0 0 0 0 rgba(92,64,51,0.25); }
+          50% { box-shadow: 0 8px 28px rgba(92,64,51,0.35), 0 0 0 12px rgba(92,64,51,0); }
         }
         @keyframes inquirySlideIn {
           from { opacity: 0; transform: translateX(40px) scale(0.97); }
@@ -897,49 +900,6 @@ export default function InquiryWidget() {
                 </>
               )}
             </div>
-
-            {/* Contact Strip */}
-            {!submitted && (
-              <div
-                style={{
-                  backgroundColor: "var(--color-off-white)",
-                  padding: "14px 24px",
-                  borderTop: "1px solid var(--color-warm-gray)",
-                  display: "flex",
-                  gap: "20px",
-                  fontSize: "11px",
-                  color: "var(--color-text-muted)",
-                  fontFamily: "'Outfit', sans-serif",
-                }}
-              >
-                <span>
-                  📞{" "}
-                  <a
-                    href="tel:+919711003901"
-                    style={{
-                      color: "var(--color-brown-mid)",
-                      textDecoration: "none",
-                      fontWeight: 600,
-                    }}
-                  >
-                    +91 9711003901
-                  </a>
-                </span>
-                <span>
-                  ✉{" "}
-                  <a
-                    href="mailto:info@naturesnaturalindia.com"
-                    style={{
-                      color: "var(--color-brown-mid)",
-                      textDecoration: "none",
-                      fontWeight: 600,
-                    }}
-                  >
-                    info@naturesnaturalindia.com
-                  </a>
-                </span>
-              </div>
-            )}
           </div>
         </div>
       )}
