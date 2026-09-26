@@ -2,7 +2,7 @@
 
 import BackToTop from "./BackToTop";
 import InquiryWidget from "./FloatingInquiry";
-// import WhatsAppButton from "./WhatsAppButton"; // temporarily hidden, see below
+import WhatsAppButton from "./WhatsAppButton";
 import BrochureModal from "./BrochureModal";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
@@ -22,7 +22,7 @@ export default function SiteShell({ children, categories = [] }) {
       <Footer categories={categories} onInquiryOpen={openInquiryModal} />
       <BackToTop />
       <InquiryWidget />
-      {/* WhatsAppButton temporarily hidden per request — re-add <WhatsAppButton /> to restore. */}
+      <WhatsAppButton />
       <BrochureModal />
     </div>
   );
