@@ -1,0 +1,2 @@
+.vscode/
+backend/migration/backups/*.json

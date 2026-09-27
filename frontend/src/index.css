@@ -1,0 +1,158 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap");
+@import "tailwindcss";
+
+/* ─── Premium Brown · Black · White Palette ───────────────── */
+:root {
+  color-scheme: light;
+
+  /* Core palette */
+  --color-dark-brown: #5c4033;
+  --color-coffee-brown: #6f4e37;
+  --color-cream-white: #f8f5f2;
+  --color-pure-black: #111111;
+  --color-soft-gray: #e5e5e5;
+
+  /* Extended shades derived from the core palette */
+  --color-brown-deep: #3e2b1e; /* deepest — hero backgrounds, footer */
+  --color-brown-mid: #7a5544; /* mid — cards, subtle sections        */
+  --color-brown-light: #c4a882; /* light — borders, dividers           */
+  --color-brown-muted: #a8896c; /* muted — secondary text, icons       */
+  --color-off-white: #faf8f5; /* near-white backgrounds              */
+  --color-warm-gray: #d6d0ca; /* subtle borderas on light surfaces    */
+  --color-text-primary: #1a0f0a; /* rich near-black body text           */
+  --color-text-muted: #6b5a4e; /* secondary body text                 */
+  --color-sage-light: #ebf0e8; /* success / accent (kept subtle)      */
+  --color-sage-dark: #4a6b46;
+
+  /* Gradients */
+  --gradient-hero: linear-gradient(
+    135deg,
+    #3e2b1e 0%,
+    #5c4033 55%,
+    #6f4e37 100%
+  );
+  --gradient-btn: linear-gradient(135deg, #5c4033, #6f4e37);
+  --gradient-btn-hover: #3e2b1e;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--color-cream-white);
+  color: var(--color-text-primary);
+  font-family: "Outfit", sans-serif;
+}
+button,
+input,
+textarea,
+select,
+label {
+  font: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+.font-playfair {
+  font-family: "Playfair Display", serif;
+}
+
+/* ─── Buttons ─────────────────────────────────────────────── */
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-full font-semibold transition-all duration-200 ease-in-out px-6 py-3;
+  background: var(--gradient-btn);
+  color: var(--color-cream-white);
+  border: none;
+  box-shadow: 0 2px 10px rgba(92, 64, 51, 0.28);
+}
+.btn-primary:hover {
+  background: var(--gradient-btn-hover);
+  box-shadow: 0 4px 18px rgba(92, 64, 51, 0.38);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-full font-semibold transition-all duration-200 ease-in-out px-6 py-3;
+  border: 1.5px solid var(--color-dark-brown);
+  color: var(--color-dark-brown);
+  background: transparent;
+}
+.btn-secondary:hover {
+  background: var(--color-dark-brown);
+  color: var(--color-cream-white);
+}
+
+/* ─── Marquee ─────────────────────────────────────────────── */
+.marquee-track {
+  animation: marquee 28s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ─── Flip card ───────────────────────────────────────────── */
+.flip-card {
+  perspective: 1200px;
+}
+.flip-inner {
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+}
+.flip-card:hover .flip-inner {
+  transform: rotateY(180deg);
+}
+.flip-front,
+.flip-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+/* ─── Modal ───────────────────────────────────────────────── */
+.modal-backdrop {
+  @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+  background: rgba(17, 17, 17, 0.55);
+}
+
+.modal-panel {
+  @apply relative w-full max-w-2xl overflow-hidden rounded-[28px];
+  background: var(--color-cream-white);
+  border: 1px solid var(--color-warm-gray);
+  box-shadow: 0 30px 80px rgba(17, 17, 17, 0.22);
+}
+
+.modal-scroll {
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+}
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-off-white);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-brown-muted);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-dark-brown);
+}
