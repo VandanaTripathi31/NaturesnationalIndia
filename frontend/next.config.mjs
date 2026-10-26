@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
-  compress: false,
+  compress: true,
   async headers() {
     return [
       {
