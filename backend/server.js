@@ -7,7 +7,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env"), quiet: true });
 
 await import("./config/cloudinary.js");
-await import("./utils/cloudinaryUpload.js").then(({ verifyCloudinaryUploadAccess }) =>
+// Not awaited: it uploads a test image, which would delay every cold start.
+import("./utils/cloudinaryUpload.js").then(({ verifyCloudinaryUploadAccess }) =>
   verifyCloudinaryUploadAccess(),
 );
 
