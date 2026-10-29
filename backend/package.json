@@ -17,7 +17,8 @@
     "rehost:images:dry": "node migration/rehost-product-images.js",
     "rehost:images": "node migration/rehost-product-images.js --commit",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "verify:data": "node migration/verify.js"
+    "verify:data": "node migration/verify.js",
+    "package:cpanel": "node scripts/package-cpanel.cjs"
   },
   "keywords": [],
   "author": "",
