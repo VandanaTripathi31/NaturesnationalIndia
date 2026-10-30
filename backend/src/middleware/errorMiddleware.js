@@ -14,6 +14,19 @@ export function errorHandler(error, _req, res, _next) {
     });
   }
 
+  if (error.name === "SequelizeUniqueConstraintError") {
+    const field = Object.keys(error.fields ?? {})[0] ?? "field";
+    return res.status(409).json({
+      message: `A category with this ${field} already exists`,
+    });
+  }
+
+  if (error.name === "SequelizeValidationError") {
+    return res
+      .status(400)
+      .json({ message: error.errors?.[0]?.message ?? "Validation failed" });
+  }
+
   if (error.name === "CastError") {
     return res.status(400).json({ message: "Invalid id" });
   }
