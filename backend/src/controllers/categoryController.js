@@ -1,10 +1,12 @@
-import Category from "../models/Category.js";
+import { Op } from "sequelize";
+import { Category, Product } from "../db/models/index.js";
 import { createUniqueSlug } from "../utils/slugify.js";
+import { isDuplicateKeyError, likeContains, parseId } from "../utils/dbHelpers.js";
 import { deleteImage, uploadImageBuffer } from "../../utils/cloudinaryUpload.js";
 
 function formatCategory(category) {
   return {
-    id: category._id.toString(),
+    id: String(category.id),
     name: category.name,
     slug: category.slug,
     description: category.description ?? "",
@@ -20,26 +22,31 @@ function formatCategory(category) {
 }
 
 function buildSearchFilter(search, status) {
-  const filter = {};
+  const where = {};
 
   if (search) {
-    const regex = new RegExp(search.trim(), "i");
-    filter.$or = [
-      { name: regex },
-      { slug: regex },
-      { metaTitle: regex },
-      { metaDescription: regex },
-      { metaKeywords: regex },
+    const like = { [Op.like]: likeContains(search.trim()) };
+    where[Op.or] = [
+      { name: like },
+      { slug: like },
+      { metaTitle: like },
+      { metaDescription: like },
+      { metaKeywords: like },
     ];
   }
 
   if (status === "active") {
-    filter.isActive = true;
+    where.isActive = true;
   } else if (status === "inactive") {
-    filter.isActive = false;
+    where.isActive = false;
   }
 
-  return filter;
+  return where;
+}
+
+async function findCategory(rawId) {
+  const id = parseId(rawId);
+  return id ? Category.findByPk(id) : null;
 }
 
 export async function getCategories(req, res) {
@@ -53,12 +60,17 @@ export async function getCategories(req, res) {
     const status = req.query.status ?? "all";
     const skip = (page - 1) * limit;
 
-    const filter = buildSearchFilter(search, status);
+    const where = buildSearchFilter(search, status);
 
-    const [categories, total] = await Promise.all([
-      Category.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
-      Category.countDocuments(filter),
-    ]);
+    const { rows: categories, count: total } = await Category.findAndCountAll({
+      where,
+      order: [
+        ["createdAt", "DESC"],
+        ["id", "DESC"],
+      ],
+      offset: skip,
+      limit,
+    });
 
     return res.status(200).json({
       categories: categories.map(formatCategory),
@@ -79,7 +91,7 @@ export async function getCategories(req, res) {
 
 export async function getCategoryById(req, res) {
   try {
-    const category = await Category.findById(req.params.id);
+    const category = await findCategory(req.params.id);
 
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
@@ -137,7 +149,7 @@ export async function createCategory(req, res) {
       throw createError;
     }
   } catch (error) {
-    if (error.code === 11000) {
+    if (isDuplicateKeyError(error)) {
       return res.status(409).json({
         message: "A category with this name or slug already exists",
       });
@@ -152,7 +164,7 @@ export async function createCategory(req, res) {
 
 export async function updateCategory(req, res) {
   try {
-    const category = await Category.findById(req.params.id);
+    const category = await findCategory(req.params.id);
 
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
@@ -170,7 +182,7 @@ export async function updateCategory(req, res) {
 
     if (name !== undefined) {
       category.name = name.trim();
-      category.slug = await createUniqueSlug(Category, name, category._id);
+      category.slug = await createUniqueSlug(Category, name, category.id);
     }
 
     if (description !== undefined) category.description = description.trim();
@@ -197,7 +209,7 @@ export async function updateCategory(req, res) {
       category: formatCategory(category),
     });
   } catch (error) {
-    if (error.code === 11000) {
+    if (isDuplicateKeyError(error)) {
       return res.status(409).json({
         message: "A category with this name or slug already exists",
       });
@@ -212,7 +224,7 @@ export async function updateCategory(req, res) {
 
 export async function toggleCategoryStatus(req, res) {
   try {
-    const category = await Category.findById(req.params.id);
+    const category = await findCategory(req.params.id);
 
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
@@ -235,17 +247,25 @@ export async function toggleCategoryStatus(req, res) {
 
 export async function deleteCategory(req, res) {
   try {
-    const category = await Category.findById(req.params.id);
+    const category = await findCategory(req.params.id);
 
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
+    }
+
+    // Products reference categories; deleting one that is still in use would
+    // leave products with no public URL (and the foreign key forbids it).
+    if (await Product.count({ where: { categoryId: category.id } })) {
+      return res.status(409).json({
+        message: "Category has products and cannot be deleted",
+      });
     }
 
     if (category.image?.public_id) {
       await deleteImage(category.image.public_id);
     }
 
-    await category.deleteOne();
+    await category.destroy();
 
     return res.status(200).json({
       message: "Category deleted successfully",

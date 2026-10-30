@@ -1,9 +1,10 @@
-import Category from "../models/Category.js";
-import Product from "../models/Product.js";
+import { Op } from "sequelize";
+import { Category, Product } from "../db/models/index.js";
+import { findBySlugOrPrevious, likeContains } from "../utils/dbHelpers.js";
 
 function formatPublicCategory(category) {
   return {
-    id: category._id.toString(),
+    id: String(category.id),
     name: category.name,
     slug: category.slug,
     description: category.description ?? "",
@@ -51,7 +52,7 @@ function formatPublicProduct(product) {
       : null;
 
   return {
-    id: product._id.toString(),
+    id: String(product.id),
     name: product.name,
     slug: product.slug,
     description: product.description ?? "",
@@ -79,9 +80,23 @@ function formatPublicProduct(product) {
 
 export async function getPublicCategories(_req, res) {
   try {
-    const categories = await Category.find({ isActive: true })
-      .sort({ name: 1 })
-      .select("name slug description image metaTitle metaDescription metaKeywords");
+    const categories = await Category.findAll({
+      where: { isActive: true },
+      attributes: [
+        "id",
+        "name",
+        "slug",
+        "description",
+        "image",
+        "metaTitle",
+        "metaDescription",
+        "metaKeywords",
+      ],
+      order: [
+        ["name", "ASC"],
+        ["id", "ASC"],
+      ],
+    });
 
     return res.status(200).json({
       categories: categories.map(formatPublicCategory),
@@ -106,35 +121,53 @@ export async function searchPublicProducts(req, res) {
       return res.status(200).json({ query, products: [] });
     }
 
-    // Escape any regex metacharacters so a user typing "(" or "*" can't
-    // break the query or trigger a costly pattern.
-    const safe = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const regex = new RegExp(safe, "i");
+    // LIKE wildcards in the query are escaped, so "%" or "_" match literally.
+    const like = { [Op.like]: likeContains(query) };
 
     const [products, categoryMatches] = await Promise.all([
-      Product.find({
-        isActive: true,
-        $or: [{ name: regex }, { slug: regex }, { botanicalName: regex }],
-      })
-        .populate({
-          path: "category",
-          match: { isActive: true },
-          select: "name slug",
-        })
-        .sort({ featured: -1, name: 1 })
-        .limit(limit)
-        .select("name slug botanicalName images featured category"),
-      Category.find({
-        isActive: true,
-        $or: [{ name: regex }, { slug: regex }],
-      })
-        .sort({ name: 1 })
-        .limit(5)
-        .select("name slug image"),
+      Product.findAll({
+        where: {
+          isActive: true,
+          [Op.or]: [{ name: like }, { slug: like }, { botanicalName: like }],
+        },
+        include: [
+          {
+            model: Category,
+            as: "category",
+            where: { isActive: true },
+            required: true,
+            attributes: ["id", "name", "slug"],
+          },
+        ],
+        attributes: [
+          "id",
+          "name",
+          "slug",
+          "botanicalName",
+          "images",
+          "featured",
+          "categoryId",
+        ],
+        order: [
+          ["featured", "DESC"],
+          ["name", "ASC"],
+          ["id", "ASC"],
+        ],
+        limit,
+      }),
+      Category.findAll({
+        where: { isActive: true, [Op.or]: [{ name: like }, { slug: like }] },
+        attributes: ["id", "name", "slug", "image"],
+        order: [
+          ["name", "ASC"],
+          ["id", "ASC"],
+        ],
+        limit: 5,
+      }),
     ]);
 
     const categories = categoryMatches.map((c) => ({
-      id: c._id.toString(),
+      id: String(c.id),
       name: c.name,
       slug: c.slug,
       image: c.image?.url ?? null,
@@ -145,7 +178,7 @@ export async function searchPublicProducts(req, res) {
     const results = products
       .filter((product) => product.category)
       .map((product) => ({
-        id: product._id.toString(),
+        id: String(product.id),
         name: product.name,
         slug: product.slug,
         botanicalName: product.botanicalName ?? "",
@@ -175,9 +208,8 @@ export async function getPublicCategoryBySlug(req, res) {
     const search = req.query.search?.trim() ?? "";
     const skip = (page - 1) * limit;
 
-    const category = await Category.findOne({
-      isActive: true,
-      $or: [{ slug: req.params.slug }, { previousSlugs: req.params.slug }],
+    const category = await findBySlugOrPrevious(Category, req.params.slug, {
+      where: { isActive: true },
     });
 
     if (!category) {
@@ -185,36 +217,41 @@ export async function getPublicCategoryBySlug(req, res) {
     }
 
     const productFilter = {
-      category: category._id,
+      categoryId: category.id,
       isActive: true,
     };
 
     if (search) {
-      // FIX: unlike searchPublicProducts (the header dropdown), this never
-      // escaped regex metacharacters. Product names in this catalog
-      // routinely contain them (e.g. "Fenugreek Carrier Oil (100ml)") --
-      // `new RegExp("(100ml)", "i")` throws a SyntaxError (unmatched
-      // group), which the outer try/catch turns into a 500 and the
-      // frontend has nothing sensible to show. Escaping makes the
-      // in-category sidebar search behave the same as the header search
-      // for any query, special characters included.
-      const safe = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const regex = new RegExp(safe, "i");
-      productFilter.$or = [
-        { name: regex },
-        { slug: regex },
-        { botanicalName: regex },
-        { origin: regex },
+      // LIKE wildcards are escaped, so product names with "(" or "%" in them
+      // (e.g. "Fenugreek Carrier Oil (100ml)") match literally.
+      const like = { [Op.like]: likeContains(search.trim()) };
+      productFilter[Op.or] = [
+        { name: like },
+        { slug: like },
+        { botanicalName: like },
+        { origin: like },
       ];
     }
 
     const [products, total] = await Promise.all([
-      Product.find(productFilter)
-        .populate("category", "name slug image")
-        .sort({ featured: -1, createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      Product.countDocuments(productFilter),
+      Product.findAll({
+        where: productFilter,
+        include: [
+          {
+            model: Category,
+            as: "category",
+            attributes: ["id", "name", "slug", "image"],
+          },
+        ],
+        order: [
+          ["featured", "DESC"],
+          ["createdAt", "DESC"],
+          ["id", "ASC"],
+        ],
+        offset: skip,
+        limit,
+      }),
+      Product.count({ where: productFilter }),
     ]);
 
     return res.status(200).json({
@@ -237,13 +274,26 @@ export async function getPublicCategoryBySlug(req, res) {
 
 export async function getPublicProductBySlug(req, res) {
   try {
-    const product = await Product.findOne({
-      isActive: true,
-      $or: [{ slug: req.params.slug }, { previousSlugs: req.params.slug }],
-    }).populate({
-      path: "category",
-      match: { isActive: true },
-      select: "name slug image description metaTitle metaDescription metaKeywords",
+    const product = await findBySlugOrPrevious(Product, req.params.slug, {
+      where: { isActive: true },
+      include: [
+        {
+          model: Category,
+          as: "category",
+          where: { isActive: true },
+          required: false,
+          attributes: [
+            "id",
+            "name",
+            "slug",
+            "image",
+            "description",
+            "metaTitle",
+            "metaDescription",
+            "metaKeywords",
+          ],
+        },
+      ],
     });
 
     if (!product || !product.category) {
@@ -264,8 +314,7 @@ export async function getPublicProductBySlug(req, res) {
 export async function getPublicRelatedProducts(req, res) {
   try {
     const product = await Product.findOne({
-      slug: req.params.slug,
-      isActive: true,
+      where: { slug: req.params.slug, isActive: true },
     });
 
     if (!product) {
@@ -274,14 +323,26 @@ export async function getPublicRelatedProducts(req, res) {
 
     const limit = Math.min(Number.parseInt(req.query.limit, 10) || 8, 20);
 
-    const relatedProducts = await Product.find({
-      _id: { $ne: product._id },
-      category: product.category,
-      isActive: true,
-    })
-      .populate("category", "name slug")
-      .sort({ featured: -1, createdAt: -1 })
-      .limit(limit);
+    const relatedProducts = await Product.findAll({
+      where: {
+        id: { [Op.ne]: product.id },
+        categoryId: product.categoryId,
+        isActive: true,
+      },
+      include: [
+        {
+          model: Category,
+          as: "category",
+          attributes: ["id", "name", "slug"],
+        },
+      ],
+      order: [
+        ["featured", "DESC"],
+        ["createdAt", "DESC"],
+        ["id", "ASC"],
+      ],
+      limit,
+    });
 
     return res.status(200).json({
       products: relatedProducts.map(formatPublicProduct),

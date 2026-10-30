@@ -1,3 +1,5 @@
+import { Op } from "sequelize";
+
 export function generateSlug(value) {
   return value
     .toLowerCase()
@@ -19,13 +21,13 @@ export async function createUniqueSlug(Model, name, excludeId = null) {
   let counter = 1;
 
   while (true) {
-    const query = { slug };
+    const where = { slug };
 
     if (excludeId) {
-      query._id = { $ne: excludeId };
+      where.id = { [Op.ne]: excludeId };
     }
 
-    const existing = await Model.findOne(query).select("_id");
+    const existing = await Model.findOne({ where, attributes: ["id"] });
 
     if (!existing) {
       return slug;

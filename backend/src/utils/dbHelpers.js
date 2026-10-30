@@ -1,3 +1,5 @@
+import { Op } from "sequelize";
+
 // Parses a route/query id. Strict on purpose: MySQL casts '64f3a1...' to 64
 // in `WHERE id = ?`, so a loose parse could match the wrong row.
 export function parseId(value) {
@@ -15,4 +17,20 @@ export function likeContains(term) {
 
 export function isDuplicateKeyError(error) {
   return error?.name === "SequelizeUniqueConstraintError";
+}
+
+// Finds the row served under `slug`, falling back to rows that used it as a
+// previous slug (so old indexed URLs keep resolving). `previousSlugs` holds a
+// JSON array in a text column, so match the quoted element and re-check it.
+export async function findBySlugOrPrevious(Model, slug, options = {}) {
+  const { where = {}, ...rest } = options;
+  const direct = await Model.findOne({ where: { ...where, slug }, ...rest });
+  if (direct) return direct;
+
+  const quoted = likeContains(JSON.stringify(slug));
+  const candidates = await Model.findAll({
+    where: { ...where, previousSlugs: { [Op.like]: quoted } },
+    ...rest,
+  });
+  return candidates.find((row) => row.previousSlugs.includes(slug)) ?? null;
 }
