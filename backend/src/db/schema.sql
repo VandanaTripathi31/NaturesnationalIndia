@@ -128,6 +128,7 @@ CREATE TABLE IF NOT EXISTS blogs (
 CREATE TABLE IF NOT EXISTS blog_blog_categories (
   blogId INT UNSIGNED NOT NULL,
   blogCategoryId INT UNSIGNED NOT NULL,
+  position INT NOT NULL DEFAULT 0,
   PRIMARY KEY (blogId, blogCategoryId),
   CONSTRAINT fk_bbc_blog FOREIGN KEY (blogId) REFERENCES blogs (id) ON DELETE CASCADE,
   CONSTRAINT fk_bbc_category FOREIGN KEY (blogCategoryId) REFERENCES blog_categories (id) ON DELETE CASCADE

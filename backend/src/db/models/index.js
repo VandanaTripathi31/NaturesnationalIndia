@@ -12,6 +12,7 @@ const BlogBlogCategory = sequelize.define(
   {
     blogId: { type: DataTypes.INTEGER.UNSIGNED, primaryKey: true },
     blogCategoryId: { type: DataTypes.INTEGER.UNSIGNED, primaryKey: true },
+    position: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   },
   { tableName: "blog_blog_categories", timestamps: false },
 );

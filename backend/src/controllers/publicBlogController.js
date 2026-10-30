@@ -1,14 +1,57 @@
-import Blog from "../models/Blog.js";
-import BlogCategory from "../models/BlogCategory.js";
+import { Op } from "sequelize";
+import {
+  Blog,
+  BlogBlogCategory,
+  BlogCategory,
+} from "../db/models/index.js";
+import { likeContains } from "../utils/dbHelpers.js";
 
 // Kept in its own controller (rather than folded into publicController.js)
 // so the blog feature stays a self-contained addition — nothing here
 // touches Product/Category code paths.
 
+const SUMMARY_ATTRIBUTES = [
+  "id",
+  "title",
+  "slug",
+  "excerpt",
+  "image",
+  "author",
+  "tags",
+  "publishedAt",
+  "createdAt",
+];
+
+const categoriesInclude = {
+  model: BlogCategory,
+  as: "categories",
+  attributes: ["id", "title", "slug"],
+  through: { attributes: ["position"] },
+  required: false,
+};
+
+const NEWEST_FIRST = [
+  ["publishedAt", "DESC"],
+  ["createdAt", "DESC"],
+  ["id", "DESC"],
+];
+
+// A blog keeps its categories in the order they were assigned.
+function orderedCategories(blog) {
+  return [...(blog.categories ?? [])].sort(
+    (a, b) =>
+      (a.BlogBlogCategory?.position ?? 0) - (b.BlogBlogCategory?.position ?? 0) ||
+      a.id - b.id,
+  );
+}
+
+// `tags` is a JSON array in a text column: match the quoted element.
+const hasTag = (tag) => ({ [Op.like]: likeContains(JSON.stringify(tag)) });
+
 function formatBlogCategory(category) {
   if (!category) return null;
   return {
-    id: category._id.toString(),
+    id: String(category.id),
     title: category.title,
     slug: category.slug,
   };
@@ -16,15 +59,13 @@ function formatBlogCategory(category) {
 
 function formatBlogSummary(blog) {
   return {
-    id: blog._id.toString(),
+    id: String(blog.id),
     title: blog.title,
     slug: blog.slug,
     excerpt: blog.excerpt ?? "",
     image: blog.image?.url ?? null,
     author: blog.author ?? "",
-    categories: (blog.categories ?? [])
-      .map(formatBlogCategory)
-      .filter(Boolean),
+    categories: orderedCategories(blog).map(formatBlogCategory).filter(Boolean),
     tags: blog.tags ?? [],
     publishedAt: blog.publishedAt,
   };
@@ -40,6 +81,15 @@ function formatBlogDetail(blog) {
   };
 }
 
+async function blogIdsInCategories(categoryIds) {
+  if (!categoryIds.length) return [];
+  const rows = await BlogBlogCategory.findAll({
+    where: { blogCategoryId: { [Op.in]: categoryIds } },
+    attributes: ["blogId"],
+  });
+  return rows.map((row) => row.blogId);
+}
+
 export async function getPublicBlogs(req, res) {
   try {
     const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
@@ -52,40 +102,44 @@ export async function getPublicBlogs(req, res) {
     const tag = req.query.tag?.trim() ?? "";
     const skip = (page - 1) * limit;
 
-    const filter = { isActive: true };
+    const where = { isActive: true };
+    const and = [];
 
     if (search) {
-      const safe = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const regex = new RegExp(safe, "i");
-      filter.$or = [{ title: regex }, { excerpt: regex }, { tags: regex }];
+      const like = { [Op.like]: likeContains(search) };
+      and.push({ [Op.or]: [{ title: like }, { excerpt: like }, { tags: like }] });
     }
 
     if (tag) {
-      filter.tags = tag;
+      and.push({ tags: hasTag(tag) });
     }
 
     if (categorySlug) {
       const category = await BlogCategory.findOne({
-        slug: categorySlug,
-        isActive: true,
-      }).select("_id");
+        where: { slug: categorySlug, isActive: true },
+        attributes: ["id"],
+      });
       if (!category) {
         return res.status(200).json({
           blogs: [],
           pagination: { page, limit, total: 0, pages: 0 },
         });
       }
-      filter.categories = category._id;
+      and.push({ id: { [Op.in]: await blogIdsInCategories([category.id]) } });
     }
 
+    if (and.length) where[Op.and] = and;
+
     const [blogs, total] = await Promise.all([
-      Blog.find(filter)
-        .populate({ path: "categories", select: "title slug" })
-        .sort({ publishedAt: -1, createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .select("title slug excerpt image author categories tags publishedAt"),
-      Blog.countDocuments(filter),
+      Blog.findAll({
+        where,
+        attributes: SUMMARY_ATTRIBUTES,
+        include: [categoriesInclude],
+        order: NEWEST_FIRST,
+        offset: skip,
+        limit,
+      }),
+      Blog.count({ where }),
     ]);
 
     return res.status(200).json({
@@ -108,9 +162,9 @@ export async function getPublicBlogs(req, res) {
 export async function getPublicBlogBySlug(req, res) {
   try {
     const blog = await Blog.findOne({
-      slug: req.params.slug,
-      isActive: true,
-    }).populate({ path: "categories", select: "title slug" });
+      where: { slug: req.params.slug, isActive: true },
+      include: [categoriesInclude],
+    });
 
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
@@ -133,25 +187,42 @@ export async function getPublicRelatedBlogs(req, res) {
     );
 
     const blog = await Blog.findOne({
-      slug: req.params.slug,
-      isActive: true,
-    }).select("categories tags");
+      where: { slug: req.params.slug, isActive: true },
+      include: [{ ...categoriesInclude, attributes: ["id"] }],
+    });
 
     if (!blog) {
       return res.status(200).json({ blogs: [] });
     }
 
-    const related = await Blog.find({
-      _id: { $ne: blog._id },
-      isActive: true,
-      $or: [
-        { categories: { $in: blog.categories } },
-        { tags: { $in: blog.tags } },
+    const sharedCategoryBlogIds = await blogIdsInCategories(
+      (blog.categories ?? []).map((c) => c.id),
+    );
+    const matches = [
+      ...(sharedCategoryBlogIds.length
+        ? [{ id: { [Op.in]: sharedCategoryBlogIds } }]
+        : []),
+      ...blog.tags.map((tag) => ({ tags: hasTag(tag) })),
+    ];
+
+    if (!matches.length) {
+      return res.status(200).json({ blogs: [] });
+    }
+
+    const related = await Blog.findAll({
+      where: {
+        id: { [Op.ne]: blog.id },
+        isActive: true,
+        [Op.or]: matches,
+      },
+      attributes: SUMMARY_ATTRIBUTES,
+      include: [categoriesInclude],
+      order: [
+        ["publishedAt", "DESC"],
+        ["id", "DESC"],
       ],
-    })
-      .sort({ publishedAt: -1 })
-      .limit(limit)
-      .select("title slug excerpt image author categories tags publishedAt");
+      limit,
+    });
 
     return res.status(200).json({ blogs: related.map(formatBlogSummary) });
   } catch (error) {
