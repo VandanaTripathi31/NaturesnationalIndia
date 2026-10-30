@@ -16,7 +16,7 @@
     "migrate:slugs": "node migration/align-slugs.js --commit",
     "rehost:images:dry": "node migration/rehost-product-images.js",
     "rehost:images": "node migration/rehost-product-images.js --commit",
-    "test": "node --test tests/",
+    "test": "node --test \"tests/**/*.test.js\"",
     "verify:data": "node migration/verify.js",
     "package:cpanel": "node scripts/package-cpanel.cjs"
   },
