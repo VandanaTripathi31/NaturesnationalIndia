@@ -18,7 +18,8 @@
     "rehost:images": "node migration/rehost-product-images.js --commit",
     "test": "node --test --test-concurrency=1 \"tests/**/*.test.js\"",
     "verify:data": "node migration/verify.js",
-    "package:cpanel": "node scripts/package-cpanel.cjs"
+    "package:cpanel": "node scripts/package-cpanel.cjs",
+    "migrate:sql": "node scripts/mongo-to-sql.js"
   },
   "keywords": [],
   "author": "",
