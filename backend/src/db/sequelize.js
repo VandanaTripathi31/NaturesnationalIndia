@@ -15,6 +15,9 @@ export const sequelize = new Sequelize(
     dialect: "mysql",
     timezone: "+00:00",
     logging: false,
+    // Fail fast when the database is unreachable (default wait is 60s).
+    pool: { acquire: 10000 },
+    dialectOptions: { connectTimeout: 10000 },
   },
 );
 
