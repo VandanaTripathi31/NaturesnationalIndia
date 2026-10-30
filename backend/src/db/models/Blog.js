@@ -28,7 +28,7 @@ const Blog = sequelize.define(
     }),
     metaKeywords: text("metaKeywords", { label: "Meta keywords", max: 255 }),
     isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
-    publishedAt: { type: DataTypes.DATE, allowNull: true },
+    publishedAt: { type: DataTypes.DATE(3), allowNull: true },
     legacyId: legacyIdColumn,
   },
   { tableName: "blogs" },

@@ -246,7 +246,7 @@ export async function getPublicCategoryBySlug(req, res) {
         order: [
           ["featured", "DESC"],
           ["createdAt", "DESC"],
-          ["id", "ASC"],
+          ["id", "DESC"],
         ],
         offset: skip,
         limit,
@@ -339,7 +339,7 @@ export async function getPublicRelatedProducts(req, res) {
       order: [
         ["featured", "DESC"],
         ["createdAt", "DESC"],
-        ["id", "ASC"],
+        ["id", "DESC"],
       ],
       limit,
     });

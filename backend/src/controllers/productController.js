@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
-import Product from "../models/Product.js";
-import Category from "../models/Category.js";
+import { Op } from "sequelize";
+import { Category, Product } from "../db/models/index.js";
 import { createUniqueSlug } from "../utils/slugify.js";
+import { isDuplicateKeyError, likeContains, parseId } from "../utils/dbHelpers.js";
 import {
   deleteImages,
   uploadMultipleImageBuffers,
@@ -11,7 +11,7 @@ function formatCategoryRef(category) {
   if (!category) return null;
 
   return {
-    id: category._id?.toString?.() ?? category.id,
+    id: String(category.id),
     name: category.name,
     slug: category.slug,
     image: category.image ?? null,
@@ -42,11 +42,11 @@ function formatProduct(product) {
     product.category && typeof product.category === "object"
       ? formatCategoryRef(product.category)
       : product.category
-        ? { id: product.category.toString() }
+        ? { id: String(product.category) }
         : null;
 
   return {
-    id: product._id.toString(),
+    id: String(product.id),
     name: product.name,
     slug: product.slug,
     description: product.description ?? "",
@@ -67,37 +67,53 @@ function formatProduct(product) {
   };
 }
 
+// Includes the category the way every admin response expects it.
+const categoryInclude = (attributes) => ({
+  model: Category,
+  as: "category",
+  attributes,
+});
+const ADMIN_CATEGORY_ATTRS = ["id", "name", "slug", "image", "isActive"];
+
+function findProduct(rawId, options = {}) {
+  const id = parseId(rawId);
+  return id ? Product.findByPk(id, options) : null;
+}
+
 function buildSearchFilter(search, status, categoryId) {
-  const filter = {};
+  const where = {};
 
   if (search) {
-    const regex = new RegExp(search.trim(), "i");
-    filter.$or = [
-      { name: regex },
-      { slug: regex },
-      { botanicalName: regex },
-      { origin: regex },
-      { metaTitle: regex },
-      { metaDescription: regex },
-      { metaKeywords: regex },
+    const like = { [Op.like]: likeContains(search.trim()) };
+    where[Op.or] = [
+      { name: like },
+      { slug: like },
+      { botanicalName: like },
+      { origin: like },
+      { metaTitle: like },
+      { metaDescription: like },
+      { metaKeywords: like },
     ];
   }
 
   if (status === "active") {
-    filter.isActive = true;
+    where.isActive = true;
   } else if (status === "inactive") {
-    filter.isActive = false;
+    where.isActive = false;
   }
 
-  if (categoryId && mongoose.Types.ObjectId.isValid(categoryId)) {
-    filter.category = categoryId;
+  // An unparseable category filter is ignored, as before.
+  const parsedCategoryId = parseId(categoryId);
+  if (parsedCategoryId) {
+    where.categoryId = parsedCategoryId;
   }
 
-  return filter;
+  return where;
 }
 
-async function ensureCategoryExists(categoryId) {
-  const category = await Category.findById(categoryId);
+async function ensureCategoryExists(rawCategoryId) {
+  const id = parseId(rawCategoryId);
+  const category = id ? await Category.findByPk(id) : null;
 
   if (!category) {
     const error = new Error("Category not found");
@@ -153,15 +169,20 @@ export async function getProducts(req, res) {
     const categoryId = req.query.category ?? "";
     const skip = (page - 1) * limit;
 
-    const filter = buildSearchFilter(search, status, categoryId);
+    const where = buildSearchFilter(search, status, categoryId);
 
     const [products, total] = await Promise.all([
-      Product.find(filter)
-        .populate("category", "name slug image isActive")
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      Product.countDocuments(filter),
+      Product.findAll({
+        where,
+        include: [categoryInclude(ADMIN_CATEGORY_ATTRS)],
+        order: [
+          ["createdAt", "DESC"],
+          ["id", "DESC"],
+        ],
+        offset: skip,
+        limit,
+      }),
+      Product.count({ where }),
     ]);
 
     return res.status(200).json({
@@ -183,10 +204,9 @@ export async function getProducts(req, res) {
 
 export async function getProductById(req, res) {
   try {
-    const product = await Product.findById(req.params.id).populate(
-      "category",
-      "name slug image isActive",
-    );
+    const product = await findProduct(req.params.id, {
+      include: [categoryInclude(ADMIN_CATEGORY_ATTRS)],
+    });
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -203,7 +223,7 @@ export async function getProductById(req, res) {
 
 export async function getRelatedProducts(req, res) {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await findProduct(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -211,14 +231,20 @@ export async function getRelatedProducts(req, res) {
 
     const limit = Math.min(Number.parseInt(req.query.limit, 10) || 8, 20);
 
-    const relatedProducts = await Product.find({
-      _id: { $ne: product._id },
-      category: product.category,
-      isActive: true,
-    })
-      .populate("category", "name slug")
-      .sort({ featured: -1, createdAt: -1 })
-      .limit(limit);
+    const relatedProducts = await Product.findAll({
+      where: {
+        id: { [Op.ne]: product.id },
+        categoryId: product.categoryId,
+        isActive: true,
+      },
+      include: [categoryInclude(["id", "name", "slug"])],
+      order: [
+        ["featured", "DESC"],
+        ["createdAt", "DESC"],
+        ["id", "DESC"],
+      ],
+      limit,
+    });
 
     return res.status(200).json({
       products: relatedProducts.map(formatProduct),
@@ -266,7 +292,7 @@ export async function createProduct(req, res) {
       benefits,
       uses,
       featured,
-      category,
+      categoryId: parseId(category),
       images: uploadedImages,
       metaTitle: metaTitle?.trim(),
       metaDescription: metaDescription?.trim(),
@@ -274,10 +300,9 @@ export async function createProduct(req, res) {
       isActive,
     });
 
-    const populated = await Product.findById(product._id).populate(
-      "category",
-      "name slug image isActive",
-    );
+    const populated = await Product.findByPk(product.id, {
+      include: [categoryInclude(ADMIN_CATEGORY_ATTRS)],
+    });
 
     return res.status(201).json({
       message: "Product created successfully",
@@ -292,7 +317,7 @@ export async function createProduct(req, res) {
       return res.status(404).json({ message: error.message });
     }
 
-    if (error.code === 11000) {
+    if (isDuplicateKeyError(error)) {
       return res.status(409).json({
         message: "A product with this name or slug already exists",
       });
@@ -309,7 +334,7 @@ export async function updateProduct(req, res) {
   let uploadedImages = [];
 
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await findProduct(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -334,12 +359,12 @@ export async function updateProduct(req, res) {
 
     if (category !== undefined) {
       await ensureCategoryExists(category);
-      product.category = category;
+      product.categoryId = parseId(category);
     }
 
     if (name !== undefined) {
       product.name = name.trim();
-      product.slug = await createUniqueSlug(Product, name, product._id);
+      product.slug = await createUniqueSlug(Product, name, product.id);
     }
 
     if (description !== undefined) product.description = description.trim();
@@ -371,10 +396,9 @@ export async function updateProduct(req, res) {
       await deleteImages(imagesToDelete);
     }
 
-    const populated = await Product.findById(product._id).populate(
-      "category",
-      "name slug image isActive",
-    );
+    const populated = await Product.findByPk(product.id, {
+      include: [categoryInclude(ADMIN_CATEGORY_ATTRS)],
+    });
 
     return res.status(200).json({
       message: "Product updated successfully",
@@ -389,7 +413,7 @@ export async function updateProduct(req, res) {
       return res.status(404).json({ message: error.message });
     }
 
-    if (error.code === 11000) {
+    if (isDuplicateKeyError(error)) {
       return res.status(409).json({
         message: "A product with this name or slug already exists",
       });
@@ -404,10 +428,9 @@ export async function updateProduct(req, res) {
 
 export async function toggleProductStatus(req, res) {
   try {
-    const product = await Product.findById(req.params.id).populate(
-      "category",
-      "name slug image isActive",
-    );
+    const product = await findProduct(req.params.id, {
+      include: [categoryInclude(ADMIN_CATEGORY_ATTRS)],
+    });
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -430,10 +453,9 @@ export async function toggleProductStatus(req, res) {
 
 export async function toggleProductFeatured(req, res) {
   try {
-    const product = await Product.findById(req.params.id).populate(
-      "category",
-      "name slug image isActive",
-    );
+    const product = await findProduct(req.params.id, {
+      include: [categoryInclude(ADMIN_CATEGORY_ATTRS)],
+    });
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -456,7 +478,7 @@ export async function toggleProductFeatured(req, res) {
 
 export async function deleteProduct(req, res) {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await findProduct(req.params.id);
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -466,7 +488,7 @@ export async function deleteProduct(req, res) {
       await deleteImages(product.images.map((image) => image.public_id));
     }
 
-    await product.deleteOne();
+    await product.destroy();
 
     return res.status(200).json({
       message: "Product deleted successfully",
