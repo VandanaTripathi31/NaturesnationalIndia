@@ -42,8 +42,8 @@ import { fileURLToPath, pathToFileURL } from "url";
 import dotenv from "dotenv";
 
 import { connectMongo, disconnectMongo } from "./db/mongo.js";
-import Product from "../src/models/Product.js";
-import Category from "../src/models/Category.js";
+import Product from "../scripts/legacy-mongo/models/Product.js";
+import Category from "../scripts/legacy-mongo/models/Category.js";
 import { logger } from "./lib/logger.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

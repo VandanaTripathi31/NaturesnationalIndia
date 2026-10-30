@@ -23,8 +23,8 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { connectMongo, disconnectMongo } from "./db/mongo.js";
-import Category from "../src/models/Category.js";
-import Product from "../src/models/Product.js";
+import Category from "../scripts/legacy-mongo/models/Category.js";
+import Product from "../scripts/legacy-mongo/models/Product.js";
 import { generateSlug } from "../src/utils/slugify.js";
 import {
   CATEGORY_SLUGS,

@@ -13,7 +13,7 @@ import("./utils/cloudinaryUpload.js").then(({ verifyCloudinaryUploadAccess }) =>
 );
 
 const { createApp } = await import("./src/app.js");
-const { dbConnection } = await import("./dbConnection.js");
+const { connectDb } = await import("./src/db/sequelize.js");
 
 const app = createApp();
 const PORT = process.env.PORT || 5000;
@@ -22,7 +22,7 @@ app.listen(PORT, () => {
   console.log(`App running at ${PORT}`);
 });
 
-dbConnection();
+connectDb();
 
 // Surface SMTP problems in the deploy logs at boot (non-blocking).
 const { verifyMailer } = await import("./src/utils/mailer.js");

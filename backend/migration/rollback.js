@@ -6,8 +6,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const { connectMongo, disconnectMongo } = await import("./db/mongo.js");
-const { default: Category } = await import("../src/models/Category.js");
-const { default: Product } = await import("../src/models/Product.js");
+const { default: Category } = await import("../scripts/legacy-mongo/models/Category.js");
+const { default: Product } = await import("../scripts/legacy-mongo/models/Product.js");
 const { logger } = await import("./lib/logger.js");
 
 // Rollback = remove ONLY the documents this migration created. Because every

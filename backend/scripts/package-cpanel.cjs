@@ -19,7 +19,6 @@ for (const dir of ["config", "src", "utils"]) {
 for (const file of [
   "app.cjs",
   "server.js",
-  "dbConnection.js",
   "package.json",
   "package-lock.json",
 ]) {

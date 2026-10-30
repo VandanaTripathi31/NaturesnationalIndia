@@ -1,4 +1,4 @@
-import Product from "../src/models/Product.js";
+import Product from "../scripts/legacy-mongo/models/Product.js";
 import { fetchProducts, fetchCategoryLinks, fetchProductImages } from "./lib/magento.js";
 import { resolveImage } from "./lib/images.js";
 import {

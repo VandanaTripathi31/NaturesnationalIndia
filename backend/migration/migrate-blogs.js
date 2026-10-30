@@ -271,8 +271,8 @@ export async function migrateBlogs({ dryRun: dry = false } = {}) {
     postIdToCatIds.get(post_id).push(cat_id);
   }
 
-  const { default: Blog } = await import("../src/models/Blog.js");
-  const { default: BlogCategory } = await import("../src/models/BlogCategory.js");
+  const { default: Blog } = await import("../scripts/legacy-mongo/models/Blog.js");
+  const { default: BlogCategory } = await import("../scripts/legacy-mongo/models/BlogCategory.js");
 
   // ── Categories first, so posts can resolve their ObjectId refs ─────────
   const catIdToObjectId = new Map();

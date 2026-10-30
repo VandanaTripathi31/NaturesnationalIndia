@@ -7,8 +7,8 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 
 const { createMysqlPool } = await import("./db/mysql.js");
 const { connectMongo, disconnectMongo } = await import("./db/mongo.js");
-const { default: Category } = await import("../src/models/Category.js");
-const { default: Product } = await import("../src/models/Product.js");
+const { default: Category } = await import("../scripts/legacy-mongo/models/Category.js");
+const { default: Product } = await import("../scripts/legacy-mongo/models/Product.js");
 
 // Post-migration validation: compares source vs destination counts and spot
 // checks integrity (unique slugs, every product has a category, no orphans).

@@ -1,4 +1,4 @@
-import Category from "../src/models/Category.js";
+import Category from "../scripts/legacy-mongo/models/Category.js";
 import { fetchCategories } from "./lib/magento.js";
 import { resolveImage } from "./lib/images.js";
 import {

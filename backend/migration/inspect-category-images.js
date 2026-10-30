@@ -5,7 +5,7 @@
 
 import "dotenv/config";
 import { connectMongo, disconnectMongo } from "./db/mongo.js";
-import Category from "../src/models/Category.js";
+import Category from "../scripts/legacy-mongo/models/Category.js";
 
 async function main() {
   await connectMongo();
