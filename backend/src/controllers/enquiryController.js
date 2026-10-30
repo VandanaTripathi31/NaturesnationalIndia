@@ -1,5 +1,14 @@
-import Enquiry from "../models/Enquiry.js";
+import { Op } from "sequelize";
+import { Enquiry } from "../db/models/index.js";
 import { sendEnquiryEmail } from "../utils/mailer.js";
+import { likeContains, parseId } from "../utils/dbHelpers.js";
+
+// Admin responses carry both `id` and `_id` (same value): the dashboard
+// still reads `_id`.
+function formatEnquiry(enquiry) {
+  const { mongoId: _mongoId, ...fields } = enquiry.toJSON();
+  return { ...fields, id: String(enquiry.id), _id: String(enquiry.id) };
+}
 
 const ENQUIRY_STATUSES = ["new", "read", "responded", "archived"];
 
@@ -46,14 +55,16 @@ export async function createEnquiry(req, res) {
     // Prevent duplicate submissions: same email + message within 60s
     // (double-clicks, retries) returns the existing record instead of a dup.
     const recent = await Enquiry.findOne({
-      email: String(email).toLowerCase(),
-      message: message ?? "",
-      createdAt: { $gte: new Date(Date.now() - 60_000) },
+      where: {
+        email: String(email).toLowerCase(),
+        message: message ?? "",
+        createdAt: { [Op.gte]: new Date(Date.now() - 60_000) },
+      },
     });
     if (recent) {
       return res.status(200).json({
         message: "Enquiry already received.",
-        id: recent._id.toString(),
+        id: String(recent.id),
         duplicate: true,
       });
     }
@@ -74,7 +85,7 @@ export async function createEnquiry(req, res) {
 
     return res.status(201).json({
       message: "Enquiry submitted successfully.",
-      id: enquiry._id.toString(),
+      id: String(enquiry.id),
     });
   } catch (error) {
     return res
@@ -88,34 +99,35 @@ export async function listEnquiries(req, res) {
   try {
     const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
     const limit = Math.min(100, Number.parseInt(req.query.limit, 10) || 25);
-    const filter = {};
-    if (req.query.status) filter.status = req.query.status;
+    const where = {};
+    if (req.query.status) where.status = req.query.status;
 
     // Free-text search across the fields shown in the admin table.
     const search = req.query.q?.trim() ?? req.query.search?.trim() ?? "";
     if (search) {
-      const safe = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const regex = new RegExp(safe, "i");
-      filter.$or = [
-        { name: regex },
-        { email: regex },
-        { phone: regex },
-        { country: regex },
-        { category: regex },
-        { message: regex },
+      const like = { [Op.like]: likeContains(search) };
+      where[Op.or] = [
+        { name: like },
+        { email: like },
+        { phone: like },
+        { country: like },
+        { category: like },
+        { message: like },
       ];
     }
 
-    const [items, total] = await Promise.all([
-      Enquiry.find(filter)
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit),
-      Enquiry.countDocuments(filter),
-    ]);
+    const { rows: items, count: total } = await Enquiry.findAndCountAll({
+      where,
+      order: [
+        ["createdAt", "DESC"],
+        ["id", "DESC"],
+      ],
+      offset: (page - 1) * limit,
+      limit,
+    });
 
     return res.status(200).json({
-      enquiries: items,
+      enquiries: items.map(formatEnquiry),
       total,
       page,
       limit,
@@ -137,14 +149,15 @@ export async function updateEnquiryStatus(req, res) {
         message: `Status must be one of: ${ENQUIRY_STATUSES.join(", ")}`,
       });
     }
-    const enquiry = await Enquiry.findByIdAndUpdate(
-      req.params.id,
-      { $set: { status } },
-      { new: true },
-    );
+    const id = parseId(req.params.id);
+    const enquiry = id ? await Enquiry.findByPk(id) : null;
     if (!enquiry) return res.status(404).json({ message: "Enquiry not found" });
-    return res.status(200).json({ enquiry });
+    await enquiry.update({ status });
+    return res.status(200).json({ enquiry: formatEnquiry(enquiry) });
   } catch (error) {
+    if (error.name === "SequelizeValidationError") {
+      return res.status(400).json({ message: "Invalid status" });
+    }
     return res
       .status(500)
       .json({ message: "Failed to update enquiry", error: error.message });
@@ -154,8 +167,10 @@ export async function updateEnquiryStatus(req, res) {
 // DELETE /api/enquiries/:id — admin delete (protected).
 export async function deleteEnquiry(req, res) {
   try {
-    const enquiry = await Enquiry.findByIdAndDelete(req.params.id);
+    const id = parseId(req.params.id);
+    const enquiry = id ? await Enquiry.findByPk(id) : null;
     if (!enquiry) return res.status(404).json({ message: "Enquiry not found" });
+    await enquiry.destroy();
     return res.status(200).json({ message: "Enquiry deleted" });
   } catch (error) {
     return res

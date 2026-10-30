@@ -12,3 +12,7 @@ process.env.JWT_SECRET ||= "test-secret";
 if (!process.env.TEST_DB_NAME || process.env.TEST_DB_NAME === process.env.DB_NAME) {
   throw new Error("TEST_DB_NAME must be set and differ from DB_NAME");
 }
+
+// Never call Google reCAPTCHA or Brevo from tests.
+delete process.env.RECAPTCHA_SECRET_KEY;
+delete process.env.BREVO_API_KEY;
