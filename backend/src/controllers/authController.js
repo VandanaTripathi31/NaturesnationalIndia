@@ -1,10 +1,10 @@
 import jwt from "jsonwebtoken";
-import Admin from "../models/Admin.js";
+import { Admin } from "../db/models/index.js";
 
 function signAdminToken(admin) {
   return jwt.sign(
     {
-      id: admin._id.toString(),
+      id: String(admin.id),
       name: admin.name,
       email: admin.email,
       role: admin.role,
@@ -18,7 +18,7 @@ function signAdminToken(admin) {
 
 function formatAdmin(admin) {
   return {
-    id: admin._id.toString(),
+    id: String(admin.id),
     name: admin.name,
     email: admin.email,
     role: admin.role,
@@ -33,7 +33,7 @@ export async function login(req, res) {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    const admin = await Admin.findOne({ email }).select("+password");
+    const admin = await Admin.scope("withPassword").findOne({ where: { email } });
 
     if (!admin) {
       return res.status(401).json({ message: "Invalid email or password" });
