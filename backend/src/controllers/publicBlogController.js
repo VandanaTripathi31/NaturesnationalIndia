@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, literal, where as sqlWhere } from "sequelize";
 import {
   Blog,
   BlogBlogCategory,
@@ -45,8 +45,14 @@ function orderedCategories(blog) {
   );
 }
 
-// `tags` is a JSON array in a text column: match the quoted element.
-const hasTag = (tag) => ({ [Op.like]: likeContains(JSON.stringify(tag)) });
+// `tags` is a JSON array in a text column: match the quoted element, with a
+// binary collation so the match is exact-case like the old Mongo query.
+const hasTag = (tag) =>
+  sqlWhere(
+    literal("`Blog`.`tags` COLLATE utf8mb4_bin"),
+    Op.like,
+    likeContains(JSON.stringify(tag)),
+  );
 
 function formatBlogCategory(category) {
   if (!category) return null;
@@ -111,7 +117,7 @@ export async function getPublicBlogs(req, res) {
     }
 
     if (tag) {
-      and.push({ tags: hasTag(tag) });
+      and.push(hasTag(tag));
     }
 
     if (categorySlug) {
@@ -202,7 +208,7 @@ export async function getPublicRelatedBlogs(req, res) {
       ...(sharedCategoryBlogIds.length
         ? [{ id: { [Op.in]: sharedCategoryBlogIds } }]
         : []),
-      ...blog.tags.map((tag) => ({ tags: hasTag(tag) })),
+      ...blog.tags.map(hasTag),
     ];
 
     if (!matches.length) {

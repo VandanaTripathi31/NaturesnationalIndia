@@ -133,3 +133,21 @@ test("related: shares a category or a tag, excludes self and drafts, newest firs
   const none = await anon("GET", "/api/public/blogs/missing/related");
   assert.deepEqual(none.body, { blogs: [] });
 });
+
+test("tag matching is exact-case (like the old Mongo query)", async () => {
+  const main = await blog({ title: "Main", slug: "main", tags: ["Essential oils"] });
+  await blog({ title: "WrongCase", slug: "wrongcase", tags: ["Essential Oils"] });
+  await blog({ title: "RightCase", slug: "rightcase", tags: ["Essential oils"] });
+
+  const related = await anon("GET", `/api/public/blogs/${main.slug}/related`);
+  assert.deepEqual(related.body.blogs.map((b) => b.title), ["RightCase"]);
+
+  const byTag = await anon("GET", `/api/public/blogs?tag=${encodeURIComponent("Essential oils")}`);
+  assert.deepEqual(byTag.body.blogs.map((b) => b.title).sort(), ["Main", "RightCase"]);
+});
+
+test("blog content keeps leading and trailing whitespace", async () => {
+  const b = await blog({ title: "Spaced", slug: "spaced", content: "\r\n<p>x</p>\r\n" });
+  const res = await anon("GET", `/api/public/blogs/${b.slug}`);
+  assert.equal(res.body.blog.content, "\r\n<p>x</p>\r\n");
+});

@@ -6,6 +6,7 @@ import {
   legacyIdColumn,
   mongoIdColumn,
   text,
+  timestampColumns,
 } from "../fields.js";
 
 const Product = sequelize.define(
@@ -55,6 +56,7 @@ const Product = sequelize.define(
     specifications: jsonField("specifications", () => []),
     legacyId: legacyIdColumn,
     previousSlugs: jsonField("previousSlugs", () => []),
+    ...timestampColumns,
   },
   { tableName: "products" },
 );

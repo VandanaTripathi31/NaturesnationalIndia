@@ -105,3 +105,13 @@ test("admin password is hashed, hidden by default, verifiable", async () => {
   assert.equal(await withPassword.comparePassword("secret1"), true);
   assert.equal(await withPassword.comparePassword("wrong"), false);
 });
+
+test("timestamps keep millisecond precision", async () => {
+  const when = new Date("2024-03-01T10:20:30.456Z");
+  const created = await Category.create(
+    { name: "Precise", slug: "precise", createdAt: when, updatedAt: when },
+    { silent: true },
+  );
+  const found = await Category.findByPk(created.id);
+  assert.equal(found.createdAt.toISOString(), "2024-03-01T10:20:30.456Z");
+});

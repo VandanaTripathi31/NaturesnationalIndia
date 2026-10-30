@@ -1,7 +1,12 @@
 import { DataTypes } from "sequelize";
 import bcrypt from "bcryptjs";
 import { sequelize } from "../sequelize.js";
-import { idColumn, mongoIdColumn, text } from "../fields.js";
+import {
+  idColumn,
+  mongoIdColumn,
+  text,
+  timestampColumns,
+} from "../fields.js";
 
 const Admin = sequelize.define(
   "Admin",
@@ -19,6 +24,7 @@ const Admin = sequelize.define(
       validate: { len: { args: [6, 255], msg: "Password must be at least 6 characters" } },
     },
     role: { type: DataTypes.STRING(50), allowNull: false, defaultValue: "admin" },
+    ...timestampColumns,
   },
   {
     tableName: "admins",

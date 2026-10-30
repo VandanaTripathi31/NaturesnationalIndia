@@ -6,6 +6,7 @@ import {
   legacyIdColumn,
   mongoIdColumn,
   text,
+  timestampColumns,
 } from "../fields.js";
 
 const Category = sequelize.define(
@@ -37,6 +38,7 @@ const Category = sequelize.define(
     isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
     legacyId: legacyIdColumn,
     previousSlugs: jsonField("previousSlugs", () => []),
+    ...timestampColumns,
   },
   { tableName: "categories" },
 );

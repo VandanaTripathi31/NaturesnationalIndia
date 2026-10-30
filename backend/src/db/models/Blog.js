@@ -6,6 +6,7 @@ import {
   legacyIdColumn,
   mongoIdColumn,
   text,
+  timestampColumns,
 } from "../fields.js";
 
 const Blog = sequelize.define(
@@ -16,7 +17,7 @@ const Blog = sequelize.define(
     title: text("title", { required: true, label: "Blog title", max: 255 }),
     // Case-preserving on purpose (legacy identifiers); the column is utf8mb4_bin.
     slug: { ...text("slug", { required: true, label: "Slug" }), unique: true },
-    content: { ...text("content", { long: true }), defaultValue: "" },
+    content: { ...text("content", { long: true, trim: false }), defaultValue: "" },
     excerpt: text("excerpt", { label: "Excerpt", max: 500, long: true }),
     image: jsonField("image", () => null),
     author: { ...text("author"), defaultValue: "Natures Natural" },
@@ -30,6 +31,7 @@ const Blog = sequelize.define(
     isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
     publishedAt: { type: DataTypes.DATE(3), allowNull: true },
     legacyId: legacyIdColumn,
+    ...timestampColumns,
   },
   { tableName: "blogs" },
 );

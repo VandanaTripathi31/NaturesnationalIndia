@@ -60,6 +60,17 @@ async function upsert(Model, row) {
   const existing = await Model.findOne({ where: { mongoId: row.mongoId } });
   if (existing) {
     await existing.update(row, opts);
+    // Sequelize treats createdAt/updatedAt as read-only on update; keep both in
+    // sync with the Mongo values.
+    const stale = {};
+    for (const key of ["createdAt", "updatedAt"]) {
+      if (row[key] && +existing[key] !== +row[key]) stale[key] = row[key];
+    }
+    if (Object.keys(stale).length) {
+      await Model.sequelize
+        .getQueryInterface()
+        .bulkUpdate(Model.getTableName(), stale, { id: existing.id });
+    }
     return existing;
   }
   return Model.create(row, opts);

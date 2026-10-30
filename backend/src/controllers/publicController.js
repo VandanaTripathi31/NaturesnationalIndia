@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import { Category, Product } from "../db/models/index.js";
-import { findBySlugOrPrevious, likeContains } from "../utils/dbHelpers.js";
+import { findBySlugOrPrevious, likeContains, nameByteOrder } from "../utils/dbHelpers.js";
 
 function formatPublicCategory(category) {
   return {
@@ -92,10 +92,7 @@ export async function getPublicCategories(_req, res) {
         "metaDescription",
         "metaKeywords",
       ],
-      order: [
-        ["name", "ASC"],
-        ["id", "ASC"],
-      ],
+      order: [nameByteOrder("Category"), ["id", "ASC"]],
     });
 
     return res.status(200).json({
@@ -150,7 +147,7 @@ export async function searchPublicProducts(req, res) {
         ],
         order: [
           ["featured", "DESC"],
-          ["name", "ASC"],
+          nameByteOrder("Product"),
           ["id", "ASC"],
         ],
         limit,
@@ -158,10 +155,7 @@ export async function searchPublicProducts(req, res) {
       Category.findAll({
         where: { isActive: true, [Op.or]: [{ name: like }, { slug: like }] },
         attributes: ["id", "name", "slug", "image"],
-        order: [
-          ["name", "ASC"],
-          ["id", "ASC"],
-        ],
+        order: [nameByteOrder("Category"), ["id", "ASC"]],
         limit: 5,
       }),
     ]);

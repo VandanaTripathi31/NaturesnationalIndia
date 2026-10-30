@@ -1,6 +1,11 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../sequelize.js";
-import { idColumn, mongoIdColumn, text } from "../fields.js";
+import {
+  idColumn,
+  mongoIdColumn,
+  text,
+  timestampColumns,
+} from "../fields.js";
 
 const Enquiry = sequelize.define(
   "Enquiry",
@@ -26,6 +31,7 @@ const Enquiry = sequelize.define(
         },
       },
     },
+    ...timestampColumns,
   },
   { tableName: "enquiries" },
 );

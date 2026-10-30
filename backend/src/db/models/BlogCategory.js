@@ -1,6 +1,12 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../sequelize.js";
-import { idColumn, legacyIdColumn, mongoIdColumn, text } from "../fields.js";
+import {
+  idColumn,
+  legacyIdColumn,
+  mongoIdColumn,
+  text,
+  timestampColumns,
+} from "../fields.js";
 
 const BlogCategory = sequelize.define(
   "BlogCategory",
@@ -21,6 +27,7 @@ const BlogCategory = sequelize.define(
     sortOrder: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
     legacyId: legacyIdColumn,
+    ...timestampColumns,
   },
   { tableName: "blog_categories" },
 );

@@ -247,3 +247,13 @@ test("public category page: products featured first then newest, search, paginat
 
   assert.equal((await anon("GET", "/api/public/categories/missing")).status, 404);
 });
+
+test("public search sorts names in byte order: uppercase before lowercase", async () => {
+  await product({ name: "Lavender certified organic" });
+  await product({ name: "Lavender Essential" });
+  const { body } = await anon("GET", "/api/public/search?q=lavender");
+  assert.deepEqual(body.products.map((p) => p.name), [
+    "Lavender Essential",
+    "Lavender certified organic",
+  ]);
+});

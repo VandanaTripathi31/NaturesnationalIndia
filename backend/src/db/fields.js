@@ -4,7 +4,10 @@ import { DataTypes } from "sequelize";
 
 // Trimmed string column. `lower` lowercases (slugs). `max` adds a length
 // validator with the wording the old Mongoose schemas used.
-export function text(name, { max, label, lower = false, required = false, long = false } = {}) {
+export function text(
+  name,
+  { max, label, lower = false, required = false, long = false, trim = true } = {},
+) {
   const validate = {};
   if (max) {
     validate.len = { args: [0, max], msg: `${label} cannot exceed ${max} characters` };
@@ -18,7 +21,7 @@ export function text(name, { max, label, lower = false, required = false, long =
     allowNull: !required,
     validate,
     set(value) {
-      let v = typeof value === "string" ? value.trim() : value;
+      let v = trim && typeof value === "string" ? value.trim() : value;
       if (lower && typeof v === "string") v = v.toLowerCase();
       this.setDataValue(name, v);
     },
@@ -65,4 +68,11 @@ export const legacyIdColumn = {
   type: DataTypes.INTEGER,
   allowNull: true,
   unique: true,
+};
+
+// Millisecond precision, matching the DATETIME(3) columns (Sequelize's default
+// DATE type would write whole seconds only).
+export const timestampColumns = {
+  createdAt: { type: DataTypes.DATE(3), allowNull: false },
+  updatedAt: { type: DataTypes.DATE(3), allowNull: false },
 };

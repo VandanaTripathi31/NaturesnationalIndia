@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, literal } from "sequelize";
 
 // Parses a route/query id. Strict on purpose: MySQL casts '64f3a1...' to 64
 // in `WHERE id = ?`, so a loose parse could match the wrong row.
@@ -33,4 +33,10 @@ export async function findBySlugOrPrevious(Model, slug, options = {}) {
     ...rest,
   });
   return candidates.find((row) => row.previousSlugs.includes(slug)) ?? null;
+}
+
+// ORDER BY name in byte order (uppercase before lowercase), which is how the
+// old Mongo sort ordered strings. `alias` is the model name used in the query.
+export function nameByteOrder(alias) {
+  return [literal(`\`${alias}\`.\`name\` COLLATE utf8mb4_bin`), "ASC"];
 }
