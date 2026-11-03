@@ -3,19 +3,19 @@ export function notFoundHandler(_req, res) {
 }
 
 export function errorHandler(error, _req, res, _next) {
-  if (error instanceof multerError(error)) {
+  if (isUploadError(error)) {
     return res.status(400).json({ message: error.message });
   }
 
   if (error.code === 11000) {
     const field = Object.keys(error.keyPattern ?? {})[0] ?? "field";
     return res.status(409).json({
-      message: `A category with this ${field} already exists`,
+      message: `A record with this ${field} already exists`,
     });
   }
 
   if (error.name === "CastError") {
-    return res.status(400).json({ message: "Invalid category id" });
+    return res.status(400).json({ message: "Invalid id" });
   }
 
   const statusCode = error.statusCode ?? 500;
@@ -27,6 +27,6 @@ export function errorHandler(error, _req, res, _next) {
   });
 }
 
-function multerError(error) {
+function isUploadError(error) {
   return error?.name === "MulterError" || /image files/i.test(error?.message ?? "");
 }

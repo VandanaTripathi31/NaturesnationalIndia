@@ -56,7 +56,9 @@ app.use(
       }
 
       console.warn(`[cors] Blocked origin: ${origin}`);
-      callback(new Error("Not allowed by CORS"));
+      const error = new Error("Not allowed by CORS");
+      error.statusCode = 403;
+      callback(error);
     },
     credentials: true,
   }),
