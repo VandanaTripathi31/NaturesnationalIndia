@@ -1,6 +1,8 @@
 import Enquiry from "../models/Enquiry.js";
 import { sendEnquiryEmail } from "../utils/mailer.js";
 
+const ENQUIRY_STATUSES = ["new", "read", "responded", "archived"];
+
 // Verify a Google reCAPTCHA token. If RECAPTCHA_SECRET_KEY is not configured,
 // verification is skipped so the form keeps working until keys are added.
 async function verifyRecaptcha(token) {
@@ -130,6 +132,11 @@ export async function listEnquiries(req, res) {
 export async function updateEnquiryStatus(req, res) {
   try {
     const { status } = req.body ?? {};
+    if (!ENQUIRY_STATUSES.includes(status)) {
+      return res.status(400).json({
+        message: `Status must be one of: ${ENQUIRY_STATUSES.join(", ")}`,
+      });
+    }
     const enquiry = await Enquiry.findByIdAndUpdate(
       req.params.id,
       { $set: { status } },
