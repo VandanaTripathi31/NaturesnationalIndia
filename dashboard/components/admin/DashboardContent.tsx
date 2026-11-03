@@ -342,7 +342,7 @@ export default function DashboardContent() {
                 <Eyebrow>Latest</Eyebrow>
                 <CardTitle>Recent Activity</CardTitle>
               </div>
-              <Link href="/admin/orders" style={{ fontSize: 11, fontWeight: 700, color: "#2F8D6E", textDecoration: "none" }}>View all →</Link>
+              <Link href="/admin/enquiries" style={{ fontSize: 11, fontWeight: 700, color: "#2F8D6E", textDecoration: "none" }}>View all →</Link>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {recentActivity.map(({ icon: Icon, color, bg, text, time }, i) => (
@@ -389,9 +389,9 @@ export default function DashboardContent() {
               <Eyebrow>Quick Actions</Eyebrow>
               <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
                 {[
-                  { href: "/admin/products/new", label: "Add Product", icon: Plus },
-                  { href: "/admin/orders", label: "View Orders", icon: ShoppingBag },
-                  { href: "/admin/settings", label: "Settings", icon: Settings },
+                  { href: "/admin/products", label: "Add Product", icon: Plus },
+                  { href: "/admin/enquiries", label: "View Enquiries", icon: ShoppingBag },
+                  { href: "/admin/categories", label: "Categories", icon: Settings },
                 ].map(({ href, label, icon: Icon }) => (
                   <Link
                     key={label}

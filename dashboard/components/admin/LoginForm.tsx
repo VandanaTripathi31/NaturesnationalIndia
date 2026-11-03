@@ -307,25 +307,18 @@ export default function LoginForm() {
             />
 
             {/* Remember me + Forgot password row */}
-            <div className="flex items-center justify-between pt-0.5">
+            <div className="flex items-center justify-start pt-0.5">
               <label className="flex cursor-pointer items-center gap-2 select-none">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border accent-[#2F8D6E ]"
-                  style={{ accentColor: "#2F8D6E " }}
+                  className="h-4 w-4 rounded border accent-[#2F8D6E]"
+                  style={{ accentColor: "#2F8D6E" }}
                   {...register("rememberMe")}
                 />
                 <span className="text-sm" style={{ color: "#6b7c61" }}>
                   Remember me
                 </span>
               </label>
-              <a
-                href="/admin/forgot-password"
-                className="text-sm font-medium transition-colors hover:underline"
-                style={{ color: "#c8922a" }}
-              >
-                Forgot password?
-              </a>
             </div>
 
             {/* Submit button */}
