@@ -32,6 +32,14 @@ type SidebarProps = {
 // dark backgrounds since it's a rich green. We only need CSS-var fixes for
 // the collapse toggle button which sits on the page surface.
 
+async function logout() {
+  try {
+    await fetch("/api/auth/logout", { method: "POST" });
+  } finally {
+    window.location.assign("/admin/login");
+  }
+}
+
 function LogoMark({ collapsed }: { collapsed: boolean }) {
   return (
     <div
@@ -176,8 +184,9 @@ function SidebarInner({
       <div className="flex-1" />
 
       <div className="flex-shrink-0" style={{ paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.12)" }}>
-        <Link
-          href="/admin/logout"
+        <button
+          type="button"
+          onClick={logout}
           title={collapsed ? "Logout" : undefined}
           className="flex items-center group"
           style={{
@@ -206,7 +215,7 @@ function SidebarInner({
               </motion.span>
             )}
           </AnimatePresence>
-        </Link>
+        </button>
       </div>
 
       {/* Collapse toggle — uses CSS vars so it adapts to dark mode */}
@@ -302,8 +311,9 @@ function MobileSidebarInner({ onClose }: { onClose?: () => void }) {
       <div className="flex-1" />
 
       <div className="flex-shrink-0" style={{ paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.12)" }}>
-        <Link
-          href="/admin/logout"
+        <button
+          type="button"
+          onClick={logout}
           className="flex items-center"
           style={{
             gap: 10, padding: "10px 14px", borderRadius: 100,
@@ -317,7 +327,7 @@ function MobileSidebarInner({ onClose }: { onClose?: () => void }) {
             <LogOut style={{ width: 14, height: 14, color: "rgba(255,255,255,0.90)" }} strokeWidth={2} />
           </div>
           Logout
-        </Link>
+        </button>
       </div>
     </div>
   );
