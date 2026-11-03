@@ -10,6 +10,7 @@ import {
   updateProduct,
 } from "../controllers/productController.js";
 import { protectAdmin } from "../middleware/authMiddleware.js";
+import { validateObjectIdParam } from "../middleware/validateObjectId.js";
 import { handleProductUpload } from "../middleware/uploadMiddleware.js";
 import {
   validateCreateProduct,
@@ -21,6 +22,7 @@ import {
 const router = Router();
 
 router.use(protectAdmin);
+router.param("id", validateObjectIdParam);
 
 router.get("/", getProducts);
 router.get("/:id/related", getRelatedProducts);

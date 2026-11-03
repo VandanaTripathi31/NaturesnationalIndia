@@ -8,6 +8,7 @@ import {
   updateCategory,
 } from "../controllers/categoryController.js";
 import { protectAdmin } from "../middleware/authMiddleware.js";
+import { validateObjectIdParam } from "../middleware/validateObjectId.js";
 import { handleCategoryUpload } from "../middleware/uploadMiddleware.js";
 import {
   validateCreateCategory,
@@ -18,6 +19,7 @@ import {
 const router = Router();
 
 router.use(protectAdmin);
+router.param("id", validateObjectIdParam);
 
 router.get("/", getCategories);
 router.get("/:id", getCategoryById);
