@@ -1,8 +1,6 @@
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import mongoose from "mongoose";
-import Admin from "../src/models/Admin.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, "..", ".env"), quiet: true });
@@ -10,19 +8,21 @@ dotenv.config({ path: path.join(__dirname, "..", ".env"), quiet: true });
 const email = process.env.ADMIN_EMAIL;
 const password = process.env.ADMIN_PASSWORD;
 
-if (!process.env.MONGO_URI || !email || !password) {
-  console.error("MONGO_URI, ADMIN_EMAIL and ADMIN_PASSWORD must be set in .env");
+if (!process.env.DB_NAME || !email || !password) {
+  console.error("DB_NAME, ADMIN_EMAIL and ADMIN_PASSWORD must be set in .env");
   process.exit(1);
 }
 
-await mongoose.connect(process.env.MONGO_URI);
+const { sequelize } = await import("../src/db/sequelize.js");
+const { Admin } = await import("../src/db/models/index.js");
 
-// Load-then-save so the model's pre-save hook hashes the password.
+// Load-then-save so the model hook hashes the password.
 const admin =
-  (await Admin.findOne({ email: email.toLowerCase() })) ??
-  new Admin({ email, name: process.env.ADMIN_NAME || "Admin" });
+  (await Admin.scope("withPassword").findOne({
+    where: { email: email.toLowerCase() },
+  })) ?? Admin.build({ email, name: process.env.ADMIN_NAME || "Admin" });
 admin.password = password;
 await admin.save();
 
 console.log(`Admin ready: ${admin.email}`);
-await mongoose.disconnect();
+await sequelize.close();
